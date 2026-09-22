@@ -13,6 +13,14 @@
   open?.addEventListener("click", () => toggleSidebar(true));
   close?.addEventListener("click", () => toggleSidebar(false));
   overlay?.addEventListener("click", () => toggleSidebar(false));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") toggleSidebar(false);
+  });
+  sidebar?.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 900px)").matches) toggleSidebar(false);
+    });
+  });
 
   const search = document.querySelector("[data-table-search]");
   const table = document.querySelector("[data-data-table]");
