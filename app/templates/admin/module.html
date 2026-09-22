@@ -2,19 +2,16 @@
 {% block content %}
 <div class="page-header compact">
   <div><div class="eyebrow">تطبيق مستقل · {{ module_key }}</div><h1>{{ title }}</h1><p>{{ description }}</p></div>
-  <a class="btn btn-primary" href="{{ api }}">فتح بيانات التطبيق</a>
+  <a class="btn btn-soft" href="{{ api }}">مصدر البيانات ↗</a>
 </div>
 <section class="module-hero-card">
-  <div><span>السجلات الحالية</span><strong>{{ count }}</strong><small>البيانات تدار من التطبيق المتخصص</small></div>
+  <div><span>السجلات</span><strong>{{ count }}</strong><small>البيانات محفوظة داخل تطبيق {{ module_key }} المستقل</small></div>
   <div class="module-flow"><span>واجهة</span><b>→</b><span>Service</span><b>→</b><span>Database</span></div>
 </section>
 <section class="panel">
-  <div class="panel-head"><div><span class="eyebrow">جاهز للتوسع</span><h2>هذه الشاشة هي مدخل {{ title }}</h2></div></div>
-  <div class="module-empty">
-    <div class="module-empty-icon">✦</div>
-    <h2>التطبيق معزول عن بقية المنظومة</h2>
-    <p>يمكن إضافة نماذج وعمليات وصلاحيات وتقارير لهذا المجال داخله دون نقل منطق العمل إلى لوحة الإدارة العامة.</p>
-    <a class="btn btn-soft" href="{{ api }}">فتح واجهة البيانات</a>
+  <div class="panel-head"><div><span class="eyebrow">عرض حي</span><h2>بيانات التطبيق</h2></div><span class="mini-badge" data-module-state>جارٍ التحميل</span></div>
+  <div class="dynamic-module" data-module-api="{{ api }}">
+    <div class="loading-state"><i></i><i></i><i></i></div>
   </div>
 </section>
 {% endblock %}
