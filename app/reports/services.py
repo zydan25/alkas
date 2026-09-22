@@ -1,14 +1,56 @@
+from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import func
-from ..models import Booking, Customer, Resource
+from ..accounting.models import Account, JournalEntry, JournalLine
+from ..extensions import db
 from ..invoices.models import Invoice
+from ..models import Booking, BookingAllocation, Customer, Resource
 from ..payments.models import Payment
+
+def date_bounds(start_date=None, end_date=None):
+    start_date = start_date or date.today()
+    end_date = end_date or start_date
+    start = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end = datetime.combine(end_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc)
+    return start, end
 
 def dashboard_snapshot():
     return {
         "bookings": Booking.query.count(),
+        "confirmed": Booking.query.filter_by(status="confirmed").count(),
         "customers": Customer.query.filter_by(is_active=True).count(),
         "resources": Resource.query.filter_by(is_active=True).count(),
-        "confirmed_bookings": Booking.query.filter_by(status="confirmed").count(),
-        "revenue_invoices": Invoice.query.filter(Invoice.status.in_(["paid","partially_paid"])).with_entities(func.coalesce(func.sum(Invoice.paid_amount), 0)).scalar() or 0,
-        "payments": Payment.query.filter_by(status="completed").with_entities(func.coalesce(func.sum(Payment.amount), 0)).scalar() or 0,
+        "payments_total": str(db.session.query(func.coalesce(func.sum(Payment.amount),0)).filter(Payment.status=="completed").scalar() or 0),
+        "invoice_balance": str(db.session.query(func.coalesce(func.sum(Invoice.balance_due),0)).scalar() or 0),
     }
+
+def financial_summary(start_date=None, end_date=None):
+    start, end = date_bounds(start_date, end_date)
+    revenue_ids = [a.id for a in Account.query.filter_by(account_type="revenue", is_active=True).all()]
+    expense_ids = [a.id for a in Account.query.filter_by(account_type="expense", is_active=True).all()]
+    revenue = db.session.query(func.coalesce(func.sum(JournalLine.credit-JournalLine.debit),0)).join(JournalEntry,JournalLine.entry_id==JournalEntry.id).filter(JournalLine.account_id.in_(revenue_ids or [-1]),JournalEntry.entry_date>=start.date(),JournalEntry.entry_date<end.date(),JournalEntry.status=="posted").scalar() or 0
+    expenses = db.session.query(func.coalesce(func.sum(JournalLine.debit-JournalLine.credit),0)).join(JournalEntry,JournalLine.entry_id==JournalEntry.id).filter(JournalLine.account_id.in_(expense_ids or [-1]),JournalEntry.entry_date>=start.date(),JournalEntry.entry_date<end.date(),JournalEntry.status=="posted").scalar() or 0
+    paid = db.session.query(func.coalesce(func.sum(Payment.amount),0)).filter(Payment.status=="completed",Payment.paid_at>=start,Payment.paid_at<end).scalar() or 0
+    return {"revenue":str(revenue),"expenses":str(expenses),"net":str(revenue-expenses),"cash_collected":str(paid),"invoices_issued":Invoice.query.filter(Invoice.issue_date>=start.date(),Invoice.issue_date<end.date()).count()}
+
+def trial_balance():
+    result=[]
+    for account in Account.query.filter_by(is_active=True).order_by(Account.code):
+        debit,credit=db.session.query(func.coalesce(func.sum(JournalLine.debit),0),func.coalesce(func.sum(JournalLine.credit),0)).join(JournalEntry,JournalLine.entry_id==JournalEntry.id).filter(JournalLine.account_id==account.id,JournalEntry.status=="posted").first()
+        result.append({"code":account.code,"name_ar":account.name_ar,"type":account.account_type,"debit":str(debit or 0),"credit":str(credit or 0),"balance":str((debit or 0)-(credit or 0))})
+    return result
+
+def booking_report(start_date=None,end_date=None):
+    start,end=date_bounds(start_date,end_date)
+    rows=Booking.query.filter(Booking.start_at<end,Booking.end_at>=start).all()
+    by_status={}
+    for row in rows: by_status[row.status]=by_status.get(row.status,0)+1
+    return {"total":len(rows),"by_status":by_status,"revenue":str(sum((row.total or 0) for row in rows))}
+
+def utilization_report(start_date=None,end_date=None):
+    start,end=date_bounds(start_date,end_date)
+    result=[]
+    for resource in Resource.query.filter_by(is_active=True).order_by(Resource.id).all():
+        allocations=BookingAllocation.query.join(Booking).filter(BookingAllocation.resource_id==resource.id,BookingAllocation.is_active.is_(True),Booking.start_at<end,Booking.end_at>start,Booking.status.in_(["confirmed","checked_in","in_progress","completed"])).all()
+        hours=sum((a.end_at-a.start_at).total_seconds()/3600 for a in allocations)
+        result.append({"resource":resource.name_ar,"booked_hours":round(hours,2),"bookings":len(allocations)})
+    return result
