@@ -19,6 +19,8 @@ from .models import (
 )
 from .announcements.models import AnnouncementCard
 from .accounting.models import FiscalPeriod
+from .policies.models import BookingPolicy, PaymentPolicy
+from .cashier.models import CashRegister
 from datetime import date
 
 
@@ -294,6 +296,30 @@ def register_commands(app):
         period_name = str(current_year)
         if not FiscalPeriod.query.filter_by(name=period_name).first():
             db.session.add(FiscalPeriod(name=period_name, starts_on=date(current_year,1,1), ends_on=date(current_year,12,31), status="open"))
+
+        if not BookingPolicy.query.filter_by(is_default=True, is_active=True).first():
+            db.session.add(BookingPolicy(
+                name_ar="السياسة الافتراضية",
+                cancellation_deadline_minutes=360,
+                refund_percent_before_deadline=100,
+                refund_percent_after_deadline=0,
+                deposit_percent=100,
+                is_default=True,
+                is_active=True,
+            ))
+        if not PaymentPolicy.query.filter_by(is_default=True, is_active=True).first():
+            db.session.add(PaymentPolicy(
+                name_ar="الدفع الافتراضي",
+                allow_cash=True,
+                allow_transfer=True,
+                allow_card=True,
+                allow_wallet=True,
+                require_full_payment=False,
+                is_default=True,
+                is_active=True,
+            ))
+        if not CashRegister.query.filter_by(code="MAIN").first():
+            db.session.add(CashRegister(code="MAIN", name_ar="الصندوق الرئيسي", location_ar="الاستقبال", is_active=True))
 
         db.session.commit()
         click.echo("تمت إضافة البيانات التجريبية للنواة.")
