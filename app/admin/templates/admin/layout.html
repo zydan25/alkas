@@ -35,7 +35,7 @@
       {% if can('invoice.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/invoices') else '' }}" href="/admin/invoices"><span>▤</span> الفواتير</a>{% endif %}
       {% if can('payment.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/payments') else '' }}" href="/admin/payments"><span>◉</span> المدفوعات</a>{% endif %}
       {% if can('cashier.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/cashier') else '' }}" href="/admin/cashier"><span>▣</span> الصناديق</a>{% endif %}
-      {% if can('accounting.view') %}<a class="side-link {{ 'active' if request.path == '/admin/accounting' else '' }}" href="/admin/accounting"><span>⌘</span> المحاسبة</a>{% endif %}{% if can('accounting.view') %}<a class="side-link sub-link" href="/admin/accounting/vouchers"><span>↔</span> السندات</a><a class="side-link sub-link" href="/admin/accounting/branches"><span>⌁</span> الفروع المحاسبية</a>{% endif %}
+      {% if can('accounting.view') %}<a class="side-link {{ 'active' if request.path == '/admin/accounting' else '' }}" href="/admin/accounting"><span>⌘</span> المحاسبة</a>{% endif %}{% if can('accounting.view') %}<a class="side-link sub-link" href="/admin/accounting/vouchers"><span>↔</span> السندات</a><a class="side-link sub-link" href="/admin/accounting/branches"><span>⌁</span> الفروع المحاسبية</a><a class="side-link sub-link" href="/admin/accounting/cost-centers"><span>◌</span> مراكز التكلفة</a>{% endif %}
       {% if can('closing.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/closing') else '' }}" href="/admin/closing"><span>✓</span> الإقفال المالي</a>{% endif %}
 
       <div class="side-section-title">الفريق</div>
