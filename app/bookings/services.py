@@ -12,6 +12,7 @@ from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
 from ..models import Booking, BookingAllocation, BookingHold, Resource, ResourceBlock, ResourceBundle, WaitlistEntry
 from ..notifications.services import notify_user
+from ..pricing.services import calculate_price
 from ..realtime import emit_booking_event
 
 
@@ -85,7 +86,7 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
     for item in normalized:
         resource = resource_map[item["resource_id"]]
         hours = Decimal(str((item["end_at"] - item["start_at"]).total_seconds() / 3600))
-        price = (Decimal(resource.base_price or 0) * hours).quantize(Decimal("0.01"))
+        price = calculate_price(resource, item["start_at"], item["end_at"])
         total += price
         db.session.add(BookingAllocation(
             booking_id=booking.id,
