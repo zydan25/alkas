@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
@@ -11,6 +11,7 @@ from ..extensions import db
 from ..invoices.models import Invoice
 from ..maintenance.models import MaintenanceRequest
 from ..models import Booking, BookingAllocation, Customer, Resource
+from ..bookings.services import cancel_booking, create_hold_booking
 from ..payments.models import Payment
 from ..tournaments.models import Tournament
 
@@ -170,3 +171,69 @@ def resources():
         return {"error": "forbidden"}, 403
     rows = Resource.query.options(joinedload(Resource.sport), joinedload(Resource.zone)).filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
     return render_template("admin/resources.html", rows=rows)
+
+
+@bp.get("/bookings/new")
+@login_required
+def booking_new():
+    if not current_user.has_permission("booking.create") and current_user.username != "admin":
+        return {"error": "forbidden"}, 403
+    return render_template(
+        "admin/booking_new.html",
+        customers=Customer.query.filter_by(is_active=True).order_by(Customer.name).limit(500).all(),
+        resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
+    )
+
+
+@bp.post("/bookings/new")
+@login_required
+def booking_create():
+    if not current_user.has_permission("booking.create") and current_user.username != "admin":
+        return {"error": "forbidden"}, 403
+    customers = Customer.query.filter_by(is_active=True).order_by(Customer.name).limit(500).all()
+    resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
+    try:
+        customer_id = int(request.form["customer_id"])
+        start_at = datetime.fromisoformat(request.form["start_at"])
+        duration = int(request.form.get("duration") or 60)
+        resource_ids = [int(v) for v in request.form.getlist("resource_ids")]
+        if duration <= 0 or not resource_ids:
+            raise ValueError("حدد المدة وملعبًا واحدًا على الأقل")
+        booking, _token = create_hold_booking(
+            customer_id=customer_id,
+            resource_ids=resource_ids,
+            start_at=start_at,
+            end_at=start_at + timedelta(minutes=duration),
+            source="staff",
+            minutes=60,
+        )
+        from ..bookings.services import confirm_booking
+        confirm_booking(booking.id, current_user.id)
+    except (KeyError, ValueError, TypeError) as exc:
+        return render_template("admin/booking_new.html", customers=customers, resources=resources, error=str(exc)), 400
+    except Exception:
+        db.session.rollback()
+        return render_template("admin/booking_new.html", customers=customers, resources=resources, error="تعذر إنشاء الحجز؛ تحقق من التعارض والبيانات"), 409
+    return redirect(url_for("admin.bookings", date=start_at.date().isoformat()))
+
+
+@bp.post("/bookings/bulk-cancel")
+@login_required
+def bookings_bulk_cancel():
+    if not current_user.has_permission("booking.cancel") and current_user.username != "admin":
+        return {"error": "forbidden"}, 403
+    ids = []
+    for value in request.form.getlist("booking_ids"):
+        try:
+            ids.append(int(value))
+        except ValueError:
+            continue
+    for booking_id in dict.fromkeys(ids):
+        booking = db.session.get(Booking, booking_id)
+        if not booking:
+            continue
+        try:
+            cancel_booking(booking.id, "إلغاء جماعي من الإدارة", current_user.id)
+        except ValueError:
+            continue
+    return redirect(url_for("admin.bookings"))
