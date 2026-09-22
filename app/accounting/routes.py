@@ -106,3 +106,46 @@ def api():
         "posted_entries": JournalEntry.query.filter_by(status="posted").count(),
         "lines": JournalLine.query.count(),
     })
+
+
+@bp.get("/periods/new")
+@login_required
+def period_new():
+    if current_user.username != "admin" and not current_user.has_permission("closing.manage"):
+        return {"error":"forbidden"},403
+    return render_template("accounting/period_form.html")
+
+
+@bp.post("/periods/new")
+@login_required
+def period_create():
+    if current_user.username != "admin" and not current_user.has_permission("closing.manage"):
+        return {"error":"forbidden"},403
+    try:
+        name=(request.form.get("name") or "").strip()
+        starts=date.fromisoformat(request.form["starts_on"])
+        ends=date.fromisoformat(request.form["ends_on"])
+        if not name or ends < starts:
+            raise ValueError("بيانات الفترة غير صحيحة")
+        if FiscalPeriod.query.filter_by(name=name).first():
+            raise ValueError("اسم الفترة مستخدم")
+        db.session.add(FiscalPeriod(name=name,starts_on=starts,ends_on=ends,status="open"))
+        db.session.commit()
+    except (KeyError,TypeError,ValueError) as exc:
+        return render_template("accounting/period_form.html",error=str(exc)),400
+    return redirect(url_for("accounting.ui"))
+
+
+@bp.post("/periods/<int:period_id>/close")
+@login_required
+def period_close(period_id):
+    if current_user.username != "admin" and not current_user.has_permission("closing.manage"):
+        return {"error":"forbidden"},403
+    period=db.session.get(FiscalPeriod,period_id)
+    if not period: return {"error":"الفترة غير موجودة"},404
+    if period.status=="closed": return {"error":"الفترة مغلقة مسبقًا"},400
+    from datetime import datetime, timezone
+    period.status="closed"
+    period.closed_at=datetime.now(timezone.utc)
+    db.session.commit()
+    return redirect(url_for("accounting.ui"))
