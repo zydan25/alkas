@@ -14,7 +14,7 @@ from ..models import Booking, BookingAllocation, Customer, Resource
 from ..payments.models import Payment
 from ..tournaments.models import Tournament
 
-bp = Blueprint("admin", __name__, url_prefix="/admin")
+bp = Blueprint("admin", __name__, url_prefix="/admin", template_folder="templates")
 
 
 def _allowed():
@@ -48,24 +48,24 @@ def dashboard():
 
     bookings = (
         Booking.query
-        .options(joinedload(Booking.customer), joinedload(Booking.allocations).joinedload(BookingAllocation.resource))
+        .options(
+            joinedload(Booking.customer),
+            joinedload(Booking.allocations).joinedload(BookingAllocation.resource),
+        )
         .filter(Booking.start_at < end, Booking.end_at > start)
         .order_by(Booking.start_at)
         .limit(80).all()
     )
 
-    today_bookings = []
-    for b in bookings:
-        tone = _booking_tone(b.status)
-        today_bookings.append({
-            "id": b.id,
-            "start_at": b.start_at,
-            "end_at": b.end_at,
-            "customer_name": b.customer.name if b.customer else "بدون عميل",
-            "resource_names": [a.resource.name_ar for a in b.allocations if a.resource],
-            "status_ar": STATUS_LABELS.get(b.status, b.status),
-            "tone": tone,
-        })
+    today_bookings = [{
+        "id": b.id,
+        "start_at": b.start_at,
+        "end_at": b.end_at,
+        "customer_name": b.customer.name if b.customer else "بدون عميل",
+        "resource_names": [a.resource.name_ar for a in b.allocations if a.resource],
+        "status_ar": STATUS_LABELS.get(b.status, b.status),
+        "tone": _booking_tone(b.status),
+    } for b in bookings]
 
     resources_status = []
     for resource in Resource.query.filter_by(is_active=True).order_by(Resource.id).limit(24):
@@ -127,7 +127,6 @@ def bookings():
 
     start = datetime(selected_date.year, selected_date.month, selected_date.day, tzinfo=timezone.utc)
     end = start + timedelta(days=1)
-
     rows = (
         Booking.query
         .options(joinedload(Booking.customer), joinedload(Booking.allocations).joinedload(BookingAllocation.resource))
@@ -137,25 +136,17 @@ def bookings():
     )
 
     timeline = [{
-        "id": b.id,
-        "number": b.booking_number,
+        "id": b.id, "number": b.booking_number,
         "customer": b.customer.name if b.customer else "بدون عميل",
         "phone": b.customer.phone if b.customer else "",
-        "start": b.start_at,
-        "end": b.end_at,
+        "start": b.start_at, "end": b.end_at,
         "resources": [a.resource.name_ar for a in b.allocations if a.resource],
         "status": STATUS_LABELS.get(b.status, b.status),
         "tone": _booking_tone(b.status),
-        "payment_status": b.payment_status,
-        "total": b.total,
+        "payment_status": b.payment_status, "total": b.total,
     } for b in rows]
 
-    return render_template(
-        "admin/bookings.html",
-        selected_date=selected_date,
-        timeline=timeline,
-        total=len(timeline),
-    )
+    return render_template("admin/bookings.html", selected_date=selected_date, timeline=timeline, total=len(timeline))
 
 
 @bp.get("/customers")
@@ -179,15 +170,3 @@ def resources():
         return {"error": "forbidden"}, 403
     rows = Resource.query.options(joinedload(Resource.sport), joinedload(Resource.zone)).filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
     return render_template("admin/resources.html", rows=rows)
-
-
-@bp.get("/money")
-@login_required
-def money():
-    if not current_user.has_permission("accounting.view") and current_user.username != "admin":
-        return {"error": "forbidden"}, 403
-    account_count = Account.query.filter_by(is_active=True).count()
-    entries = JournalEntry.query.order_by(JournalEntry.id.desc()).limit(20).all()
-    invoices = Invoice.query.order_by(Invoice.id.desc()).limit(12).all()
-    payments = Payment.query.order_by(Payment.id.desc()).limit(12).all()
-    return render_template("admin/money.html", account_count=account_count, entries=entries, invoices=invoices, payments=payments)
