@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from .models import FinancialClose
 
-bp = Blueprint("closing", __name__, url_prefix="/admin/closing")
+bp = Blueprint("closing", __name__, url_prefix="/admin/closing", template_folder="templates")
 
 @bp.get("")
 @login_required
