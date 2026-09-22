@@ -1,54 +1,71 @@
 # ملاعب الكأس — Alkas Sports City Management
 
-منصة تشغيل وإدارة متكاملة لمدينة ملاعب ومنشأة رياضية، مبنية بـ Flask/Python وPostgreSQL، ومصممة منذ البداية لتدعم الحجوزات الزمنية، الحجز متعدد الملاعب، الحجز الكامل للمنشأة، التسعير الديناميكي، المدفوعات، المحاسبة بالقيد المزدوج، الموظفين، البطولات، الصيانة، الإعلانات، الإشعارات الفورية والبث.
+نظام إدارة متكامل لمدينة ملاعب ومنشأة رياضية، مبني بـ Flask/Python وPostgreSQL مع تصميم Modular Monolith.
 
-## مبادئ التصميم
-- Modular Monolith: كل مجال تجاري داخل Module مستقل.
-- Flask Application Factory + Blueprints.
-- SQLAlchemy 2.x + Flask-Migrate/Alembic.
-- PostgreSQL هو مصدر الحقيقة للحجز والبيانات المالية.
-- منع تعارض الحجوزات على مستوى قاعدة البيانات، وليس JavaScript فقط.
-- فصل حالة الحجز عن حالة الدفع.
-- الحجز الواحد يمكن أن يحتوي على عدة موارد رياضية.
-- دعم حجز مجموعة موارد أو الحجز الكامل للمنشأة عبر Resource Bundles.
-- إعدادات الهوية والألوان والمظهر والإعلانات قابلة للتعديل من قاعدة البيانات.
-- واجهة عربية RTL قابلة للاستخدام على الهاتف والكمبيوتر وPWA-ready.
-- Real-time events عبر Flask-SocketIO مع Redis اختياري.
-- Audit trail للعمليات الحساسة.
+## النطاق
 
-## تشغيل محلي سريع
+الحجز بالوقت مع ملعب واحد أو عدة ملاعب، أكثر من فترة في الطلب الواحد، حزم موارد، Hold مؤقت، عدّاد انتهاء، فحص توافر، Quote، منع تعارض PostgreSQL، قائمة انتظار، إلغاء، وسياسة استرجاع.
 
-1. أنشئ PostgreSQL وقاعدة البيانات.
-2. انسخ .env.example إلى .env وعدّل القيم.
-3. أنشئ البيئة الافتراضية وثبت requirements.txt.
-4. أنشئ migration أولي بعد مراجعة Models:
+المسار المالي والتشغيلي:
 
-```bash
-flask --app wsgi db init
-flask --app wsgi db migrate -m "initial schema"
+Booking → Invoice → Payment → Accounting → Notification → Realtime Dashboard
+
+المالية: الفواتير، المدفوعات، الصناديق والورديات، شجرة الحسابات، القيود المزدوجة، الفترات المالية، الإقفال، الاسترجاع والقيود العكسية، التقارير.
+
+الموارد والموظفون: الملاعب والمناطق والرياضات، حزم الموارد، التسعير حسب المورد/الرياضة/اليوم/الساعة/المدة، الصيانة، الموظفون، الحضور، الورديات والرواتب.
+
+الرياضة: العضويات، الباقات، التدريب، البطولات، المباريات، الفرق واللاعبون.
+
+المحتوى والإعلام: الأخبار، العروض، الكوبونات، الحملات الإعلانية، بطاقات الصفحة الرئيسية، البث المباشر، وصفحات الجمهور العامة.
+
+بطاقات الصفحة الرئيسية تدعم النص والصورة والفيديو والرابط والبطاقات المؤقتة مع أولوية ووقت بداية ونهاية.
+
+الإشعارات: مركز داخل التطبيق، قراءة فردية/جماعية، WebSocket فوري، سجل قنوات التسليم وتفضيلات Push/WhatsApp/SMS/Email.
+
+الصلاحيات: RBAC مستقل مع admin.access وصلاحيات منفصلة لكل Module.
+
+التدقيق: Audit Log للمستخدم والعملية والكيان والمعرف والحالة وIP وUser-Agent.
+
+## الهيكل
+
+app/ يحتوي على تطبيقات accounting, bookings, cashier, closing, customers, employees, inventory, invoices, live, maintenance, memberships, news, notifications, offers, packages, payments, payroll, policies, pricing, public, reports, resources, shifts, staff, suppliers, teams, tournaments, training, users, settings. وapp/models/ أصبح طبقة compatibility/re-export فقط.
+
+القاعدة المعمارية: Route → Service → Domain/Event → Persistence
+
+## PostgreSQL وFlask-Migrate
+
+مجلد migrations موجود ويحتوي baseline revision. على خادم جديد:
+
+cd /home/root/projects/alkas
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+ثم اضبط DATABASE_URL وSECRET_KEY.
+
+بعدها:
+
 flask --app wsgi db upgrade
-```
+flask --app wsgi create-admin --username admin --password 'CHANGE_THIS'
+flask --app wsgi seed-demo
 
-5. شغّل:
+بعد تعديل Models:
 
-```bash
-python wsgi.py
-```
+flask --app wsgi db migrate -m 'describe the schema change'
+flask --app wsgi db upgrade
 
-## النواة الحالية
-- المستخدمون والأدوار والصلاحيات.
-- العملاء.
-- المنشأة والمناطق والرياضات والموارد وحزم الموارد.
-- محرك الحجز الأساسي والتخصيصات الزمنية.
-- منع تداخل الموارد في PostgreSQL.
-- حجوزات HOLD مع انتهاء زمني.
-- إعدادات الموقع والهوية البصرية.
-- بطاقات الإعلانات العامة: مؤقتة، نص، صورة، فيديو، رابط.
-- API بسيط للتوافر والحجز.
-- أحداث لحظية للحجز والتنبيهات.
-- نماذج أساس للمحاسبة: Accounts / Journal Entries / Journal Lines.
+تنظيف الحجوزات المؤقتة:
 
-## الاتجاه المعماري
-Route -> Service -> Domain/Event -> Persistence/Notifications
+flask --app wsgi expire-holds
 
-لا يوضع منطق التسعير أو المحاسبة أو منع التعارض داخل قوالب HTML أو Routes مباشرة.
+## PWA
+
+الـManifest أصبح ديناميكيًا من إعدادات الموقع، والـService Worker يوفر shell أساسيًا للعمل دون اتصال. الهوية والألوان يمكن تغييرها من الإعدادات مع زيادة asset_version تلقائيًا.
+
+## CI
+
+GitHub Actions يثبت Python 3.12، يشغل PostgreSQL 16، ينفذ compileall، ثم flask db upgrade ثم pytest.
+
+## ملاحظة عن الـbaseline
+
+baseline غير هدّام: ينشئ metadata على قاعدة جديدة ولا ينفذ drop على قاعدة موجودة. بعد اعتماده يجب أن تمر التغييرات اللاحقة عبر migrations جديدة قابلة للمراجعة.
