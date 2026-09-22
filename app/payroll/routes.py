@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import PayrollRun
-bp=Blueprint("payroll",__name__,url_prefix="/admin/payroll")
+bp=Blueprint("payroll",__name__,url_prefix="/admin/payroll",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
