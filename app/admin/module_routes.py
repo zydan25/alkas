@@ -17,6 +17,7 @@ from ..news.models import Post
 from ..notifications.models import Notification
 from ..offers.models import Offer
 from ..packages.models import CustomerPackage
+from ..pricing.models import PriceRule
 from ..payments.models import Payment
 from ..payroll.models import PayrollRun
 from ..reports.models import SavedReport
@@ -46,6 +47,7 @@ MODULES = {
     "maintenance": ("الصيانة", "بلاغات الأعطال وأوامر العمل وحجب الموارد", "/admin/maintenance/api", MaintenanceRequest),
     "memberships": ("العضويات", "خطط العضوية والاشتراكات النشطة", "/admin/memberships/api", Membership),
     "packages": ("الباقات", "باقات الساعات واستهلاك العملاء", "/admin/packages/api", CustomerPackage),
+    "pricing": ("التسعير", "قواعد الأسعار والاستثناءات الزمنية", "/admin/pricing/api", PriceRule),
     "training": ("التدريب", "المدربون والبرامج والحصص", "/admin/training/api", TrainingProgram),
     "tournaments": ("البطولات", "البطولات والمباريات والنتائج", "/admin/tournaments/api", Tournament),
     "teams": ("الفرق واللاعبون", "الفرق وقواعد اللاعبين", "/admin/teams/api", Team),
