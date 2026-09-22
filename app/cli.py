@@ -89,10 +89,20 @@ def register_commands(app):
             ("offer.manage", "إدارة العروض"),
             ("ads.manage", "إدارة الإعلانات"),
             ("live.manage", "إدارة البث"),
+            ("pricing.manage", "إدارة قواعد التسعير"),
+            ("dashboard.view", "عرض لوحة التحكم"),
+
             ("inventory.manage", "إدارة المخزون"),
             ("supplier.manage", "إدارة الموردين"),
             ("reports.view", "عرض التقارير"),
             ("customer.view", "عرض العملاء"),
+            ("invoice.view", "عرض الفواتير"),
+            ("shift.manage", "إدارة الورديات"),
+            ("membership.manage", "إدارة العضويات"),
+            ("package.manage", "إدارة الباقات"),
+            ("pricing.view", "عرض التسعير"),
+            ("training.manage", "إدارة التدريب"),
+
         ]
         perms = []
         for key, name_ar in permission_specs:
@@ -110,15 +120,15 @@ def register_commands(app):
 
         role_matrix = {
             "accountant": [
-                "admin.access", "accounting.view", "accounting.journal.create", "accounting.journal.post",
+                "admin.access", "dashboard.view", "accounting.view", "accounting.journal.create", "accounting.journal.post",
                 "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
             ],
             "receptionist": [
-                "admin.access", "booking.view", "booking.create", "booking.edit", "payment.view",
+                "admin.access", "booking.view", "dashboard.view", "booking.create", "booking.edit", "payment.view",
                 "payment.create", "cashier.manage", "customer.view"
             ],
-            "maintenance": ["admin.access", "maintenance.view", "maintenance.manage"],
-            "content": ["admin.access", "content.manage", "offer.manage", "ads.manage", "live.manage"],
+            "maintenance": ["admin.access", "maintenance.view", "maintenance.manage", "employee.view"],
+            "content": ["admin.access", "dashboard.view", "content.manage", "offer.manage", "ads.manage", "live.manage"],
         }
         for role_name, keys in role_matrix.items():
             role = Role.query.filter_by(name=role_name).first()
