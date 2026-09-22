@@ -1,13 +1,66 @@
 {% extends "admin/layout.html" %}
 {% block content %}
-<div class="page-header compact"><div><div class="eyebrow">المنشأة</div><h1>الملاعب والموارد</h1><p>الحالة، الرياضة، السعر الأساسي والتشغيل.</p></div><a class="btn btn-primary" href="#">＋ مورد جديد</a></div>
+<div class="page-header compact">
+  <div><div class="eyebrow">المنشأة والتشغيل</div><h1>الملاعب والموارد</h1><p>إدارة المنشآت والمناطق والموارد القابلة للحجز والأسعار والحالة التشغيلية.</p></div>
+  <div class="page-actions">
+    <a class="btn btn-soft" href="/admin/resources/zone/new">＋ منطقة</a>
+    <a class="btn btn-soft" href="/admin/resources/venue/new">＋ منشأة</a>
+    <a class="btn btn-primary" href="/admin/resources/new">＋ ملعب / مورد</a>
+  </div>
+</div>
+
+{% if not venues %}
+<section class="panel setup-banner">
+  <div>
+    <span class="eyebrow">خطوة البداية</span>
+    <h2>لا توجد منشأة بعد</h2>
+    <p>أنشئ المنشأة والمنطقة الأولى، وبعدها ستتمكن من إضافة الملاعب بسهولة.</p>
+  </div>
+  <a class="btn btn-primary" href="/admin/resources/venue/new">إنشاء المنشأة الأولى</a>
+</section>
+{% endif %}
+
+<section class="panel venue-list-panel">
+  <div class="panel-head">
+    <div><span class="eyebrow">هيكل المدينة</span><h2>المنشآت والمناطق</h2></div>
+  </div>
+  <div class="venue-list">
+    {% for venue in venues %}
+    <article class="venue-item">
+      <div class="venue-main">
+        <span class="venue-icon">⌂</span>
+        <div><strong>{{ venue.name_ar }}</strong><small>{{ venue.address or "بدون عنوان" }}</small></div>
+      </div>
+      <div class="venue-zones">
+        {% for zone in venue.zones if zone.is_active %}
+          <span>{{ zone.name_ar }}</span>
+        {% else %}
+          <span class="badge badge-warning">لا توجد مناطق</span>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="resource-board">
 {% for row in rows %}
   <article class="resource-card">
-    <div class="resource-card-top"><span class="resource-light {{ 'success' if row.status == 'available' else ('warning' if row.status == 'maintenance' else 'danger') }}"></span><span class="badge badge-{{ 'success' if row.status == 'available' else 'warning' }}">{{ 'متاح' if row.status == 'available' else row.status }}</span></div>
-    <h2>{{ row.name_ar }}</h2><p>{{ row.sport.name_ar }} · {{ row.zone.name_ar if row.zone else '—' }}</p>
-    <div class="resource-card-footer"><strong>{{ "{:,.0f}".format(row.base_price|float) }}<small>/ساعة</small></strong><button class="icon-btn">⋯</button></div>
+    <div class="resource-card-top">
+      <span class="resource-light {{ 'success' if row.status == 'available' else ('warning' if row.status in ('maintenance','temporarily_blocked') else 'danger') }}"></span>
+      <span class="badge {{ 'badge-success' if row.status == 'available' else ('badge-warning' if row.status in ('maintenance','temporarily_blocked') else 'badge-danger') }}">
+        {{ 'متاح' if row.status == 'available' else row.status }}
+      </span>
+    </div>
+    <h2>{{ row.name_ar }}</h2>
+    <p>{{ row.sport.name_ar }} · {{ row.zone.name_ar if row.zone else '—' }}</p>
+    <div class="resource-card-footer">
+      <strong>{{ "{:,.0f}".format(row.base_price|float) }}<small>/ساعة</small></strong>
+      <a class="icon-btn resource-more" href="/admin/resources" aria-label="المزيد">⋯</a>
+    </div>
   </article>
-{% else %}<div class="empty-state">لا توجد موارد بعد.</div>{% endfor %}
+{% else %}
+  <div class="empty-state">لا توجد موارد بعد. استخدم «ملعب / مورد» لإضافة أول ملعب.</div>
+{% endfor %}
 </section>
 {% endblock %}
