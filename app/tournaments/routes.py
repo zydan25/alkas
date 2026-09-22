@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import Match, Tournament
 
-bp = Blueprint("tournaments", __name__, url_prefix="/admin/tournaments")
+bp = Blueprint("tournaments", __name__, url_prefix="/admin/tournaments", template_folder="templates")
 
 @bp.get("")
 @login_required
