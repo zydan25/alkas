@@ -95,6 +95,7 @@ def register_commands(app):
             ("inventory.manage", "إدارة المخزون"),
             ("supplier.manage", "إدارة الموردين"),
             ("reports.view", "عرض التقارير"),
+            ("resource.manage", "إدارة الموارد"),
             ("customer.view", "عرض العملاء"),
             ("invoice.view", "عرض الفواتير"),
             ("shift.manage", "إدارة الورديات"),
