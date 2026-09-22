@@ -1,0 +1,52 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">التشغيل</div>
+    <h1>الحجوزات</h1>
+    <p>مواعيد الحجز، العملاء، الملاعب وحالة الدفع في اليوم المحدد.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-soft" href="/admin/workspace">كل التطبيقات</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.booking_new') }}">＋ حجز جديد</a>
+  </div>
+</div>
+
+<section class="panel calendar-panel">
+  <div class="calendar-toolbar">
+    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date - timedelta(days=1)).isoformat()) }}" aria-label="اليوم السابق">‹</a>
+    <div class="date-center">
+      <span class="eyebrow">اليوم المحدد</span>
+      <strong>{{ selected_date.strftime("%Y-%m-%d") }}</strong>
+    </div>
+    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date + timedelta(days=1)).isoformat()) }}" aria-label="اليوم التالي">›</a>
+    <form class="calendar-date" method="get">
+      <input type="date" name="date" value="{{ selected_date.isoformat() }}">
+      <button class="btn btn-soft" type="submit">عرض</button>
+    </form>
+  </div>
+  <div class="calendar-summary">
+    <span><strong>{{ total }}</strong> حجوزات</span>
+    <span class="legend"><i class="status-dot status-success"></i> مؤكد</span>
+    <span class="legend"><i class="status-dot status-warning"></i> مؤقت/مراجعة</span>
+    <span class="legend"><i class="status-dot status-danger"></i> ملغى</span>
+  </div>
+
+  <div class="schedule-list">
+    {% for b in timeline %}
+    <article class="booking-row booking-{{ b.tone }}">
+      <div class="booking-time"><strong>{{ b.start.strftime("%H:%M") }}</strong><span>{{ b.end.strftime("%H:%M") }}</span></div>
+      <div class="booking-main">
+        <div class="booking-title"><strong>{{ b.customer }}</strong><span class="badge badge-{{ b.tone }}">{{ b.status }}</span></div>
+        <p>{{ b.phone or "بدون هاتف" }}</p>
+        <div class="resource-pills">{% for resource in b.resources %}<span>{{ resource }}</span>{% endfor %}</div>
+      </div>
+      <div class="booking-money"><strong>{{ "{:,.2f}".format(b.total|float) }}</strong><small>{{ b.payment_status }}</small></div>
+      <div class="row-actions"><span class="badge badge-info">{{ b.number }}</span></div>
+    </article>
+    {% else %}
+    <div class="empty-state">لا توجد حجوزات لهذا اليوم.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
