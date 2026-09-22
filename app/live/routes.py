@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import LiveEvent, Stream
-bp=Blueprint("live",__name__,url_prefix="/admin/live")
+bp=Blueprint("live",__name__,url_prefix="/admin/live",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
