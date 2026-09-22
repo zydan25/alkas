@@ -1,9 +1,9 @@
 # نشر ملاعب الكأس
 
 الافتراض الحالي للنشر هو:
-- المسار: /home/root/projects/alkaas
+- المسار: /home/root/projects/alkas
 - المنفذ الداخلي: 4041
-- النطاق: alkaas.alattab.site
+- النطاق: alkas.alattab.site
 
 إن كان النطاق الفعلي مختلفًا، عدّل server_name في ملف Nginx وSOCKETIO_CORS في .env قبل التشغيل.
 
@@ -43,14 +43,14 @@ pm2 startup systemd
 ## Nginx
 
 sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-sudo ln -sf /home/root/projects/alkaas/deploy/nginx/alkaas.alattab.site.conf /etc/nginx/sites-enabled/alkaas.alattab.site.conf
+sudo ln -sf /home/root/projects/alkas/deploy/nginx/alkas.alattab.site.conf /etc/nginx/sites-enabled/alkas.alattab.site.conf
 sudo nginx -t
 sudo systemctl reload nginx
-sudo certbot --nginx -d alkaas.alattab.site
+sudo certbot --nginx -d alkas.alattab.site
 
 ## تحرير الحجوزات المؤقتة
 
-(crontab -l 2>/dev/null; echo "* * * * * /home/root/projects/alkaas/venv/bin/flask --app /home/root/projects/alkaas/wsgi.py expire-holds >/dev/null 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "* * * * * /home/root/projects/alkas/venv/bin/flask --app /home/root/projects/alkas/wsgi.py expire-holds >/dev/null 2>&1") | crontab -
 
 ## التحقق
 
