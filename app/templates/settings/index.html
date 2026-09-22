@@ -9,7 +9,7 @@
 </section>
 
 <section class="booking-layout">
-  <form class="panel form-stack" method="post">
+  <form class="panel form-stack" method="post" action="{{ url_for('settings.save_site') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <h2>الموقع</h2>
     <label>اسم المنشأة
