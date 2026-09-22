@@ -258,4 +258,35 @@ def period_close(period_id):
     period.status="closed"
     period.closed_at=datetime.now(timezone.utc)
     db.session.commit()
-    return redirect(url_for("accounting.ui"))
+    return redirect(url_for("accounting.ui"))@bp.post('/journal/new')
+@login_required
+def journal_create():
+    if not _manage(): return {'error':'forbidden'},403
+    branches, _, leaves = _context()
+    try:
+        entry_date = date.fromisoformat(request.form['entry_date'])
+        branch_id = int(request.form['branch_id'])
+        accounts = request.form.getlist('line_account')
+        debits = request.form.getlist('line_debit')
+        credits = request.form.getlist('line_credit')
+        if len(accounts) < 2 or len(accounts) != len(debits) or len(accounts) != len(credits):
+            raise ValueError('القيد يحتاج سطرين متوازنين على الأقل')
+        lines=[]
+        for account_id,debit,credit in zip(accounts,debits,credits):
+            lines.append({'account_id':int(account_id),'debit':debit or 0,'credit':credit or 0})
+        entry = post_entry(
+            number=f'JV-MAN-{uuid4().hex[:10].upper()}',
+            description_ar=request.form.get('description_ar'),
+            entry_date=entry_date,
+            lines=lines,
+            reference_type='manual',
+            user_id=current_user.id,
+            branch_id=branch_id,
+        )
+        db.session.commit()
+    except (KeyError, TypeError, ValueError) as exc:
+        db.session.rollback()
+        return render_template('accounting/journal_form.html',accounts=leaves,branches=branches,today=date.today(),error=str(exc)),400
+    return redirect(url_for('accounting.ui'))
+
+
