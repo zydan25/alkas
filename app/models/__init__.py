@@ -7,6 +7,7 @@ from .announcement import Announcement
 
 from ..accounting.models import Account, CostCenter, FiscalPeriod, JournalEntry, JournalLine
 from ..ads.models import AdCampaign, AdCreative, AdPlacement
+from ..audit.models import AuditLog
 from ..announcements.models import AnnouncementCard
 from ..cashier.models import CashRegister, CashShift, CashTransaction
 from ..closing.models import FinancialClose
