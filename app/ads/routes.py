@@ -36,7 +36,10 @@ def ui():
 def new():
     if not _allowed():
         return {"error": "forbidden"}, 403
-    return render_template("ads/form.html")
+    return render_template(
+        "ads/form.html",
+        placements=AdPlacement.query.filter_by(is_active=True).all(),
+    )
 
 
 @bp.post("/new")
@@ -44,24 +47,52 @@ def new():
 def create():
     if not _allowed():
         return {"error": "forbidden"}, 403
+    placements = AdPlacement.query.filter_by(is_active=True).all()
     try:
         name = (request.form.get("name_ar") or "").strip()
         if not name:
             raise ValueError("اسم الحملة مطلوب")
-        db.session.add(
-            AdCampaign(
-                name_ar=name,
-                advertiser_ar=request.form.get("advertiser_ar"),
-                starts_at=datetime.fromisoformat(request.form["starts_at"]) if request.form.get("starts_at") else None,
-                ends_at=datetime.fromisoformat(request.form["ends_at"]) if request.form.get("ends_at") else None,
-                budget=request.form.get("budget") or None,
-                status=request.form.get("status", "draft"),
-            )
+
+        campaign = AdCampaign(
+            name_ar=name,
+            advertiser_ar=request.form.get("advertiser_ar"),
+            starts_at=datetime.fromisoformat(request.form["starts_at"]) if request.form.get("starts_at") else None,
+            ends_at=datetime.fromisoformat(request.form["ends_at"]) if request.form.get("ends_at") else None,
+            budget=request.form.get("budget") or None,
+            status=request.form.get("status", "draft"),
         )
+        db.session.add(campaign)
+        db.session.flush()
+
+        image_file = request.files.get("image")
+        video_file = request.files.get("video")
+        if image_file or video_file:
+            placement_id = int(request.form["placement_id"]) if request.form.get("placement_id") else None
+            if not placement_id:
+                raise ValueError("اختر مكان العرض عند رفع صورة أو فيديو.")
+
+            image_url = save_uploaded_media(image_file, "ads", "image")
+            video_url = save_uploaded_media(video_file, "ads", "video")
+            if image_url and video_url:
+                raise ValueError("اختر صورة أو فيديو واحدًا للمادة الإعلانية.")
+
+            db.session.add(
+                AdCreative(
+                    campaign_id=campaign.id,
+                    placement_id=placement_id,
+                    title_ar=request.form.get("creative_title_ar") or name,
+                    image_url=image_url,
+                    video_url=video_url,
+                    target_url=request.form.get("target_url"),
+                    priority=int(request.form.get("priority") or 0),
+                    status=request.form.get("creative_status", "active"),
+                )
+            )
+
         db.session.commit()
     except (KeyError, TypeError, ValueError) as exc:
         db.session.rollback()
-        return render_template("ads/form.html", error=str(exc)), 400
+        return render_template("ads/form.html", placements=placements, error=str(exc)), 400
     return redirect(url_for("ads.ui"))
 
 
