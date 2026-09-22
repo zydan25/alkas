@@ -13,7 +13,9 @@ def _check_open_period(entry_date):
         FiscalPeriod.starts_on <= entry_date,
         FiscalPeriod.ends_on >= entry_date,
     ).first()
-    if period and period.status != "open":
+    if not period:
+        raise ValueError("لا توجد فترة مالية لهذا التاريخ")
+    if period.status != "open":
         raise ValueError("الفترة المالية مغلقة")
     return period
 
