@@ -2,7 +2,7 @@
 {% block content %}
 <div class="page-header compact">
   <div><div class="eyebrow">التحكم بالوصول</div><h1>المستخدمون والصلاحيات</h1><p>المستخدم يرتبط بدور، والدور يجمع الصلاحيات. ويمكن لاحقًا إضافة قيود على الكائن والمبلغ.</p></div>
-  <div class="page-actions"><button class="btn btn-primary">＋ مستخدم</button><button class="btn btn-soft">＋ دور</button></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{{ url_for('users.new') }}">＋ مستخدم</a><a class="btn btn-soft" href="{{ url_for('users.role_new') }}">＋ دور</a></div>
 </div>
 <div class="dashboard-grid">
 <section class="panel"><div class="panel-head"><div><span class="eyebrow">الحسابات</span><h2>المستخدمون</h2></div></div>
