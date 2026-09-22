@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import Customer
 
-bp=Blueprint("customers",__name__,url_prefix="/admin/customers")
+bp=Blueprint("customers",__name__,url_prefix="/admin/customers",template_folder="templates")
 
 def _allowed():
     return current_user.username=="admin" or current_user.has_permission("customer.view")
