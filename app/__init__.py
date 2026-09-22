@@ -77,8 +77,13 @@ def create_app(config_class=Config):
 
     @app.before_request
     def protect_admin_area():
-        if request.path.startswith("/admin") and not current_user.is_authenticated:
+        if not request.path.startswith("/admin"):
+            return None
+        if not current_user.is_authenticated:
             return redirect(url_for("auth.login", next=request.full_path))
+        if current_user.username != "admin" and not current_user.has_permission("admin.access"):
+            return {"error": "forbidden", "message": "لا تملك صلاحية دخول لوحة الإدارة"}, 403
+        return None
 
     from .context import inject_site_settings
     app.context_processor(inject_site_settings)
