@@ -25,6 +25,113 @@ from .accounting.models import Branch
 from datetime import date
 
 
+def _setup_core_data():
+    """Idempotent setup for accounting, policies, sports and the first venue/zone."""
+    from .settings.models import SiteTheme
+
+    account_specs = [
+        ("1000", "الأصول", "asset", None),
+        ("1300", "ذمم العملاء", "asset", "1000"),
+        ("4000", "الإيرادات", "revenue", None),
+        ("4100", "إيرادات تأجير الملاعب", "revenue", "4000"),
+        ("2000", "الالتزامات", "liability", None),
+        ("2200", "رواتب مستحقة", "liability", "2000"),
+        ("5000", "المصروفات", "expense", None),
+        ("5100", "مصروفات التشغيل", "expense", "5000"),
+    ]
+    accounts = {}
+    for code, name_ar, account_type, parent_code in account_specs:
+        account = Account.query.filter_by(code=code).first()
+        if not account:
+            account = Account(code=code, name_ar=name_ar, account_type=account_type)
+            db.session.add(account)
+            db.session.flush()
+        accounts[code] = account
+    for code, _, _, parent_code in account_specs:
+        if parent_code:
+            accounts[code].parent_id = accounts[parent_code].id
+
+    current_year = date.today().year
+    period_name = str(current_year)
+    if not FiscalPeriod.query.filter_by(name=period_name).first():
+        db.session.add(FiscalPeriod(
+            name=period_name,
+            starts_on=date(current_year, 1, 1),
+            ends_on=date(current_year, 12, 31),
+            status="open",
+        ))
+
+    if not Branch.query.filter_by(code="BR-01").first():
+        db.session.add(Branch(code="BR-01", name_ar="الفرع الرئيسي", is_active=True))
+
+    if not BookingPolicy.query.filter_by(is_default=True, is_active=True).first():
+        db.session.add(BookingPolicy(
+            name_ar="السياسة الافتراضية",
+            cancellation_deadline_minutes=360,
+            refund_percent_before_deadline=100,
+            refund_percent_after_deadline=0,
+            deposit_percent=100,
+            is_default=True,
+            is_active=True,
+        ))
+    if not PaymentPolicy.query.filter_by(is_default=True, is_active=True).first():
+        db.session.add(PaymentPolicy(
+            name_ar="الدفع الافتراضي",
+            allow_cash=True,
+            allow_transfer=True,
+            allow_card=True,
+            allow_wallet=True,
+            require_full_payment=False,
+            is_default=True,
+            is_active=True,
+        ))
+
+    if not CashRegister.query.filter_by(code="MAIN").first():
+        db.session.add(CashRegister(
+            code="MAIN",
+            name_ar="الصندوق الرئيسي",
+            location_ar="الاستقبال",
+            is_active=True,
+        ))
+
+    sport_specs = [
+        ("football", "كرة القدم", "⚽", 1),
+        ("tennis", "التنس", "🎾", 2),
+        ("basketball", "كرة السلة", "🏀", 3),
+        ("gymnastics", "الجمباز", "🤸", 4),
+    ]
+    for key, name_ar, icon, sort_order in sport_specs:
+        sport = Sport.query.filter_by(key=key).first()
+        if not sport:
+            db.session.add(Sport(key=key, name_ar=name_ar, icon=icon, sort_order=sort_order))
+
+    venue = Venue.query.order_by(Venue.id).first()
+    if not venue:
+        venue = Venue(
+            name="Alkas Main Venue",
+            name_ar="مدينة ملاعب الكأس",
+            description="المنشأة الرئيسية",
+            is_active=True,
+        )
+        db.session.add(venue)
+        db.session.flush()
+
+    zone = VenueZone.query.filter_by(venue_id=venue.id).order_by(VenueZone.id).first()
+    if not zone:
+        db.session.add(VenueZone(
+            venue_id=venue.id,
+            name="main",
+            name_ar="الملاعب الرئيسية",
+            sort_order=1,
+            is_active=True,
+        ))
+
+    if not SiteTheme.query.filter_by(name="default").first():
+        db.session.add(SiteTheme(name="default"))
+
+    db.session.flush()
+
+
 def register_commands(app):
     @app.cli.command("create-admin")
     @click.option("--username", default="admin", show_default=True)
@@ -85,6 +192,12 @@ def register_commands(app):
         db.session.add(user)
         db.session.commit()
         click.echo(f"تم إنشاء المدير: {username}")
+
+    @app.cli.command("setup-core")
+    def setup_core():
+        _setup_core_data()
+        db.session.commit()
+        click.echo("تم تجهيز الحسابات والفترة والفرع والسياسات والرياضات والمنشأة والمنطقة الأساسية.")
 
     @app.cli.command("expire-holds")
     def expire_holds_command():
