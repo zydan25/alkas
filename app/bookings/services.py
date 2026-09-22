@@ -7,6 +7,7 @@ from psycopg.types.range import Range
 from sqlalchemy import select
 
 from ..accounting.models import Account
+from ..audit.services import record as audit_record
 from ..accounting.services import post_entry
 from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
@@ -105,6 +106,8 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
     booking.subtotal = total
     booking.total = total
     db.session.commit()
+    audit_record("booking.create", "Booking", booking.id, after={"number": booking.booking_number, "total": str(booking.total), "allocations": len(booking.allocations)})
+    db.session.commit()
     emit_booking_event("booking.created", booking)
     return booking, token
 
@@ -198,6 +201,8 @@ def cancel_booking(booking_id, reason_ar="", user_id=None):
                 )
 
     db.session.commit()
+    audit_record("booking.cancel", "Booking", booking.id, after={"status": booking.status, "refund_requested": str(requested_refund)})
+    db.session.commit()
     emit_booking_event("booking.cancelled", booking)
     return booking, requested_refund
 
@@ -260,6 +265,8 @@ def confirm_booking(booking_id, user_id=None):
         )
 
     booking.status = "confirmed"
+    db.session.commit()
+    audit_record("booking.confirm", "Booking", booking.id, after={"status": booking.status, "invoice_id": invoice.id})
     db.session.commit()
 
     customer = booking.customer
