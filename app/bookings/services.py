@@ -10,7 +10,7 @@ from ..accounting.models import Account
 from ..accounting.services import post_entry
 from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
-from ..models import Booking, BookingAllocation, BookingHold, Resource
+from ..models import Booking, BookingAllocation, BookingHold, Resource, ResourceBlock, ResourceBundle, WaitlistEntry
 from ..notifications.services import notify_user
 from ..realtime import emit_booking_event
 
@@ -46,6 +46,16 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
         raise ValueError("أضف فترة حجز واحدة على الأقل")
 
     resource_ids = list(dict.fromkeys(item["resource_id"] for item in normalized))
+    for item in normalized:
+        blocked = ResourceBlock.query.filter(
+            ResourceBlock.resource_id == item["resource_id"],
+            ResourceBlock.status == "active",
+            ResourceBlock.starts_at < item["end_at"],
+            ResourceBlock.ends_at > item["start_at"],
+        ).first()
+        if blocked:
+            raise ValueError(f"الملعب محجوب في هذه الفترة: {blocked.reason_ar or blocked.reason_type}")
+
     resources = db.session.execute(
         select(Resource).where(Resource.id.in_(resource_ids), Resource.is_active.is_(True)).order_by(Resource.id)
     ).scalars().all()
@@ -91,6 +101,46 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
     db.session.commit()
     emit_booking_event("booking.created", booking)
     return booking, token
+
+
+def expand_resource_bundles(resource_ids=None, bundle_ids=None):
+    ids = list(dict.fromkeys(resource_ids or []))
+    for bundle_id in dict.fromkeys(bundle_ids or []):
+        bundle = db.session.get(ResourceBundle, int(bundle_id))
+        if not bundle or not bundle.is_active:
+            raise ValueError("حزمة الملاعب غير موجودة أو غير نشطة")
+        ids.extend(resource.id for resource in bundle.resources if resource.is_active)
+    return list(dict.fromkeys(ids))
+
+
+def expire_holds(now=None):
+    now = now or datetime.now(timezone.utc)
+    rows = Booking.query.filter(
+        Booking.status == "hold",
+        Booking.hold_expires_at.is_not(None),
+        Booking.hold_expires_at <= now,
+    ).all()
+    for booking in rows:
+        booking.status = "expired"
+    if rows:
+        db.session.commit()
+    return len(rows)
+
+
+def add_to_waitlist(customer_id, resource_id, desired_start_at, desired_end_at):
+    last_position = db.session.query(
+        db.func.max(WaitlistEntry.position)
+    ).filter_by(resource_id=resource_id, status="waiting").scalar() or 0
+    row = WaitlistEntry(
+        customer_id=customer_id,
+        resource_id=resource_id,
+        desired_start_at=_as_aware(desired_start_at),
+        desired_end_at=_as_aware(desired_end_at),
+        position=last_position + 1,
+    )
+    db.session.add(row)
+    db.session.commit()
+    return row
 
 
 def confirm_booking(booking_id, user_id=None):
