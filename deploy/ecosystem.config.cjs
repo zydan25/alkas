@@ -1,9 +1,9 @@
 module.exports = {
   apps: [{
-    name: "alkaas",
-    cwd: "/home/root/projects/alkaas",
+    name: "alkas",
+    cwd: "/home/root/projects/alkas",
     script: "wsgi.py",
-    interpreter: "/home/root/projects/alkaas/venv/bin/python",
+    interpreter: "/home/root/projects/alkas/venv/bin/python",
     env: {
       HOST: "127.0.0.1",
       PORT: "4041",
