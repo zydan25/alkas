@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="admin-header">
+  <div>
+    <span class="eyebrow">مركز التحكم</span>
+    <h1>لوحة تشغيل ملاعب الكأس</h1>
+    <p>نظرة واحدة على الحجز، المال، الموارد والعمليات. كل بطاقة تقود إلى الوحدة المتخصصة.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a>
+</section>
+
+<section class="kpi-grid">
+  <a class="kpi-card accent" href="/admin/reports/dashboard"><span>إجمالي الحجوزات</span><strong>{{ stats.bookings }}</strong><small>المؤكد {{ stats.confirmed }}</small></a>
+  <a class="kpi-card" href="/admin/invoices"><span>المستحقات</span><strong>{{ "{:,.0f}".format(stats.invoice_balance|float) }}</strong><small>رصيد فواتير غير مسدد</small></a>
+  <a class="kpi-card" href="/admin/payments"><span>المقبوض</span><strong>{{ "{:,.0f}".format(stats.paid|float) }}</strong><small>دفعات مكتملة</small></a>
+  <a class="kpi-card" href="/admin/reports/dashboard"><span>العملاء</span><strong>{{ stats.customers }}</strong><small>ملفات فعالة</small></a>
+  <a class="kpi-card" href="/admin/maintenance"><span>الصيانة</span><strong>{{ stats.open_maintenance }}</strong><small>طلبات مفتوحة</small></a>
+  <a class="kpi-card" href="/admin/tournaments"><span>البطولات</span><strong>{{ stats.active_tournaments }}</strong><small>منشورة أو مباشرة</small></a>
+</section>
+
+<section class="admin-grid">
+  <div class="panel">
+    <div class="section-head"><div><span class="eyebrow">العمليات</span><h2>وحدات الإدارة</h2></div></div>
+    <div class="admin-shortcuts">
+      <a href="/admin/reports/dashboard">التقارير</a>
+      <a href="/admin/invoices">الفواتير</a>
+      <a href="/admin/payments">المدفوعات</a>
+      <a href="/admin/accounting">الحسابات</a>
+      <a href="/admin/cashier">الصناديق</a>
+      <a href="/admin/shifts">الورديات</a>
+      <a href="/admin/employees">الموظفون</a>
+      <a href="/admin/payroll">الرواتب</a>
+      <a href="/admin/maintenance">الصيانة</a>
+      <a href="/admin/memberships">العضويات</a>
+      <a href="/admin/packages">الباقات</a>
+      <a href="/admin/training">التدريب</a>
+      <a href="/admin/tournaments">البطولات</a>
+      <a href="/admin/teams">الفرق واللاعبون</a>
+      <a href="/admin/news">الأخبار</a>
+      <a href="/admin/offers">العروض</a>
+      <a href="/admin/ads">الإعلانات</a>
+      <a href="/admin/live">البث</a>
+      <a href="/admin/suppliers">الموردون</a>
+      <a href="/admin/inventory">المخزون</a>
+      <a href="/admin/closing">الإقفال المالي</a>
+      <a href="/settings">الإعدادات</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-head"><div><span class="eyebrow">فوري</span><h2>موجز العمليات</h2></div><span class="live-pill">Real-time</span></div>
+    <div class="live-feed" data-live-bookings>
+      <div class="empty-state">بانتظار أحداث الحجز والدفع...</div>
+    </div>
+  </div>
+</section>
+{% endblock %}
