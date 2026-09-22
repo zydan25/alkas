@@ -1,14 +1,13 @@
-from .user import Permission, Role, User
-from .customer import Customer
-from .venue import ResourceBundle, Resource, Sport, Venue, VenueZone
-from .booking import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry
-from .setting import SiteSetting, SiteTheme
-from .announcement import Announcement
+from ..users.models import Permission, Role, User
+from ..customers.models import Customer
+from ..resources.models import Resource, ResourceBundle, Sport, Venue, VenueZone
+from ..bookings.models import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry
+from ..settings.models import SiteSetting, SiteTheme
+from ..announcements.models import AnnouncementCard
 
 from ..accounting.models import Account, CostCenter, FiscalPeriod, JournalEntry, JournalLine
 from ..ads.models import AdCampaign, AdCreative, AdPlacement
 from ..audit.models import AuditLog
-from ..announcements.models import AnnouncementCard
 from ..cashier.models import CashRegister, CashShift, CashTransaction
 from ..closing.models import FinancialClose
 from ..employees.models import Attendance, Department, Employee, Leave, Position
@@ -22,9 +21,9 @@ from ..notifications.models import Notification, NotificationLog, NotificationPr
 from ..offers.models import Coupon, Offer, OfferComment, OfferInquiry
 from ..packages.models import BookingPackage, CustomerPackage, PackageConsumption
 from ..payments.models import Payment, Refund
-from ..pricing.models import PriceOverride, PriceRule
 from ..payroll.models import EmployeeAdvance, PayrollLine, PayrollRun, SalaryStructure
 from ..policies.models import BookingPolicy, PaymentPolicy, RefundRequest
+from ..pricing.models import PriceOverride, PriceRule
 from ..reports.models import SavedReport
 from ..shifts.models import EmployeeShift, WorkShift
 from ..suppliers.models import PurchaseInvoice, Supplier, SupplierPayment
