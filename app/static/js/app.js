@@ -98,6 +98,48 @@
 
       result.className = "booking-result ok";
       result.textContent = "تم حجز " + data.booking.allocations + " تخصيصًا مؤقتًا. رقم العملية: " + data.booking.number;
+
+      const confirmBox = document.querySelector("[data-booking-confirm]");
+      const holdNumber = document.querySelector("[data-hold-number]");
+      const countdown = document.querySelector("[data-hold-countdown]");
+      const confirmButton = document.querySelector("[data-confirm-booking]");
+      if (confirmBox && holdNumber && countdown && confirmButton) {
+        confirmBox.hidden = false;
+        holdNumber.textContent = data.booking.number;
+        const expires = new Date(data.booking.hold_expires_at).getTime();
+
+        const timer = setInterval(() => {
+          const remaining = Math.max(0, expires - Date.now());
+          const totalSeconds = Math.floor(remaining / 1000);
+          const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+          const seconds = String(totalSeconds % 60).padStart(2, "0");
+          countdown.textContent = minutes + ":" + seconds;
+          if (!remaining) {
+            clearInterval(timer);
+            confirmButton.disabled = true;
+            countdown.textContent = "انتهت المهلة";
+          }
+        }, 500);
+
+        confirmButton.onclick = async () => {
+          confirmButton.disabled = true;
+          const confirmResponse = await fetch("/bookings/" + data.booking.id + "/confirm", {
+            method: "POST",
+            headers: {"X-CSRFToken": csrfToken}
+          });
+          const confirmData = await confirmResponse.json();
+          if (!confirmResponse.ok) {
+            confirmButton.disabled = false;
+            result.className = "booking-result error";
+            result.textContent = confirmData.error || "تعذر تأكيد الحجز.";
+            return;
+          }
+          clearInterval(timer);
+          result.className = "booking-result ok";
+          result.textContent = "تم التأكيد. الفاتورة " + confirmData.invoice_number + " — المتبقي " + confirmData.balance_due;
+          confirmButton.textContent = "تم التأكيد ✓";
+        };
+      }
     });
   }
 })();
