@@ -1,0 +1,17 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">التحكم بالوصول</div><h1>المستخدمون والصلاحيات</h1><p>المستخدم يرتبط بدور، والدور يجمع الصلاحيات. ويمكن لاحقًا إضافة قيود على الكائن والمبلغ.</p></div>
+  <div class="page-actions"><button class="btn btn-primary">＋ مستخدم</button><button class="btn btn-soft">＋ دور</button></div>
+</div>
+<div class="dashboard-grid">
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">الحسابات</span><h2>المستخدمون</h2></div></div>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>المستخدم</th><th>الهاتف</th><th>الأدوار</th><th>الحالة</th></tr></thead><tbody>
+{% for user in users %}<tr><td><div class="person"><span class="avatar">{{ user.display_name[:1] }}</span><span><b>{{ user.display_name }}</b><small>{{ user.username }}</small></span></div></td><td>{{ user.phone or '—' }}</td><td>{% for role in user.roles %}<span class="badge badge-info">{{ role.name_ar }}</span> {% else %}<span class="badge badge-neutral">بدون دور</span>{% endfor %}</td><td><span class="badge badge-{{ 'success' if user.is_active else 'danger' }}">{{ 'فعال' if user.is_active else 'موقوف' }}</span></td></tr>{% else %}<tr><td colspan="4"><div class="empty-state">لا يوجد مستخدمون.</div></td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">RBAC</span><h2>الأدوار</h2></div></div>
+{% for role in roles %}<article class="role-card"><div><b>{{ role.name_ar }}</b><small>{{ role.name }}</small></div><strong>{{ role.permissions|length }} صلاحية</strong></article>{% else %}<div class="empty-state">لا توجد أدوار.</div>{% endfor %}
+<div class="permission-list"><div class="eyebrow" style="margin-top:18px">الصلاحيات المسجلة</div>{% for p in permissions %}<span class="permission-chip">{{ p.key }}</span>{% endfor %}</div>
+</section>
+</div>
+{% endblock %}
