@@ -13,7 +13,7 @@
     <form class="calendar-date"><input type="date" name="date" value="{{ selected_date.isoformat() }}"><button class="btn btn-soft">عرض</button></form>
   </div>
 
-  <div class="calendar-summary">
+  <form method="post" action="{{ url_for('admin.bookings_bulk_cancel') }}" data-bulk-bookings><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="calendar-summary"><label class="bulk-select"><input type="checkbox" data-select-all> تحديد الكل</label>
     <span><b>{{ total }}</b> عملية في اليوم</span>
     <span class="legend"><i class="dot success"></i> مؤكد</span>
     <span class="legend"><i class="dot warning"></i> مؤقت</span>
@@ -22,7 +22,7 @@
 
   <div class="schedule-list">
     {% for item in timeline %}
-    <article class="booking-row booking-{{ item.tone }}">
+    <article class="booking-row booking-{{ item.tone }}"><div class="booking-check"><input type="checkbox" name="booking_ids" value="{{ item.id }}"></div>
       <div class="booking-time"><strong>{{ item.start.strftime("%H:%M") }}</strong><span>{{ item.end.strftime("%H:%M") }}</span></div>
       <div class="booking-main"><div class="booking-title"><strong>{{ item.number }}</strong><span class="badge badge-{{ item.tone }}">{{ item.status }}</span></div><p>{{ item.customer }}{% if item.phone %} · {{ item.phone }}{% endif %}</p><div class="resource-pills">{% for resource in item.resources %}<span>{{ resource }}</span>{% endfor %}</div></div>
       <div class="booking-money"><strong>{{ "{:,.0f}".format(item.total|float) }}</strong><small>{{ "مدفوع" if item.payment_status == "paid" else ("جزئي" if item.payment_status == "partially_paid" else "غير مدفوع") }}</small></div>
@@ -32,5 +32,7 @@
     <div class="empty-state">لا توجد حجوزات لهذا اليوم.</div>
     {% endfor %}
   </div>
+  <div class="bulk-bar" data-bulk-bar hidden><span data-bulk-count>0</span> محددة <button class="btn btn-soft" type="submit" onclick="return confirm('سيتم إلغاء الحجوزات المحددة وفق السياسة. متابعة؟')">إلغاء المحدد</button></div>
+</form>
 </section>
 {% endblock %}
