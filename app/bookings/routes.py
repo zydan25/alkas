@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Booking, BookingAllocation, Customer, Resource
-from .services import add_to_waitlist, confirm_booking, create_hold_booking, expand_resource_bundles
+from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
 
@@ -91,6 +91,28 @@ def create_hold():
         },
         "hold_token": token,
     }), 201
+
+
+@bp.post("/<int:booking_id>/cancel")
+@login_required
+def cancel(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer or booking.customer_id != customer.id:
+        return jsonify({"error": "غير مصرح"}), 403
+    try:
+        booking, refund = cancel_booking(
+            booking_id,
+            reason_ar=(request.get_json(silent=True) or {}).get("reason_ar", "إلغاء من العميل"),
+            user_id=current_user.id,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({
+        "booking_id": booking.id,
+        "status": booking.status,
+        "requested_refund": str(refund),
+    })
 
 
 @bp.post("/waitlist")
