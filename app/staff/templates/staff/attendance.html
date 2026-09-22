@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">الموظف</div><h1>سجل الحضور</h1><p>{{ employee.name_ar }} · {{ employee.employee_code }}</p></div></div>
+<section class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>التاريخ</th><th>الحالة</th><th>دخول</th><th>خروج</th><th>ملاحظة</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.work_date }}</td><td><span class="badge badge-success">{{ row.status }}</span></td><td>{{ row.check_in.strftime("%H:%M") if row.check_in else '—' }}</td><td>{{ row.check_out.strftime("%H:%M") if row.check_out else '—' }}</td><td>{{ row.note_ar or '—' }}</td></tr>{% else %}<tr><td colspan="5"><div class="empty-state">لا يوجد سجل.</div></td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}
