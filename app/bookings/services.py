@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from ..accounting.models import Account
 from ..audit.services import record as audit_record
-from ..accounting.services import post_entry
+from ..accounting.services import ensure_default_booking_accounts, post_entry
 from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
 from ..models import Booking, BookingAllocation, BookingHold, Resource, ResourceBlock, ResourceBundle, WaitlistEntry
@@ -248,10 +248,7 @@ def confirm_booking(booking_id, user_id=None):
             ))
 
     if newly_issued:
-        receivable = Account.query.filter_by(code="1300", is_active=True).first()
-        revenue = Account.query.filter_by(code="4100", is_active=True).first()
-        if not receivable or not revenue:
-            raise ValueError("حسابات الذمم والإيرادات غير مهيأة")
+        receivable, revenue, branch = ensure_default_booking_accounts()
         post_entry(
             number=f"JV-INV-{invoice.id}",
             description_ar=f"إصدار فاتورة الحجز {invoice.number}",
@@ -262,6 +259,7 @@ def confirm_booking(booking_id, user_id=None):
             reference_type="invoice",
             reference_id=invoice.id,
             user_id=user_id,
+            branch_id=branch.id,
         )
 
     booking.status = "confirmed"
