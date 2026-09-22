@@ -77,6 +77,7 @@ def approve_refund(request_id, approved_amount=None, user_id=None):
         approved_by_id=user_id,
     )
     db.session.add(refund)
+    db.session.flush()
 
     revenue = Account.query.filter_by(code="4100", is_active=True).first()
     receivable = Account.query.filter_by(code="1300", is_active=True).first()
@@ -132,6 +133,7 @@ def approve_refund(request_id, approved_amount=None, user_id=None):
     row.status = "approved"
     remaining_paid = Decimal(invoice.paid_amount or 0) - approved
     invoice.paid_amount = max(Decimal("0"), remaining_paid)
+    invoice.balance_due = Decimal("0")
     invoice.status = "refunded" if approved >= Decimal(payment.amount or 0) else "partially_refunded"
     booking.payment_status = "refunded" if invoice.status == "refunded" else "partially_refunded"
     audit_record("refund.approve", "RefundRequest", row.id, after={"amount": str(approved), "refund_id": refund.id})
