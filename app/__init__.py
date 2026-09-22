@@ -59,6 +59,7 @@ def create_app(config_class=Config):
     from .inventory.routes import bp as inventory_bp
     from .closing.routes import bp as closing_bp
     from .policies.routes import bp as policies_bp
+    from .pricing.routes import bp as pricing_bp
     from .customer.routes import bp as customer_bp
     from .users.routes import bp as users_bp
     from .staff.routes import bp as staff_bp
@@ -69,7 +70,7 @@ def create_app(config_class=Config):
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
         live_bp, announcements_bp, notifications_bp, reports_bp, suppliers_bp,
-        inventory_bp, closing_bp, policies_bp, customer_bp, users_bp, staff_bp,
+        inventory_bp, closing_bp, policies_bp, pricing_bp, customer_bp, users_bp, staff_bp,
     ):
         app.register_blueprint(blueprint)
 
