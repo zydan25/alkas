@@ -1,0 +1,6 @@
+{% extends 'admin/layout.html' %}
+{% block content %}
+<div class='page-header compact'><div><div class='eyebrow'>Ledger</div><h1>دفتر الأستاذ</h1><p>اختر حسابًا تفصيليًا فقط لعرض حركته ورصيده الجاري.</p></div></div>
+<section class='panel'><div class='filter-search'><span>⌕</span><input id='ledgerSearch' placeholder='ابحث بالرمز أو اسم الحساب...'></div><div class='module-grid' id='ledgerAccounts'>{% for a in accounts %}<a class='module-card' data-search='{{ (a.code ~ ' ' ~ a.name_ar)|lower }}' href='{{ url_for('reports.ledger_page', account_id=a.id) }}'><div class='module-icon'>د</div><div class='module-copy'><h2>{{ a.code }} · {{ a.name_ar }}</h2><p>حساب تفصيلي قابل للحركة</p></div></a>{% else %}<div class='empty-state'>لا توجد حسابات تفصيلية.</div>{% endfor %}</div></section>
+<script>document.getElementById('ledgerSearch')?.addEventListener('input',function(){const q=this.value.toLowerCase().trim();document.querySelectorAll('#ledgerAccounts [data-search]').forEach(x=>x.style.display=!q||x.dataset.search.includes(q)?'':'none')});</script>
+{% endblock %}
