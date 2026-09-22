@@ -1,0 +1,15 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><div class="eyebrow">المنظومة</div><h1>كل التطبيقات</h1><p>كل مجال مستقل داخل ملاعب الكأس، مع واجهة موحدة ومصدر بيانات منفصل.</p></div>
+</div>
+<section class="module-grid">
+{% for module in modules %}
+<a class="module-card" href="{{ url_for('module_ui.module', slug=module.slug) }}">
+  <div class="module-icon">{{ module.title[:1] }}</div>
+  <div class="module-copy"><h2>{{ module.title }}</h2><p>{{ module.description }}</p><small>{{ module.count }} سجل</small></div>
+  <span class="module-arrow">←</span>
+</a>
+{% endfor %}
+</section>
+{% endblock %}
