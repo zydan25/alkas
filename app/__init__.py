@@ -16,6 +16,12 @@ def create_app(config_class=Config):
     from .models import register_models
     register_models()
 
+    from .models.user import User
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id))
+
     from .auth.routes import bp as auth_bp
     from .public.routes import bp as public_bp
     from .bookings.routes import bp as bookings_bp
