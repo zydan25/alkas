@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import Coupon, Offer
-bp=Blueprint("offers",__name__,url_prefix="/admin/offers")
+bp=Blueprint("offers",__name__,url_prefix="/admin/offers",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
