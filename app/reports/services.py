@@ -36,7 +36,7 @@ def trial_balance():
     result=[]
     for account in Account.query.filter_by(is_active=True).order_by(Account.code):
         debit,credit=db.session.query(func.coalesce(func.sum(JournalLine.debit),0),func.coalesce(func.sum(JournalLine.credit),0)).join(JournalEntry,JournalLine.entry_id==JournalEntry.id).filter(JournalLine.account_id==account.id,JournalEntry.status=="posted").first()
-        result.append({"code":account.code,"name_ar":account.name_ar,"type":account.account_type,"debit":str(debit or 0),"credit":str(credit or 0),"balance":str((debit or 0)-(credit or 0))})
+        result.append({"id": account.id, "code":account.code,"name_ar":account.name_ar,"type":account.account_type,"debit":str(debit or 0),"credit":str(credit or 0),"balance":str((debit or 0)-(credit or 0))})
     return result
 
 def booking_report(start_date=None,end_date=None):
