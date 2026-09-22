@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import Team, Player
-bp=Blueprint("teams",__name__,url_prefix="/admin/teams")
+bp=Blueprint("teams",__name__,url_prefix="/admin/teams",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
