@@ -1,0 +1,36 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">التشغيل المركزي</div><h1>تقويم الحجوزات</h1><p>كل عملية قد تحتوي على ملعب واحد أو عدة ملاعب، وتظهر هنا كوحدة واحدة.</p></div>
+  <div class="page-actions"><a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a><a class="btn btn-soft" href="{{ url_for('admin.dashboard') }}">لوحة التحكم</a></div>
+</div>
+
+<section class="panel calendar-panel">
+  <div class="calendar-toolbar">
+    <a class="icon-btn" href="?date={{ (selected_date - timedelta(days=1)).isoformat() }}">‹</a>
+    <div class="date-center"><span class="eyebrow">اليوم المختار</span><strong>{{ selected_date.strftime("%Y-%m-%d") }}</strong></div>
+    <a class="icon-btn" href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}">›</a>
+    <form class="calendar-date"><input type="date" name="date" value="{{ selected_date.isoformat() }}"><button class="btn btn-soft">عرض</button></form>
+  </div>
+
+  <div class="calendar-summary">
+    <span><b>{{ total }}</b> عملية في اليوم</span>
+    <span class="legend"><i class="dot success"></i> مؤكد</span>
+    <span class="legend"><i class="dot warning"></i> مؤقت</span>
+    <span class="legend"><i class="dot danger"></i> ملغى</span>
+  </div>
+
+  <div class="schedule-list">
+    {% for item in timeline %}
+    <article class="booking-row booking-{{ item.tone }}">
+      <div class="booking-time"><strong>{{ item.start.strftime("%H:%M") }}</strong><span>{{ item.end.strftime("%H:%M") }}</span></div>
+      <div class="booking-main"><div class="booking-title"><strong>{{ item.number }}</strong><span class="badge badge-{{ item.tone }}">{{ item.status }}</span></div><p>{{ item.customer }}{% if item.phone %} · {{ item.phone }}{% endif %}</p><div class="resource-pills">{% for resource in item.resources %}<span>{{ resource }}</span>{% endfor %}</div></div>
+      <div class="booking-money"><strong>{{ "{:,.0f}".format(item.total|float) }}</strong><small>{{ "مدفوع" if item.payment_status == "paid" else ("جزئي" if item.payment_status == "partially_paid" else "غير مدفوع") }}</small></div>
+      <div class="row-actions"><button class="icon-btn" type="button">⋯</button></div>
+    </article>
+    {% else %}
+    <div class="empty-state">لا توجد حجوزات لهذا اليوم.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
