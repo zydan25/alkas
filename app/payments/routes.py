@@ -30,6 +30,8 @@ def api():
 @bp.post("/create")
 @login_required
 def create():
+    if current_user.username != "admin" and not current_user.has_permission("payment.create"):
+        return {"error":"forbidden"},403
     data = request.form
     try:
         payment = record_payment_with_accounting(
