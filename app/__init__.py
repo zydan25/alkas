@@ -1,7 +1,7 @@
 from flask import Flask
 
 from .config import Config
-from .extensions import db, login_manager, migrate, socketio
+from .extensions import csrf, db, login_manager, migrate, socketio
 
 
 def create_app(config_class=Config):
@@ -11,7 +11,12 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    socketio.init_app(app, message_queue=app.config.get("REDIS_URL"))
+    csrf.init_app(app)
+    socketio.init_app(
+        app,
+        message_queue=app.config.get("REDIS_URL"),
+        cors_allowed_origins=app.config.get("SOCKETIO_CORS", []),
+    )
 
     from .models import register_models
     register_models()
