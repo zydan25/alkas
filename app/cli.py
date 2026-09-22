@@ -60,6 +60,12 @@ def register_commands(app):
         db.session.commit()
         click.echo(f"تم إنشاء المدير: {username}")
 
+    @app.cli.command("expire-holds")
+    def expire_holds_command():
+        """إطلاق الحجوزات المؤقتة التي انتهت مهلة الاحتفاظ بها."""
+        from .bookings.services import expire_holds
+        click.echo(f"تم تحرير {expire_holds()} حجزًا مؤقتًا منتهيًا.")
+
     @app.cli.command("seed-demo")
     @click.option("--admin-password", default="ChangeMe123!", show_default=False)
     def seed_demo(admin_password):
