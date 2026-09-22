@@ -138,3 +138,39 @@
 
   document.querySelectorAll("[data-module-api]").forEach(renderDynamicModule);
 })();
+(function(){
+  const input=document.querySelector("[data-global-search]");
+  const pop=document.querySelector("[data-search-popover]");
+  if(!input||!pop)return;
+  let timer;
+  input.addEventListener("input",function(){
+    clearTimeout(timer);
+    const q=input.value.trim();
+    if(q.length<2){pop.hidden=true;pop.innerHTML="";return;}
+    timer=setTimeout(async()=>{
+      try{
+        const r=await fetch("/admin/search?q="+encodeURIComponent(q),{headers:{"Accept":"application/json"}});
+        const data=await r.json();
+        const groups=[["عملاء",data.customers],["حجوزات",data.bookings],["فواتير",data.invoices]];
+        pop.innerHTML="";
+        let total=0;
+        groups.forEach(([label,items])=>{
+          if(!items?.length)return;
+          const title=document.createElement("div"); title.className="search-group-title"; title.textContent=label; pop.appendChild(title);
+          items.forEach(item=>{
+            total++;
+            const a=document.createElement("a"); a.href=item.url; a.className="search-result";
+            const b=document.createElement("b"); b.textContent=item.label;
+            const s=document.createElement("small"); s.textContent=item.meta||"";
+            a.append(b,s); pop.appendChild(a);
+          });
+        });
+        if(!total){pop.innerHTML='<div class="search-no-result">لا توجد نتائج</div>';}
+        pop.hidden=false;
+      }catch(e){pop.hidden=true;}
+    },220);
+  });
+  document.addEventListener("click",e=>{
+    if(!e.target.closest(".admin-search"))pop.hidden=true;
+  });
+})();
