@@ -85,3 +85,42 @@ class BookingHold(db.Model):
             token=token,
             expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
         )
+
+
+class RecurringBooking(db.Model):
+    __tablename__ = "recurring_bookings"
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False)
+    frequency = db.Column(db.String(30), nullable=False, default="weekly")
+    starts_on = db.Column(db.Date, nullable=False)
+    ends_on = db.Column(db.Date)
+    occurrences = db.Column(db.Integer)
+    interval_value = db.Column(db.Integer, nullable=False, default=1)
+    status = db.Column(db.String(30), nullable=False, default="active")
+    notes = db.Column(db.String(500))
+
+
+class WaitlistEntry(db.Model):
+    __tablename__ = "booking_waitlist"
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False)
+    resource_id = db.Column(db.Integer, db.ForeignKey("resources.id", ondelete="RESTRICT"), nullable=False)
+    desired_start_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    desired_end_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    status = db.Column(db.String(30), nullable=False, default="waiting")
+    position = db.Column(db.Integer, nullable=False, default=1)
+    notified_at = db.Column(db.DateTime(timezone=True))
+
+
+class ResourceBlock(db.Model):
+    __tablename__ = "resource_blocks"
+    id = db.Column(db.Integer, primary_key=True)
+    resource_id = db.Column(db.Integer, db.ForeignKey("resources.id", ondelete="RESTRICT"), nullable=False, index=True)
+    starts_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    ends_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    reason_type = db.Column(db.String(40), nullable=False)
+    reason_ar = db.Column(db.String(500))
+    reference_type = db.Column(db.String(80))
+    reference_id = db.Column(db.Integer)
+    status = db.Column(db.String(30), nullable=False, default="active")
+    created_by_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
