@@ -188,3 +188,26 @@
   .side-link{min-height:45px;padding:10px 12px}
   .side-section-title{padding-top:13px}
 }
+
+/* Color hierarchy and robust mobile drawer */
+.sidebar-brand{
+  background:linear-gradient(135deg,var(--primary),var(--secondary))!important;
+  color:#fff;
+}
+.sidebar-brand .brand{color:#fff}
+.sidebar-brand .brand-mark{background:rgba(255,255,255,.18);box-shadow:none}
+.sidebar-brand .icon-btn{color:#fff}
+.side-link .ui-icon{color:var(--secondary)!important}
+.side-link:hover{background:color-mix(in srgb,var(--secondary) 9%,var(--surface));color:var(--secondary)}
+.side-link.active{background:linear-gradient(90deg,color-mix(in srgb,var(--secondary) 12%,var(--surface)),color-mix(in srgb,var(--accent) 6%,var(--surface)))!important}
+.side-section-title{color:color-mix(in srgb,var(--secondary) 88%,var(--text))}
+.module-icon{background:linear-gradient(135deg,color-mix(in srgb,var(--secondary) 15%,var(--surface)),color-mix(in srgb,var(--accent) 10%,var(--surface)));color:var(--secondary)}
+.kpi-card:not(.accent){border-top:3px solid color-mix(in srgb,var(--secondary) 55%,transparent)}
+.panel-head h2,.page-header h1{color:var(--text)}
+@media(max-width:900px){
+  body.menu-open .admin-topbar,
+  body.menu-open .admin-content{z-index:0!important}
+  .sidebar{z-index:1001!important;isolation:isolate}
+  .sidebar-overlay{z-index:1000!important}
+  .sidebar-brand{flex:0 0 68px}
+}
