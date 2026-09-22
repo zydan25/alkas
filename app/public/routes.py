@@ -53,6 +53,14 @@ def live():
     return render_template("public/live.html", events=events)
 
 
+@bp.get("/live/<int:event_id>")
+def live_event(event_id):
+    event = LiveEvent.query.get_or_404(event_id)
+    from ..live.models import Stream
+    stream = Stream.query.filter_by(event_id=event.id).order_by(Stream.id.desc()).first()
+    return render_template("public/live_event.html", event=event, stream=stream)
+
+
 @bp.get("/matches")
 def matches():
     rows = Match.query.order_by(Match.starts_at.desc(), Match.id.desc()).limit(60).all()
