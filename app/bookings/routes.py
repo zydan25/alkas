@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Booking, BookingAllocation, Customer, Resource
-from .services import confirm_booking, create_hold_booking
+from .services import add_to_waitlist, confirm_booking, create_hold_booking, expand_resource_bundles
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
 
@@ -59,7 +59,10 @@ def create_hold():
     try:
         items = data.get("items")
         if items is None:
-            resource_ids = [int(value) for value in data.get("resource_ids", [])]
+            resource_ids = expand_resource_bundles(
+                [int(value) for value in data.get("resource_ids", [])],
+                [int(value) for value in data.get("bundle_ids", [])],
+            )
             start_at = datetime.fromisoformat(data["start_at"])
             end_at = datetime.fromisoformat(data["end_at"])
         else:
@@ -88,6 +91,26 @@ def create_hold():
         },
         "hold_token": token,
     }), 201
+
+
+@bp.post("/waitlist")
+@login_required
+def join_waitlist():
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer:
+        return jsonify({"error": "لا يوجد ملف عميل مرتبط بحسابك"}), 403
+    data = request.get_json(silent=True) or {}
+    try:
+        row = add_to_waitlist(
+            customer.id,
+            int(data["resource_id"]),
+            datetime.fromisoformat(data["desired_start_at"]),
+            datetime.fromisoformat(data["desired_end_at"]),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        db.session.rollback()
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"id": row.id, "position": row.position, "status": row.status}), 201
 
 
 @bp.post("/<int:booking_id>/confirm")
