@@ -5,7 +5,7 @@ from flask import current_app
 from werkzeug.utils import secure_filename
 
 
-IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif", "svg"}
+IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
 VIDEO_EXTENSIONS = {"mp4", "webm", "mov", "m4v"}
 
 
