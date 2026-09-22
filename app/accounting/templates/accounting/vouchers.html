@@ -4,7 +4,7 @@
   <div><div class="eyebrow">Financial Vouchers</div><h1>السندات المحاسبية</h1><p>سند قبض، سند صرف، وسند تحويل؛ وكل طرف يجب أن يكون حسابًا تفصيليًا فقط.</p></div>
   <div class="page-actions"><a class="btn btn-soft" href="{{ url_for('accounting.ui') }}">المحاسبة</a><a class="btn btn-soft" href="{{ url_for('accounting.branches') }}">الفروع</a></div>
 </div>
-<section class="finance-grid">
+<section class="finance-grid voucher-layout">
   <section class="panel">
     <div class="panel-head"><div><span class="eyebrow">سند جديد</span><h2>إنشاء حركة</h2></div></div>
     {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
@@ -34,8 +34,8 @@
   </section>
   <section class="panel">
     <div class="panel-head"><div><span class="eyebrow">آخر الحركات</span><h2>السندات</h2></div><span class="mini-badge">{{ rows|length }} سند</span></div>
-    <div class="table-wrap"><table class="data-table"><thead><tr><th>السند</th><th>النوع</th><th>الفرع</th><th>من</th><th>إلى</th><th>المبلغ</th><th>التاريخ</th></tr></thead><tbody>
-      {% for v in rows %}<tr><td><b>{{ v.voucher_no }}</b><small>{{ v.reference or '-' }}</small></td><td><span class="badge badge-{{ 'success' if v.voucher_type == 'receipt' else 'danger' if v.voucher_type == 'payment' else 'info' }}">{{ 'قبض' if v.voucher_type == 'receipt' else 'صرف' if v.voucher_type == 'payment' else 'تحويل' }}</span></td><td>{{ v.branch.name_ar if v.branch else '-' }}</td><td>{{ v.from_account.name_ar }}</td><td>{{ v.to_account.name_ar }}</td><td class="amount-cell">{{ "{:,.2f}".format(v.amount|float) }}</td><td>{{ v.voucher_date }}</td></tr>
+    <div class="table-wrap voucher-table-wrap"><table class="data-table voucher-table"><thead><tr><th>السند</th><th>النوع</th><th>الفرع</th><th>من</th><th>إلى</th><th>المبلغ</th><th>التاريخ</th></tr></thead><tbody>
+      {% for v in rows %}<tr><td data-label="السند"><b>{{ v.voucher_no }}</b><small>{{ v.reference or '-' }}</small></td><td data-label="النوع"><span class="badge badge-{{ 'success' if v.voucher_type == 'receipt' else 'danger' if v.voucher_type == 'payment' else 'info' }}">{{ 'قبض' if v.voucher_type == 'receipt' else 'صرف' if v.voucher_type == 'payment' else 'تحويل' }}</span></td><td data-label="الفرع">{{ v.branch.name_ar if v.branch else '-' }}</td><td data-label="من">{{ v.from_account.name_ar }}</td><td data-label="إلى">{{ v.to_account.name_ar }}</td><td data-label="المبلغ" class="amount-cell">{{ "{:,.2f}".format(v.amount|float) }}</td><td data-label="التاريخ">{{ v.voucher_date }}</td></tr>
       {% else %}<tr><td colspan="7" class="empty-state">لا توجد سندات حتى الآن.</td></tr>{% endfor %}
     </tbody></table></div>
   </section>
