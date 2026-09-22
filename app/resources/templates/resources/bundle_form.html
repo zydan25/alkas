@@ -1,0 +1,10 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">Resource Bundle</div><h1>حزمة ملاعب جديدة</h1><p>اختيار واحد للحجز الجماعي مثل جميع ملاعب كرة القدم أو منطقة كاملة.</p></div><a class="btn btn-soft" href="{{ url_for('admin.resources') }}">← الموارد</a></div>
+<section class="panel form-panel">{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" class="form-stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>اسم الحزمة<input name="name_ar" required></label><label>الوصف<textarea name="description_ar" rows="3"></textarea></label>
+<div><div class="eyebrow" style="margin-bottom:8px">الموارد</div><div class="resource-grid">{% for r in resources %}<label class="resource-option"><input type="checkbox" name="resource_ids" value="{{ r.id }}"><span><strong>{{ r.name_ar }}</strong><small>{{ r.sport.name_ar }}</small></span></label>{% endfor %}</div></div>
+<div class="page-actions"><a class="btn btn-soft" href="{{ url_for('admin.resources') }}">إلغاء</a><button class="btn btn-primary">حفظ الحزمة</button></div></form>
+</section>
+{% endblock %}
