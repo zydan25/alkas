@@ -79,23 +79,39 @@
         const startAt = slot.querySelector("input[name=start_at]").value;
         const duration = Number(slot.querySelector("select[name=duration]").value || 60);
         const selected = Array.from(slot.querySelectorAll("input[name=resource_ids]:checked")).map(x => Number(x.value));
+        const bundleIds = Array.from(slot.querySelectorAll("input[name=bundle_ids]:checked")).map(x => Number(x.value));
 
-        if (!startAt || !selected.length) {
+        if (!startAt || (!selected.length && !bundleIds.length)) {
           result.className = "booking-result error";
-          result.textContent = "أكمل وقت البداية واختر ملعبًا واحدًا على الأقل في كل فترة.";
+          result.textContent = "أكمل وقت البداية واختر ملعبًا أو حزمة جاهزة واحدة على الأقل.";
           return;
         }
 
         const start = new Date(startAt);
         const end = new Date(start.getTime() + duration * 60000);
-        selected.forEach(resourceId => items.push({
-          resource_id: resourceId,
+        items.push({
+          resource_ids: selected,
+          bundle_ids: bundleIds,
           start_at: start.toISOString(),
           end_at: end.toISOString()
-        }));
+        });
       }
 
-      const response = await fetch("/bookings/holds", {
+      const flatQuoteItems = [];
+      for (const item of items) {
+        // Quote needs resolved resources; bundles are verified on the server at hold creation.
+        (item.resource_ids || []).forEach(id => flatQuoteItems.push({resource_id:id,start_at:item.start_at,end_at:item.end_at}));
+      }
+      if (flatQuoteItems.length) {
+        try {
+          const quote = await fetch("/bookings/quote", {method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrfToken},body:JSON.stringify({items:flatQuoteItems})});
+          const quoteData = await quote.json();
+          const summary = document.querySelector("[data-quote-summary] strong");
+          if (summary) summary.textContent = quoteData.total || "0";
+        } catch(e) {}
+      }
+
+      const response = await fetch("/bookings/holds",
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
         body: JSON.stringify({items, source: "pwa_web"})
