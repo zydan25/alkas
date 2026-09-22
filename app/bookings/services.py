@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 from psycopg.types.range import Range
 from sqlalchemy import select
 
+from ..accounting.models import Account
+from ..accounting.services import post_entry
 from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
 from ..models import Booking, BookingAllocation, BookingHold, Resource
@@ -103,6 +105,7 @@ def confirm_booking(booking_id, user_id=None):
         raise ValueError("انتهت مهلة الحجز المؤقت")
 
     invoice = Invoice.query.filter_by(booking_id=booking.id).first()
+    newly_issued = invoice is None
     if not invoice:
         invoice = Invoice(
             number=f"INV-{uuid4().hex[:10].upper()}",
@@ -120,16 +123,38 @@ def confirm_booking(booking_id, user_id=None):
         db.session.add(invoice)
         db.session.flush()
         for allocation in booking.allocations:
+            hours = Decimal(str((allocation.end_at - allocation.start_at).total_seconds() / 3600))
             db.session.add(InvoiceLine(
                 invoice_id=invoice.id,
                 description_ar=f"{allocation.resource.name_ar} — {allocation.start_at:%Y-%m-%d %H:%M}",
-                quantity=Decimal(str((allocation.end_at - allocation.start_at).total_seconds() / 3600)),
-                unit_price=allocation.price / Decimal(str((allocation.end_at - allocation.start_at).total_seconds() / 3600)),
+                quantity=hours,
+                unit_price=(allocation.price / hours) if hours else 0,
                 line_total=allocation.price,
                 resource_id=allocation.resource_id,
             ))
 
+    if newly_issued:
+        receivable = Account.query.filter_by(code="1300", is_active=True).first()
+        revenue = Account.query.filter_by(code="4100", is_active=True).first()
+        if not receivable or not revenue:
+            raise ValueError("حسابات الذمم والإيرادات غير مهيأة")
+        post_entry(
+            number=f"JV-INV-{invoice.id}",
+            description_ar=f"إصدار فاتورة الحجز {invoice.number}",
+            lines=[
+                {"account_id": receivable.id, "debit": invoice.total, "credit": 0, "party_type": "customer", "party_id": booking.customer_id},
+                {"account_id": revenue.id, "debit": 0, "credit": invoice.total, "party_type": "customer", "party_id": booking.customer_id},
+            ],
+            reference_type="invoice",
+            reference_id=invoice.id,
+            user_id=user_id,
+        )
+
     booking.status = "confirmed"
     db.session.commit()
+
+    customer = booking.customer
+    if customer and customer.user_id:
+        notify_user(customer.user_id, "تم تأكيد الحجز", f"تم تأكيد الحجز {booking.booking_number} بمبلغ {invoice.total}.", "booking", "high")
     emit_booking_event("booking.confirmed", booking)
     return booking, invoice
