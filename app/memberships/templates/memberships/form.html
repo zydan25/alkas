@@ -1,0 +1,6 @@
+{% extends 'admin/layout.html' %}
+{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Memberships</div><h1>خطة عضوية جديدة</h1></div></div>
+<section class='panel form-panel'><form method='post' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>{% if error %}<div class='flash danger'>{{ error }}</div>{% endif %}
+<div class='form-grid'><label>اسم الخطة<input name='name_ar' required></label><label>السعر<input type='number' name='price' min='0' step='0.01' required></label><label>مدة الأيام<input type='number' name='duration_days' min='1' value='30' required></label><label>الخصم %<input type='number' name='discount_percent' min='0' max='100' step='0.01' value='0'></label></div>
+<label class='check-option'><input type='checkbox' name='priority_booking' value='1'><span>أولوية الحجز</span></label>
+<div class='page-actions'><a class='btn btn-soft' href='{{ url_for('memberships.ui') }}'>إلغاء</a><button class='btn btn-primary'>حفظ الخطة</button></div></form></section>{% endblock %}
