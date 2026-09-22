@@ -36,30 +36,30 @@ def _allowed():
 
 
 MODULES = {
-    "accounting": ("المحاسبة", "شجرة الحسابات والقيود والفترات والأستاذ", "/admin/accounting/api", Account),
-    "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices/api", Invoice),
-    "payments": ("المدفوعات والاسترجاعات", "التحصيل وطرق الدفع والاسترجاعات", "/admin/payments/api", Payment),
-    "cashier": ("الصناديق والوردية", "الصناديق والورديات والحركات النقدية", "/admin/cashier/api", CashShift),
-    "closing": ("الإقفال المالي", "إقفال اليوم ومطابقة النقد والفرق", "/admin/closing/api", FinancialClose),
-    "employees": ("الموظفون", "الملفات الوظيفية والأقسام والحالة", "/admin/employees/api", Employee),
-    "payroll": ("الرواتب", "الدورات والرواتب والخصومات والسلف", "/admin/payroll/api", PayrollRun),
-    "shifts": ("الورديات", "جداول العمل وتوزيع الموظفين", "/admin/shifts/api", WorkShift),
-    "maintenance": ("الصيانة", "بلاغات الأعطال وأوامر العمل وحجب الموارد", "/admin/maintenance/api", MaintenanceRequest),
-    "memberships": ("العضويات", "خطط العضوية والاشتراكات النشطة", "/admin/memberships/api", Membership),
-    "packages": ("الباقات", "باقات الساعات واستهلاك العملاء", "/admin/packages/api", CustomerPackage),
-    "pricing": ("التسعير", "قواعد الأسعار والاستثناءات الزمنية", "/admin/pricing/api", PriceRule),
-    "training": ("التدريب", "المدربون والبرامج والحصص", "/admin/training/api", TrainingProgram),
-    "tournaments": ("البطولات", "البطولات والمباريات والنتائج", "/admin/tournaments/api", Tournament),
-    "teams": ("الفرق واللاعبون", "الفرق وقواعد اللاعبين", "/admin/teams/api", Team),
-    "announcements": ("بطاقات الرئيسية", "بطاقات نصية وصورية وفيديو ومؤقتة وروابط", "/admin/announcements/api", AnnouncementCard),
-    "news": ("الأخبار", "المقالات والتصنيفات والمحتوى", "/admin/news/api", Post),
-    "offers": ("العروض", "العروض والكوبونات والتعليقات والاستفسارات", "/admin/offers/api", Offer),
-    "ads": ("الإعلانات", "الحملات الإعلانية والمواد ومواقع العرض", "/admin/ads/api", AdCampaign),
-    "live": ("البث المباشر", "الأحداث ومصادر البث والمشاهدون", "/admin/live/api", LiveEvent),
-    "notifications": ("الإشعارات", "إشعارات المستخدمين وقنوات الإرسال", "/notifications", Notification),
-    "reports": ("التقارير", "لوحات المؤشرات والتقارير المحفوظة", "/admin/reports/dashboard", SavedReport),
-    "suppliers": ("الموردون", "الموردون وفواتير المشتريات والمدفوعات", "/admin/suppliers/api", Supplier),
-    "inventory": ("المخزون", "المنتجات والمستودعات وحركات المخزون", "/admin/inventory/api", Product),
+    "accounting": ("المحاسبة", "شجرة الحسابات والقيود والسندات والفروع والفترات", "/admin/accounting/api", Account, "/admin/accounting"),
+    "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices/api", Invoice, "/admin/invoices"),
+    "payments": ("المدفوعات والاسترجاعات", "التحصيل وطرق الدفع والاسترجاعات", "/admin/payments/api", Payment, "/admin/payments"),
+    "cashier": ("الصناديق والوردية", "الصناديق والورديات والحركات النقدية", "/admin/cashier/api", CashShift, "/admin/cashier"),
+    "closing": ("الإقفال المالي", "إقفال اليوم ومطابقة النقد والفرق", "/admin/closing/api", FinancialClose, "/admin/closing"),
+    "employees": ("الموظفون", "الملفات الوظيفية والأقسام والحالة", "/admin/employees/api", Employee, "/admin/employees"),
+    "payroll": ("الرواتب", "الدورات والرواتب والخصومات والسلف", "/admin/payroll/api", PayrollRun, "/admin/payroll"),
+    "shifts": ("الورديات", "جداول العمل وتوزيع الموظفين", "/admin/shifts/api", WorkShift, "/admin/shifts"),
+    "maintenance": ("الصيانة", "بلاغات الأعطال وأوامر العمل وحجب الموارد", "/admin/maintenance/api", MaintenanceRequest, "/admin/maintenance"),
+    "memberships": ("العضويات", "خطط العضوية والاشتراكات النشطة", "/admin/memberships/api", Membership, "/admin/memberships"),
+    "packages": ("الباقات", "باقات الساعات واستهلاك العملاء", "/admin/packages/api", CustomerPackage, "/admin/packages"),
+    "pricing": ("التسعير", "قواعد الأسعار والاستثناءات الزمنية", "/admin/pricing/api", PriceRule, "/admin/pricing"),
+    "training": ("التدريب", "المدربون والبرامج والحصص", "/admin/training/api", TrainingProgram, "/admin/training"),
+    "tournaments": ("البطولات", "البطولات والمباريات والنتائج", "/admin/tournaments/api", Tournament, "/admin/tournaments"),
+    "teams": ("الفرق واللاعبون", "الفرق وقواعد اللاعبين", "/admin/teams/api", Team, "/admin/teams"),
+    "announcements": ("بطاقات الرئيسية", "بطاقات نصية وصورية وفيديو ومؤقتة وروابط", "/admin/announcements/api", AnnouncementCard, "/admin/announcements"),
+    "news": ("الأخبار", "المقالات والتصنيفات والمحتوى", "/admin/news/api", Post, "/admin/news"),
+    "offers": ("العروض", "العروض والكوبونات والتعليقات والاستفسارات", "/admin/offers/api", Offer, "/admin/offers"),
+    "ads": ("الإعلانات", "الحملات الإعلانية والمواد ومواقع العرض", "/admin/ads/api", AdCampaign, "/admin/ads"),
+    "live": ("البث المباشر", "الأحداث ومصادر البث والمشاهدون", "/admin/live/api", LiveEvent, "/admin/live"),
+    "notifications": ("الإشعارات", "إشعارات المستخدمين وقنوات الإرسال", "/notifications", Notification, "/notifications"),
+    "reports": ("التقارير", "لوحات المؤشرات والتقارير المحفوظة", "/admin/reports/dashboard", SavedReport, "/admin/reports/dashboard"),
+    "suppliers": ("الموردون", "الموردون وفواتير المشتريات والمدفوعات", "/admin/suppliers/api", Supplier, "/admin/suppliers"),
+    "inventory": ("المخزون", "المنتجات والمستودعات وحركات المخزون", "/admin/inventory/api", Product, "/admin/inventory"),
 }
 
 
@@ -69,12 +69,13 @@ def index():
     if not _allowed():
         abort(403)
     modules = []
-    for slug, (title, description, api, model) in MODULES.items():
+    for slug, (title, description, api, model, ui_path) in MODULES.items():
         modules.append({
             "slug": slug,
             "title": title,
             "description": description,
             "count": model.query.count() if model is not None else 0,
+            "ui_path": ui_path,
         })
     return render_template("admin/modules.html", modules=modules)
 
@@ -84,8 +85,9 @@ def index():
 def module(slug):
     if not _allowed() or slug not in MODULES:
         abort(404)
-    title, description, api, model = MODULES[slug]
-    return render_template(
+    title, description, api, model, ui_path = MODULES[slug]
+    return redirect(ui_path)
+
         "admin/module.html",
         title=title,
         description=description,
