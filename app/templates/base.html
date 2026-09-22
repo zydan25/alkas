@@ -8,19 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/static/pwa/manifest.webmanifest?v={{ site_settings.asset_version }}">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
-    <style>
-      :root {
-        --primary: {{ site_settings.theme.primary }};
-        --secondary: {{ site_settings.theme.secondary }};
-        --accent: {{ site_settings.theme.accent }};
-        --success: {{ site_settings.theme.success }};
-        --danger: {{ site_settings.theme.danger }};
-        --surface: {{ site_settings.theme.surface }};
-        --background: {{ site_settings.theme.background }};
-        --text: {{ site_settings.theme.text }};
-        --radius: {{ site_settings.theme.radius }};
-      }
-    </style>
+    <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
     <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
     <title>{{ title or site_settings.site_name }}</title>
@@ -29,11 +17,7 @@
 <body>
 <header class="topbar">
     <a class="brand" href="{{ url_for('public.home') }}">
-        {% if site_settings.logo_url %}
-            <img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">
-        {% else %}
-            <span class="brand-mark">ك</span>
-        {% endif %}
+        {% if site_settings.logo_url %}<img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">{% else %}<span class="brand-mark">ك</span>{% endif %}
         <span>{{ site_settings.site_name }}</span>
     </a>
     <nav class="topnav">
@@ -43,32 +27,19 @@
         <a href="{{ url_for('public.tournaments') }}">البطولات</a>
         <a href="{{ url_for('public.news') }}">الأخبار</a>
         <a href="{{ url_for('public.live') }}">البث</a>
-        {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
-          <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
-        {% elif not current_user.is_authenticated %}
-          <a href="{{ url_for('auth.login') }}">دخول</a>
-        {% endif %}
+        {% if current_user.is_authenticated %}
+          {% if current_user.has_permission('booking.view') or current_user.username == 'admin' %}<a href="{{ url_for('admin.dashboard') }}">الإدارة</a>{% else %}<a href="{{ url_for('customer.dashboard') }}">حسابي</a>{% endif %}
+        {% else %}<a href="{{ url_for('auth.login') }}">دخول</a>{% endif %}
     </nav>
 </header>
 
-<main class="page-shell">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="flash {{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-</main>
+<main class="page-shell">{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
 
 <nav class="mobile-nav">
     <a href="{{ url_for('public.home') }}">الرئيسية</a>
     <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
     <a href="{{ url_for('public.offers') }}">العروض</a>
-    {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
-      <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
-    {% else %}
-      <a href="{{ url_for('auth.login') }}">حسابي</a>
-    {% endif %}
+    {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}<a href="{{ url_for('admin.dashboard') }}">الإدارة</a>{% elif current_user.is_authenticated %}<a href="{{ url_for('customer.dashboard') }}">حسابي</a>{% else %}<a href="{{ url_for('auth.login') }}">حسابي</a>{% endif %}
 </nav>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
