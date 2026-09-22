@@ -75,14 +75,75 @@ def create_app(config_class=Config):
     ):
         app.register_blueprint(blueprint)
 
+    ADMIN_PERMISSIONS = [
+        ("/admin/workspace/accounting", "accounting.view"),
+        ("/admin/workspace/invoices", "invoice.view"),
+        ("/admin/workspace/payments", "payment.view"),
+        ("/admin/workspace/cashier", "cashier.manage"),
+        ("/admin/workspace/closing", "closing.manage"),
+        ("/admin/workspace/employees", "employee.view"),
+        ("/admin/workspace/payroll", "payroll.manage"),
+        ("/admin/workspace/shifts", "shift.manage"),
+        ("/admin/workspace/maintenance", "maintenance.view"),
+        ("/admin/workspace/memberships", "membership.manage"),
+        ("/admin/workspace/packages", "package.manage"),
+        ("/admin/workspace/pricing", "pricing.view"),
+        ("/admin/workspace/training", "training.manage"),
+        ("/admin/workspace/tournaments", "tournament.manage"),
+        ("/admin/workspace/teams", "team.manage"),
+        ("/admin/workspace/announcements", "content.manage"),
+        ("/admin/workspace/news", "content.manage"),
+        ("/admin/workspace/offers", "offer.manage"),
+        ("/admin/workspace/ads", "ads.manage"),
+        ("/admin/workspace/live", "live.manage"),
+        ("/admin/workspace/suppliers", "supplier.manage"),
+        ("/admin/workspace/inventory", "inventory.manage"),
+        ("/admin/workspace/reports", "reports.view"),
+        ("/admin/accounting", "accounting.view"),
+        ("/admin/invoices", "invoice.view"),
+        ("/admin/payments", "payment.view"),
+        ("/admin/cashier", "cashier.manage"),
+        ("/admin/closing", "closing.manage"),
+        ("/admin/employees", "employee.view"),
+        ("/admin/payroll", "payroll.manage"),
+        ("/admin/shifts", "shift.manage"),
+        ("/admin/maintenance", "maintenance.view"),
+        ("/admin/memberships", "membership.manage"),
+        ("/admin/packages", "package.manage"),
+        ("/admin/pricing", "pricing.view"),
+        ("/admin/training", "training.manage"),
+        ("/admin/tournaments", "tournament.manage"),
+        ("/admin/teams", "team.manage"),
+        ("/admin/announcements", "content.manage"),
+        ("/admin/news", "content.manage"),
+        ("/admin/offers", "offer.manage"),
+        ("/admin/ads", "ads.manage"),
+        ("/admin/live", "live.manage"),
+        ("/admin/suppliers", "supplier.manage"),
+        ("/admin/inventory", "inventory.manage"),
+        ("/admin/reports", "reports.view"),
+        ("/admin/users", "users.manage"),
+        ("/admin/search", "admin.access"),
+    ]
+
     @app.before_request
     def protect_admin_area():
         if not request.path.startswith("/admin"):
             return None
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login", next=request.full_path))
-        if current_user.username != "admin" and not current_user.has_permission("admin.access"):
+        if current_user.username == "admin":
+            return None
+        if not current_user.has_permission("admin.access"):
             return {"error": "forbidden", "message": "لا تملك صلاحية دخول لوحة الإدارة"}, 403
+
+        required = "admin.access"
+        for prefix, permission in sorted(ADMIN_PERMISSIONS, key=lambda item: len(item[0]), reverse=True):
+            if request.path == prefix or request.path.startswith(prefix + "/"):
+                required = permission
+                break
+        if not current_user.has_permission(required):
+            return {"error": "forbidden", "message": "لا تملك صلاحية هذه الوحدة"}, 403
         return None
 
     from .context import inject_site_settings
