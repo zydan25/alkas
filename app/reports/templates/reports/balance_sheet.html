@@ -1,0 +1,5 @@
+{% extends 'admin/layout.html' %}
+{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Balance Sheet</div><h1>الميزانية العمومية</h1><p>الأصول والالتزامات وحقوق الملكية حتى التاريخ المحدد.</p></div><button class='btn btn-soft' onclick='window.print()'>⎙ طباعة</button></div>
+<form class='panel report-filter' method='get'><label>حتى تاريخ<input type='date' name='end' value='{{ end }}'></label><button class='btn btn-primary'>تطبيق</button></form>
+{% for label,section in data.items() %}<section class='panel' style='margin-top:16px'><div class='panel-head'><h2>{{ label }}</h2><span class='mini-badge'>{{ '{:,.2f}'.format(section.total) }}</span></div><div class='table-wrap'><table class='data-table'><thead><tr><th>الحساب</th><th>الرصيد</th></tr></thead><tbody>{% for item in section.items %}<tr><td>{{ item.code }} · {{ item.name_ar }}</td><td><b>{{ '{:,.2f}'.format(item.value) }}</b></td></tr>{% else %}<tr><td colspan='2' class='empty-state'>لا توجد حركة.</td></tr>{% endfor %}</tbody></table></div></section>{% endfor %}
+{% endblock %}
