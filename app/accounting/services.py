@@ -5,7 +5,7 @@ from sqlalchemy import func
 
 from ..audit.services import record as audit_record
 from ..extensions import db
-from .models import Account, FiscalPeriod, JournalEntry, JournalLine
+from .models import Account, AccountingVoucher, Branch, FiscalPeriod, JournalEntry, JournalLine
 
 
 def _check_open_period(entry_date):
@@ -24,7 +24,7 @@ def next_account_code(parent_id=None):
     query = Account.query
     if parent_id:
         parent = db.session.get(Account, parent_id)
-        if not parent:
+        if not parent or not parent.is_active:
             raise ValueError("الحساب الأب غير موجود")
         prefix = parent.code
         siblings = query.filter(Account.parent_id == parent_id).all()
@@ -45,6 +45,26 @@ def next_account_code(parent_id=None):
     return str((max(nums) if nums else 1000) + 1000)
 
 
+def get_postable_accounts(branch_id=None):
+    query = Account.query.filter_by(is_active=True, is_control=False).order_by(Account.code)
+    accounts = query.all()
+    return [a for a in accounts if not a.children]
+
+
+def _require_postable_account(account_id):
+    account = db.session.get(Account, int(account_id))
+    if not account or not account.is_postable:
+        raise ValueError("الحساب المختار يجب أن يكون حسابًا فرعيًا تفصيليًا ولا يملك حسابات فرعية")
+    return account
+
+
+def get_default_branch():
+    branch = Branch.query.filter_by(is_active=True).order_by(Branch.id).first()
+    if not branch:
+        raise ValueError("لا يوجد فرع محاسبي نشط")
+    return branch
+
+
 def create_account(name_ar, account_type, parent_id=None, code=None):
     name_ar = (name_ar or "").strip()
     if not name_ar:
@@ -54,18 +74,26 @@ def create_account(name_ar, account_type, parent_id=None, code=None):
     code = (code or next_account_code(parent_id)).strip()
     if Account.query.filter_by(code=code).first():
         raise ValueError("رمز الحساب مستخدم")
-    account = Account(code=code, name_ar=name_ar, account_type=account_type, parent_id=parent_id)
+    account = Account(code=code, name_ar=name_ar, account_type=account_type, parent_id=parent_id, is_control=False)
     db.session.add(account)
+    if parent_id:
+        parent = db.session.get(Account, parent_id)
+        if parent:
+            parent.is_control = True
     db.session.flush()
     audit_record("account.create", "Account", account.id, after={"code": account.code, "name_ar": account.name_ar})
     return account
 
 
-def post_entry(number, description_ar, lines, entry_date=None, reference_type=None, reference_id=None, user_id=None):
+def post_entry(number, description_ar, lines, entry_date=None, reference_type=None, reference_id=None, user_id=None, branch_id=None):
     entry_date = entry_date or date.today()
     _check_open_period(entry_date)
     if JournalEntry.query.filter_by(number=number).first():
         raise ValueError("رقم القيد مستخدم")
+
+    branch = db.session.get(Branch, int(branch_id)) if branch_id else get_default_branch()
+    if not branch or not branch.is_active:
+        raise ValueError("الفرع المحاسبي غير موجود أو غير نشط")
 
     entry = JournalEntry(
         number=number,
@@ -75,6 +103,7 @@ def post_entry(number, description_ar, lines, entry_date=None, reference_type=No
         reference_id=reference_id,
         status="posted",
         created_by_id=user_id,
+        branch_id=branch.id,
         posted_at=datetime.now(timezone.utc),
     )
     if not entry.description_ar:
@@ -87,6 +116,7 @@ def post_entry(number, description_ar, lines, entry_date=None, reference_type=No
         raise ValueError("القيد يحتاج إلى سطرين على الأقل")
 
     for item in lines:
+        account = _require_postable_account(item["account_id"])
         debit = Decimal(str(item.get("debit", 0)))
         credit = Decimal(str(item.get("credit", 0)))
         if not JournalLine.amount_is_valid(debit, credit):
@@ -110,3 +140,59 @@ def post_entry(number, description_ar, lines, entry_date=None, reference_type=No
     db.session.flush()
     audit_record("journal.post", "JournalEntry", entry.id, after={"number": number, "debit": str(total_debit), "credit": str(total_credit)})
     return entry
+
+
+def create_voucher(voucher_type, amount, from_account_id, to_account_id, voucher_date=None,
+                   branch_id=None, reference=None, description_ar="", user_id=None):
+    if voucher_type not in {"receipt", "payment", "transfer"}:
+        raise ValueError("نوع السند غير صحيح")
+    amount = Decimal(str(amount))
+    if amount <= 0:
+        raise ValueError("مبلغ السند يجب أن يكون أكبر من صفر")
+
+    from_account = _require_postable_account(from_account_id)
+    to_account = _require_postable_account(to_account_id)
+    if from_account.id == to_account.id:
+        raise ValueError("لا يمكن أن يكون طرفا السند الحساب نفسه")
+
+    branch = db.session.get(Branch, int(branch_id)) if branch_id else get_default_branch()
+    if not branch or not branch.is_active:
+        raise ValueError("الفرع المحاسبي غير موجود أو غير نشط")
+
+    day = voucher_date or date.today()
+    voucher = AccountingVoucher(
+        voucher_no=f"{voucher_type[:3].upper()}-{uuid4().hex[:10].upper()}",
+        voucher_type=voucher_type,
+        voucher_date=day,
+        branch_id=branch.id,
+        from_account_id=from_account.id,
+        to_account_id=to_account.id,
+        amount=amount,
+        reference=(reference or "").strip() or None,
+        description_ar=(description_ar or "").strip(),
+        created_by_id=user_id,
+        status="posted",
+    )
+    if not voucher.description_ar:
+        raise ValueError("بيان السند مطلوب")
+
+    entry = post_entry(
+        number=f"JV-VCH-{uuid4().hex[:10].upper()}",
+        description_ar=voucher.description_ar,
+        entry_date=day,
+        lines=[
+            {"account_id": from_account.id, "debit": amount, "credit": 0},
+            {"account_id": to_account.id, "debit": 0, "credit": amount},
+        ],
+        reference_type="voucher",
+        user_id=user_id,
+        branch_id=branch.id,
+    )
+    voucher.journal_entry_id = entry.id
+    db.session.add(voucher)
+    audit_record("voucher.create", "AccountingVoucher", voucher.id or 0, after={
+        "type": voucher.voucher_type, "amount": str(amount),
+        "branch_id": branch.id, "from_account_id": from_account.id, "to_account_id": to_account.id,
+    })
+    db.session.flush()
+    return voucher
