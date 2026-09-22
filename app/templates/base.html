@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="{{ site_settings.theme.primary }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/static/pwa/manifest.webmanifest?v={{ site_settings.asset_version }}">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
