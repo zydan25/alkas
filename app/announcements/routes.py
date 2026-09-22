@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from flask import Blueprint, jsonify, render_template, request
 from flask_login import current_user, login_required
 
@@ -37,6 +38,13 @@ def api():
 def create():
     if not _allowed():
         return {"error": "forbidden"}, 403
+    tz = ZoneInfo("Asia/Aden")
+    def parse_dt(value):
+        value = (value or "").strip()
+        if not value:
+            return None
+        return datetime.fromisoformat(value).replace(tzinfo=tz)
+
     row = AnnouncementCard(
         title_ar=(request.form.get("title_ar") or "").strip(),
         body_ar=(request.form.get("body_ar") or "").strip(),
@@ -48,6 +56,8 @@ def create():
         accent_label_ar=request.form.get("accent_label_ar") or None,
         status="published",
         priority=int(request.form.get("priority") or 0),
+        starts_at=parse_dt(request.form.get("starts_at")),
+        ends_at=parse_dt(request.form.get("ends_at")),
     )
     if not row.title_ar:
         return {"error": "العنوان مطلوب"}, 400
