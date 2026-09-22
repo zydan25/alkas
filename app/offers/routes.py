@@ -28,6 +28,12 @@ def create():
     except (KeyError,TypeError,ValueError) as exc:
         db.session.rollback();return render_template('offers/form.html',error=str(exc)),400
     return redirect(url_for('offers.ui'))
+@bp.get('/coupon/new')
+@login_required
+def coupon_new():
+    if not _allowed(): return {'error':'forbidden'},403
+    return render_template('offers/coupon_form.html',offers=Offer.query.order_by(Offer.id.desc()).all())
+
 @bp.post('/coupon')
 @login_required
 def coupon_create():
