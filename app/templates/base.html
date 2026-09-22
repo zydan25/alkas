@@ -7,6 +7,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/static/pwa/manifest.webmanifest">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
+    <style>
+      :root {
+        --primary: {{ site_settings.theme.primary | tojson }};
+        --secondary: {{ site_settings.theme.secondary | tojson }};
+        --accent: {{ site_settings.theme.accent | tojson }};
+        --success: {{ site_settings.theme.success | tojson }};
+        --danger: {{ site_settings.theme.danger | tojson }};
+        --surface: {{ site_settings.theme.surface | tojson }};
+        --background: {{ site_settings.theme.background | tojson }};
+        --text: {{ site_settings.theme.text | tojson }};
+        --radius: {{ site_settings.theme.radius | tojson }};
+      }
+    </style>
     <link rel="stylesheet" href="/static/css/app.css">
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
@@ -23,8 +36,8 @@
     </a>
     <nav class="topnav">
         <a href="{{ url_for('public.home') }}">الرئيسية</a>
-        <a href="/bookings/availability">الحجز</a>
-        <a href="/auth/login">دخول</a>
+        <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
+        <a href="{{ url_for('auth.login') }}">دخول</a>
     </nav>
 </header>
 
@@ -39,8 +52,8 @@
 
 <nav class="mobile-nav">
     <a href="{{ url_for('public.home') }}">الرئيسية</a>
-    <a href="/bookings/availability">الحجز</a>
-    <a href="/auth/login">حسابي</a>
+    <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
+    <a href="{{ url_for('auth.login') }}">حسابي</a>
 </nav>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
