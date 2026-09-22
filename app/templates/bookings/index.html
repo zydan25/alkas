@@ -15,10 +15,21 @@
         <span class="eyebrow">الحجز</span>
         <h2>فترات الحجز</h2>
       </div>
-      <strong>{{ customer.name }}</strong>
+      {% if customer %}<strong>{{ customer.name }}</strong>{% else %}<span class="booking-guest-badge">حجز للزائر</span>{% endif %}
     </div>
 
-    <form data-booking-form class="form-stack">
+    <form data-booking-form data-authenticated="{{ '1' if current_user.is_authenticated else '0' }}" class="form-stack">
+      {% if is_guest %}
+      <div class="guest-contact-card">
+        <div class="guest-contact-title"><span class="guest-contact-icon">👤</span><div><strong>بيانات الحجز</strong><small>لا تحتاج لتسجيل الدخول الآن. أدخل بياناتك وسنطلب تسجيل الدخول عند المتابعة.</small></div></div>
+        <div class="form-grid">
+          <label>الاسم الكامل<input data-guest-name name="guest_name" autocomplete="name" placeholder="مثال: محمد أحمد" required></label>
+          <label>رقم الهاتف<input data-guest-phone name="guest_phone" inputmode="tel" autocomplete="tel" placeholder="77xxxxxxxx" required></label>
+          <label>البريد الإلكتروني <span class="optional-label">(اختياري)</span><input data-guest-email name="guest_email" type="email" autocomplete="email" placeholder="example@email.com"></label>
+        </div>
+      </div>
+      {% endif %}
+      {% if resume_error %}<div class="flash danger">{{ resume_error }}</div>{% endif %}
       <div class="booking-cart-summary" data-quote-summary><span>الإجمالي المتوقع</span><strong>0</strong><small>يتغير حسب الوقت والقواعد السعرية</small></div>
       <div id="booking-slots">
         <div class="booking-slot" data-slot>
@@ -59,9 +70,9 @@
       </div>
 
       <button class="btn btn-soft" type="button" data-add-slot>＋ إضافة وقت آخر</button>
-      <button class="btn btn-primary" type="submit">حجز مؤقت بكل الفترات</button>
+      <button class="btn btn-primary" type="submit">{{ "متابعة إلى تسجيل الدخول" if is_guest else "حجز مؤقت بكل الفترات" }}</button>
       <div class="booking-result" data-booking-result></div>
-      <div class="booking-confirm" data-booking-confirm hidden>
+      <div class="booking-confirm" data-booking-confirm {% if not resume %}hidden{% endif %} {% if resume %}data-resume-booking-id="{{ resume.booking_id }}" data-resume-booking-number="{{ resume.booking_number }}" data-resume-expires="{{ resume.hold_expires_at }}"{% endif %}>
         <div><span class="eyebrow">حجز مؤقت</span><strong data-hold-number></strong><small>ينتهي خلال <b data-hold-countdown>--:--</b></small></div>
         <button class="btn btn-primary" type="button" data-confirm-booking>تأكيد الحجز وإنشاء الفاتورة</button>
       </div>
