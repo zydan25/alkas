@@ -21,3 +21,65 @@
 .live-now-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:900px){.home-hero{grid-template-columns:1fr}.hero{min-height:0}.home-quick-links{grid-template-columns:1fr 1fr}.live-now-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.page-shell{width:calc(100% - 14px)}.announcement-card{flex-basis:88vw}.hero{padding:22px;border-radius:20px}.hero h1{font-size:2.25rem}.hero p{font-size:.84rem}.hero-stats{grid-template-columns:repeat(3,1fr);display:grid}.hero-stats div{padding:10px;border-radius:14px}.hero-stats strong{font-size:1.1rem}.hero-stats span{font-size:.62rem}.home-quick-links{grid-template-columns:1fr 1fr;gap:8px}.home-quick-link{padding:11px;font-size:.68rem}.section-head{margin-bottom:10px}.section h2{font-size:1.3rem}.live-now-grid{grid-template-columns:1fr}}
+
+/* Public home app-like refresh */
+.home-ads-section{display:grid;gap:12px}
+.featured-ad{overflow:hidden;border-radius:22px;background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 8%,transparent);box-shadow:0 16px 42px rgba(15,23,42,.08)}
+.featured-ad>a{display:grid;grid-template-columns:1.35fr .65fr;min-height:270px}
+.featured-ad-media{position:relative;min-height:270px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:grid;place-items:center;overflow:hidden}
+.featured-ad-media img{width:100%;height:100%;object-fit:cover}
+.featured-ad-video,.featured-ad-fallback{font-weight:950;font-size:1rem;color:#fff}
+.featured-ad-badge{position:absolute;top:15px;right:15px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.9);color:var(--text);font-size:.66rem;font-weight:950}
+.featured-ad-copy{padding:28px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.featured-ad-copy h2{margin:3px 0 8px;font-size:clamp(1.5rem,3.2vw,2.5rem);line-height:1.25}
+.featured-ad-copy>span:last-child{color:var(--secondary);font-weight:900;font-size:.75rem}
+.featured-ad-copy b{margin-inline-start:5px}
+.ad-list{padding-bottom:2px}
+.home-announcements{margin-top:2px}
+.home-hero{margin-top:2px}
+.home-quick-links{margin-top:0}
+.home-section-head{padding:20px;border-radius:20px;background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 8%,transparent)}
+.home-section-head h2{margin:6px 0}
+.home-section-head p{margin:0;opacity:.62;line-height:1.8;font-size:.82rem}
+.topbar{min-height:64px}
+@media(max-width:800px){
+  .featured-ad>a{grid-template-columns:1fr}
+  .featured-ad-media{min-height:210px;max-height:240px}
+  .featured-ad-copy{padding:18px}
+  .featured-ad-copy h2{font-size:1.35rem}
+}
+@media(max-width:600px){
+  .topbar{padding:8px 10px}
+  .brand{gap:7px;font-size:.8rem}
+  .brand img,.brand-mark{width:34px!important;height:34px!important}
+  .page-shell{padding-bottom:88px}
+  .public-home{gap:13px}
+  .home-ads-section{margin-inline:-3px}
+  .featured-ad{border-radius:18px}
+  .featured-ad-media{min-height:180px;max-height:205px}
+  .featured-ad-copy{padding:15px}
+  .featured-ad-copy h2{font-size:1.18rem}
+  .announcement-grid{gap:9px;padding-bottom:5px}
+  .announcement-card{flex-basis:82vw;min-height:205px;border-radius:17px}
+  .announcement-media,.announcement-icon{height:112px}
+  .announcement-body{padding:12px}
+  .announcement-body h3{font-size:.9rem}
+  .announcement-body p{font-size:.74rem}
+  .home-hero .hero{box-shadow:none}
+  .home-quick-links{grid-template-columns:repeat(3,1fr);gap:7px}
+  .home-quick-link{min-height:72px;display:grid;justify-items:center;align-content:center;text-align:center;gap:5px;padding:8px 5px;border-radius:14px;font-size:.6rem}
+  .home-quick-link b{width:28px;height:28px}
+  .home-section-card{padding:12px;border-radius:17px}
+  .sport-grid{gap:8px}
+  .sport-card{min-height:58px;padding:9px;font-size:.68rem;border-radius:14px}
+  .sport-icon{width:34px;height:34px;border-radius:10px;flex:0 0 34px}
+  .preview-panel{padding:15px;border-radius:17px}
+  .preview-panel h2{font-size:1.15rem}
+}
+@media(max-width:390px){
+  .topnav{display:none}
+  .brand>span{max-width:110px;overflow:hidden;text-overflow:ellipsis}
+  .mobile-nav{height:68px}
+  .mobile-nav a{font-size:.61rem}
+  .home-quick-links{grid-template-columns:repeat(3,1fr)}
+}
