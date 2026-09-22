@@ -1,5 +1,1 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="public-header"><div><div class="eyebrow">مباشر</div><h1>البث والفعاليات المباشرة</h1><p>تابع الفعاليات عند توفر البث.</p></div></div>
-<section class="content-grid">{% for event in events %}<article class="live-card"><div class="live-cover"><span class="live-tag">{{ "🔴 مباشر" if event.status == "live" else event.status }}</span></div><div class="content-body"><h2>{{ event.name_ar }}</h2><p>{{ event.description_ar }}</p><a class="btn btn-soft" href="/live/{{ event.id }}">فتح الحدث</a></div></article>{% else %}<div class="empty-state">لا يوجد بث حالي.</div>{% endfor %}</section>
-{% endblock %}
+{% extends "base.html" %}{% block content %}<div class="public-header"><div><div class="eyebrow">Live</div><h1>البث والفعاليات</h1><p>تابع الفعاليات المباشرة ومواعيد البث القادمة.</p></div></div><section class="content-grid">{% for e in events %}<a class="live-card" href="{{ url_for('public.live_event',event_id=e.id) }}"><div class="live-cover"><span class="live-tag">{{ '🔴 مباشر الآن' if e.status == 'live' else 'مجدول' }}</span></div><div class="content-body"><h2>{{ e.name_ar }}</h2><p>{{ e.description_ar or '' }}</p><small>{{ e.starts_at or '' }}</small></div></a>{% else %}<div class="empty-state">لا توجد فعاليات بث.</div>{% endfor %}</section>{% endblock %}
