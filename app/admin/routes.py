@@ -147,7 +147,7 @@ def bookings():
         "payment_status": b.payment_status, "total": b.total,
     } for b in rows]
 
-    return render_template("admin/bookings.html", selected_date=selected_date, timeline=timeline, total=len(timeline))
+    return render_template("admin/bookings.html", selected_date=selected_date, timeline=timeline, total=len(timeline), day_delta=timedelta(days=1))
 
 
 @bp.get("/customers")
