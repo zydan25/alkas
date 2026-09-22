@@ -1,5 +1,6 @@
 (function () {
   const socket = window.io ? window.io() : null;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   if (socket) {
     socket.on("booking", function (payload) {
@@ -45,7 +46,10 @@
       const end = new Date(start.getTime() + duration * 60000);
       const response = await fetch("/bookings/holds", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
         body: JSON.stringify({
           resource_ids: selected,
           start_at: start.toISOString(),
