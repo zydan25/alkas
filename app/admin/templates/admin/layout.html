@@ -35,7 +35,7 @@
       {% if can('invoice.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/invoices') else '' }}" href="/admin/invoices"><span>▤</span> الفواتير</a>{% endif %}
       {% if can('payment.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/payments') else '' }}" href="/admin/payments"><span>◉</span> المدفوعات</a>{% endif %}
       {% if can('cashier.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/cashier') else '' }}" href="/admin/cashier"><span>▣</span> الصناديق</a>{% endif %}
-      {% if can('accounting.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/accounting') else '' }}" href="/admin/accounting"><span>⌘</span> المحاسبة</a>{% endif %}
+      {% if can('accounting.view') %}<a class="side-link {{ 'active' if request.path == '/admin/accounting' else '' }}" href="/admin/accounting"><span>⌘</span> المحاسبة</a>{% endif %}{% if can('accounting.view') %}<a class="side-link sub-link" href="/admin/accounting/vouchers"><span>↔</span> السندات</a><a class="side-link sub-link" href="/admin/accounting/branches"><span>⌁</span> الفروع المحاسبية</a>{% endif %}
       {% if can('closing.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/closing') else '' }}" href="/admin/closing"><span>✓</span> الإقفال المالي</a>{% endif %}
 
       <div class="side-section-title">الفريق</div>
@@ -61,7 +61,7 @@
       <div class="side-section-title">المخزون والتقارير</div>
       {% if can('supplier.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/suppliers') else '' }}" href="/admin/suppliers"><span>⌁</span> الموردون</a>{% endif %}
       {% if can('inventory.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/inventory') else '' }}" href="/admin/inventory"><span>▤</span> المخزون</a>{% endif %}
-      {% if can('reports.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/reports') else '' }}" href="/admin/reports"><span>◫</span> التقارير</a>{% endif %}
+      {% if can('reports.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/reports') else '' }}" href="/admin/reports"><span>◫</span> التقارير</a><a class="side-link sub-link" href="/admin/reports/ledger"><span>د</span> دفتر الأستاذ</a><a class="side-link sub-link" href="/admin/reports/income-statement"><span>∑</span> قائمة الدخل</a><a class="side-link sub-link" href="/admin/reports/balance-sheet"><span>▱</span> الميزانية</a>{% endif %}
       {% if can('audit.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/audit') else '' }}" href="/admin/audit"><span>✓</span> سجل التدقيق</a>{% endif %}
       {% if can('users.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/users') else '' }}" href="/admin/users"><span>♙</span> المستخدمون والصلاحيات</a>{% endif %}
       {% if can('settings.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/settings') else '' }}" href="{{ url_for('settings.index') }}"><span>⚙</span> الإعدادات</a>{% endif %}
