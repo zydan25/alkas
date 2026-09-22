@@ -40,6 +40,9 @@ def create_app(config_class=Config):
     from .context import inject_site_settings
     app.context_processor(inject_site_settings)
 
+    from .cli import register_commands
+    register_commands(app)
+
     @app.get("/health")
     def health():
         return {"status": "ok", "service": "alkas"}
