@@ -14,12 +14,12 @@
 
 <section class="panel calendar-panel">
   <div class="calendar-toolbar">
-    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date - timedelta(days=1)).isoformat()) }}" aria-label="اليوم السابق">‹</a>
+    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date - day_delta).isoformat()) }}" aria-label="اليوم السابق">‹</a>
     <div class="date-center">
       <span class="eyebrow">اليوم المحدد</span>
       <strong>{{ selected_date.strftime("%Y-%m-%d") }}</strong>
     </div>
-    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date + timedelta(days=1)).isoformat()) }}" aria-label="اليوم التالي">›</a>
+    <a class="icon-btn" href="{{ url_for('admin.bookings', date=(selected_date + day_delta).isoformat()) }}" aria-label="اليوم التالي">›</a>
     <form class="calendar-date" method="get">
       <input type="date" name="date" value="{{ selected_date.isoformat() }}">
       <button class="btn btn-soft" type="submit">عرض</button>
