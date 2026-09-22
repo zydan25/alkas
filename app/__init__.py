@@ -31,7 +31,6 @@ def create_app(config_class=Config):
         except (TypeError, ValueError):
             return None
 
-    # Register realtime handlers during application bootstrap.
     from . import realtime  # noqa: F401
 
     from .auth.routes import bp as auth_bp
@@ -39,6 +38,7 @@ def create_app(config_class=Config):
     from .bookings.routes import bp as bookings_bp
     from .settings.routes import bp as settings_bp
     from .admin.routes import bp as admin_bp
+    from .admin.module_routes import bp as module_ui_bp
     from .accounting.routes import bp as accounting_bp
     from .invoices.routes import bp as invoices_bp
     from .payments.routes import bp as payments_bp
@@ -62,14 +62,15 @@ def create_app(config_class=Config):
     from .suppliers.routes import bp as suppliers_bp
     from .inventory.routes import bp as inventory_bp
     from .closing.routes import bp as closing_bp
+    from .policies.routes import bp as policies_bp
 
     for blueprint in (
-        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp,
+        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp,
         accounting_bp, invoices_bp, payments_bp, cashier_bp, employees_bp,
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
         live_bp, announcements_bp, notifications_bp, reports_bp,
-        suppliers_bp, inventory_bp, closing_bp,
+        suppliers_bp, inventory_bp, closing_bp, policies_bp,
     ):
         app.register_blueprint(blueprint)
 
