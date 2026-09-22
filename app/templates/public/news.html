@@ -1,5 +1,1 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="public-header"><div><div class="eyebrow">المحتوى</div><h1>أخبار ملاعب الكأس</h1><p>آخر الأخبار والنتائج والفعاليات.</p></div></div>
-<section class="content-grid">{% for post in posts %}<article class="content-card">{% if post.cover_url %}<img src="{{ post.cover_url }}" alt="{{ post.title_ar }}">{% endif %}<div class="content-body"><span class="card-meta">خبر</span><h2>{{ post.title_ar }}</h2><p>{{ post.summary_ar or (post.body_ar or '')[:180] }}</p></div></article>{% else %}<div class="empty-state">لا توجد أخبار منشورة.</div>{% endfor %}</section>
-{% endblock %}
+{% extends "base.html" %}{% block content %}<div class="public-header"><div><div class="eyebrow">ملاعب الكأس</div><h1>الأخبار</h1><p>آخر أخبار المدينة الرياضية والبطولات والفعاليات.</p></div></div><section class="content-grid">{% for p in posts %}<article class="content-card">{% if p.cover_url %}<img src="{{ p.cover_url }}" alt="{{ p.title_ar }}">{% endif %}<div class="content-body"><div class="card-meta">خبر</div><h2>{{ p.title_ar }}</h2><p>{{ p.summary_ar or '' }}</p><small>{{ p.published_at.strftime("%Y-%m-%d") if p.published_at else '' }}</small></div></article>{% else %}<div class="empty-state">لا توجد أخبار منشورة.</div>{% endfor %}</section>{% endblock %}
