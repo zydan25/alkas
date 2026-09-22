@@ -1,0 +1,9 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">المال</div><h1>المركز المالي والتشغيلي</h1><p>مدخل موحد للحسابات، الفواتير، المدفوعات والقيود.</p></div></div>
+<section class="kpi-grid"><a class="kpi-card accent" href="/admin/accounting"><span>الحسابات</span><strong>{{ account_count }}</strong><small>حسابات نشطة</small></a><a class="kpi-card" href="/admin/invoices"><span>فواتير حديثة</span><strong>{{ invoices|length }}</strong><small>آخر 12</small></a><a class="kpi-card" href="/admin/payments"><span>مدفوعات حديثة</span><strong>{{ payments|length }}</strong><small>آخر 12</small></a></section>
+<div class="dashboard-grid">
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">دفتر اليومية</span><h2>آخر القيود</h2></div></div><div class="mini-table">{% for e in entries %}<div class="mini-row"><span><b>{{ e.number }}</b><small>{{ e.entry_date }} · {{ e.description_ar }}</small></span><i class="badge badge-success">مرحّل</i></div>{% else %}<div class="empty-state">لا توجد قيود.</div>{% endfor %}</div></section>
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">التحصيل</span><h2>آخر المدفوعات</h2></div></div><div class="mini-table">{% for p in payments %}<div class="mini-row"><span><b>{{ p.number }}</b><small>{{ p.method }} · فاتورة #{{ p.invoice_id }}</small></span><strong>{{ "{:,.0f}".format(p.amount|float) }}</strong></div>{% else %}<div class="empty-state">لا توجد مدفوعات.</div>{% endfor %}</div></section>
+</div>
+{% endblock %}
