@@ -33,7 +33,11 @@
     if (!stack) return;
     const card = document.createElement("div");
     card.className = "toast";
-    card.innerHTML = "<strong>" + title + "</strong><span>" + bodyText + "</span>";
+    const titleNode = document.createElement("strong");
+    const bodyNode = document.createElement("span");
+    titleNode.textContent = title || "تحديث";
+    bodyNode.textContent = bodyText || "";
+    card.append(titleNode, bodyNode);
     stack.appendChild(card);
     setTimeout(() => card.remove(), 5000);
   };
@@ -55,8 +59,19 @@
     document.querySelectorAll("[data-live-bookings]").forEach(el => {
       const row = document.createElement("div");
       row.className = "schedule-row live-flash";
-      row.innerHTML = "<div class='time-col'><strong>الآن</strong></div><div class='schedule-resource'><strong>" +
-        (item.booking_number || "حجز جديد") + "</strong><span>" + (item.event || "") + "</span></div><span class='status-dot status-live'></span>";
+      const time = document.createElement("div");
+      time.className = "time-col";
+      time.innerHTML = "<strong>الآن</strong>";
+      const main = document.createElement("div");
+      main.className = "schedule-resource";
+      const strong = document.createElement("strong");
+      strong.textContent = item.booking_number || "حجز جديد";
+      const span = document.createElement("span");
+      span.textContent = item.event || "";
+      main.append(strong, span);
+      const dot = document.createElement("span");
+      dot.className = "status-dot status-live";
+      row.append(time, main, dot);
       el.prepend(row);
     });
   });
@@ -68,4 +83,58 @@
       globalSearch?.focus();
     }
   });
+
+  async function renderDynamicModule(container) {
+    const endpoint = container.dataset.moduleApi;
+    const state = document.querySelector("[data-module-state]");
+    try {
+      const response = await fetch(endpoint, {headers: {"Accept": "application/json"}});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "تعذر تحميل البيانات");
+      state && (state.textContent = "محدث");
+      container.innerHTML = "";
+      if (Array.isArray(data)) {
+        const table = document.createElement("div");
+        table.className = "dynamic-records";
+        data.forEach((row, index) => {
+          const card = document.createElement("article");
+          card.className = "dynamic-record";
+          const title = document.createElement("strong");
+          const values = Object.entries(row).filter(([key]) => !["id"].includes(key));
+          title.textContent = values[0]?.[1] ?? ("سجل " + (index + 1));
+          const meta = document.createElement("div");
+          meta.className = "dynamic-meta";
+          values.slice(1, 4).forEach(([key, value]) => {
+            const item = document.createElement("span");
+            item.textContent = key + ": " + (value ?? "—");
+            meta.appendChild(item);
+          });
+          card.append(title, meta);
+          table.appendChild(card);
+        });
+        if (!data.length) table.innerHTML = '<div class="empty-state">لا توجد سجلات حالية.</div>';
+        container.appendChild(table);
+      } else {
+        const stats = document.createElement("div");
+        stats.className = "module-stat-grid";
+        Object.entries(data).forEach(([key, value]) => {
+          if (typeof value === "object") return;
+          const card = document.createElement("div");
+          card.className = "module-stat";
+          const label = document.createElement("small");
+          label.textContent = key;
+          const val = document.createElement("strong");
+          val.textContent = value ?? "—";
+          card.append(label, val);
+          stats.appendChild(card);
+        });
+        container.appendChild(stats);
+      }
+    } catch (error) {
+      state && (state.textContent = "تعذر التحميل");
+      container.innerHTML = '<div class="empty-state">تعذر تحميل بيانات هذا التطبيق الآن.</div>';
+    }
+  }
+
+  document.querySelectorAll("[data-module-api]").forEach(renderDynamicModule);
 })();
