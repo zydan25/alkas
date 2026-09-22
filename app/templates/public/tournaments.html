@@ -1,5 +1,1 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="public-header"><div><div class="eyebrow">الرياضات</div><h1>البطولات</h1><p>تابع البطولات والتسجيل والمواعيد.</p></div><a class="btn btn-primary" href="{{ url_for('public.matches') }}">المباريات</a></div>
-<section class="content-grid">{% for t in tournaments %}<article class="content-card compact-card"><div class="content-body"><span class="badge badge-info">{{ t.status }}</span><h2>{{ t.name_ar }}</h2><p>تبدأ {{ t.starts_on.strftime("%Y-%m-%d") }}</p><strong>{{ "{:,.0f}".format(t.entry_fee|float) }} رسوم التسجيل</strong></div></article>{% else %}<div class="empty-state">لا توجد بطولات منشورة.</div>{% endfor %}</section>
-{% endblock %}
+{% extends "base.html" %}{% block content %}<div class="public-header"><div><div class="eyebrow">رياضة ومنافسة</div><h1>البطولات</h1><p>البطولات المنشورة والمباشرة ومواعيدها.</p></div></div><section class="content-grid">{% for t in tournaments %}<article class="content-card compact-card"><div class="content-body"><div class="card-meta">{{ t.status }}</div><h2>🏆 {{ t.name_ar }}</h2><p>تبدأ {{ t.starts_on }}{% if t.ends_on %} · تنتهي {{ t.ends_on }}{% endif %}</p><div style="margin-top:13px"><span class="badge badge-info">رسوم {{ t.entry_fee }}</span></div></div></article>{% else %}<div class="empty-state">لا توجد بطولات منشورة.</div>{% endfor %}</section>{% endblock %}
