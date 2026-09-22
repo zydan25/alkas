@@ -6,7 +6,7 @@ from ..models import Customer
 from .models import Invoice
 from .services import issue_manual_invoice
 
-bp=Blueprint("invoices",__name__,url_prefix="/admin/invoices")
+bp=Blueprint("invoices",__name__,url_prefix="/admin/invoices",template_folder="templates")
 
 @bp.get("")
 @login_required
