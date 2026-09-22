@@ -18,7 +18,7 @@ def create_app(config_class=Config):
     from .models import register_models
     register_models()
 
-    from .models.user import User
+    from .users.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -73,7 +73,7 @@ def create_app(config_class=Config):
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
         live_bp, announcements_bp, notifications_bp, reports_bp, suppliers_bp,
-        inventory_bp, closing_bp, policies_bp, pricing_bp, customer_bp, customers_bp, users_bp, staff_bp,
+        inventory_bp, closing_bp, policies_bp, pricing_bp, customer_bp, customers_bp, users_bp, staff_bp, audit_bp,
     ):
         app.register_blueprint(blueprint)
 
