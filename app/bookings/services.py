@@ -1,25 +1,40 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
+from psycopg.types.range import Range
 from sqlalchemy import select
 
 from ..extensions import db
-from ..models import Booking, BookingAllocation, BookingHold, Customer, Resource
+from ..models import Booking, BookingAllocation, BookingHold, Resource
 from ..realtime import emit_booking_event
 
 
+def _as_aware(value):
+    if value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=ZoneInfo("Asia/Aden"))
+
+
 def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web", minutes=10):
+    resource_ids = list(dict.fromkeys(resource_ids))
     if not resource_ids:
         raise ValueError("يجب اختيار ملعب واحد على الأقل")
+
+    start_at = _as_aware(start_at)
+    end_at = _as_aware(end_at)
+
     if end_at <= start_at:
         raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
 
     resources = db.session.execute(
-        select(Resource).where(Resource.id.in_(resource_ids), Resource.is_active.is_(True))
+        select(Resource)
+        .where(Resource.id.in_(resource_ids), Resource.is_active.is_(True))
+        .order_by(Resource.id)
     ).scalars().all()
 
-    if len(resources) != len(set(resource_ids)):
+    if len(resources) != len(resource_ids):
         raise ValueError("أحد الملاعب غير متاح أو غير موجود")
 
     booking = Booking(
@@ -30,18 +45,21 @@ def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web
         payment_status="unpaid",
         start_at=start_at,
         end_at=end_at,
-        hold_expires_at=datetime.now(timezone.utc),
+        hold_expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
     )
     db.session.add(booking)
     db.session.flush()
 
     token = uuid4().hex
-    booking.hold_expires_at = BookingHold.new(booking.id, token, minutes).expires_at
-    db.session.add(BookingHold.new(booking.id, token, minutes))
+    hold = BookingHold.new(booking.id, token, minutes)
+    booking.hold_expires_at = hold.expires_at
+    db.session.add(hold)
 
+    hours = Decimal(str((end_at - start_at).total_seconds() / 3600))
     total = Decimal("0")
+
     for resource in resources:
-        price = Decimal(resource.base_price or 0)
+        price = (Decimal(resource.base_price or 0) * hours).quantize(Decimal("0.01"))
         total += price
         db.session.add(
             BookingAllocation(
@@ -49,7 +67,7 @@ def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web
                 resource_id=resource.id,
                 start_at=start_at,
                 end_at=end_at,
-                allocated_range=f"[{start_at.isoformat()},{end_at.isoformat()})",
+                allocated_range=Range(start_at, end_at, bounds="[)"),
                 price=price,
             )
         )
