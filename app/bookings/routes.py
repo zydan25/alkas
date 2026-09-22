@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Booking, BookingAllocation, Customer, Resource
+from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle
 from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
@@ -49,6 +49,58 @@ def availability():
     })
 
 
+@bp.post("/availability/batch")
+@login_required
+def availability_batch():
+    expire_holds()
+    data = request.get_json(silent=True) or {}
+    items = data.get("items") or []
+    results = []
+    for item in items:
+        try:
+            resource_id = int(item["resource_id"])
+            start_at = datetime.fromisoformat(item["start_at"])
+            end_at = datetime.fromisoformat(item["end_at"])
+        except (KeyError, TypeError, ValueError):
+            results.append({"available": False, "error": "بيانات الوقت غير صحيحة"})
+            continue
+        conflicts = BookingAllocation.query.join(Booking).filter(
+            Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress"]),
+            BookingAllocation.is_active.is_(True),
+            BookingAllocation.resource_id == resource_id,
+            BookingAllocation.start_at < end_at,
+            BookingAllocation.end_at > start_at,
+        ).count()
+        resource = Resource.query.get(resource_id)
+        results.append({
+            "resource_id": resource_id,
+            "available": bool(resource and resource.is_active and resource.status == "available" and conflicts == 0),
+        })
+    return jsonify({"available": all(x.get("available") for x in results), "items": results})
+
+
+@bp.post("/quote")
+@login_required
+def quote():
+    from ..pricing.services import calculate_price
+    data = request.get_json(silent=True) or {}
+    total = 0
+    lines = []
+    for item in data.get("items") or []:
+        try:
+            resource = Resource.query.get(int(item["resource_id"]))
+            start_at = datetime.fromisoformat(item["start_at"])
+            end_at = datetime.fromisoformat(item["end_at"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not resource or not resource.is_active:
+            continue
+        price = calculate_price(resource, start_at, end_at)
+        total += price
+        lines.append({"resource_id": resource.id, "resource": resource.name_ar, "price": str(price)})
+    return jsonify({"total": str(total), "lines": lines})
+
+
 @bp.post("/holds")
 @login_required
 def create_hold():
@@ -67,6 +119,20 @@ def create_hold():
             start_at = datetime.fromisoformat(data["start_at"])
             end_at = datetime.fromisoformat(data["end_at"])
         else:
+            expanded_items = []
+            for item in items:
+                bundle_ids = [int(v) for v in item.get("bundle_ids", [])]
+                expanded = expand_resource_bundles(
+                    [int(v) for v in item.get("resource_ids", [])],
+                    bundle_ids,
+                )
+                for resource_id in expanded:
+                    expanded_items.append({
+                        "resource_id": resource_id,
+                        "start_at": item["start_at"],
+                        "end_at": item["end_at"],
+                    })
+            items = expanded_items
             resource_ids = None
             start_at = end_at = None
 
