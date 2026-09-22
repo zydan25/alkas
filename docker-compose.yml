@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: alkas
+      POSTGRES_USER: alkas
+      POSTGRES_PASSWORD: alkas
+    ports:
+      - "5432:5432"
+    volumes:
+      - alkas_pg:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  alkas_pg:

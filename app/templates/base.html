@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="{{ site_settings.theme.primary }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/static/pwa/manifest.webmanifest">
+    <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
+    <link rel="stylesheet" href="/static/css/app.css">
+    <title>{{ title or site_settings.site_name }}</title>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="{{ url_for('public.home') }}">
+        {% if site_settings.logo_url %}
+            <img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">
+        {% else %}
+            <span class="brand-mark">ك</span>
+        {% endif %}
+        <span>{{ site_settings.site_name }}</span>
+    </a>
+    <nav class="topnav">
+        <a href="{{ url_for('public.home') }}">الرئيسية</a>
+        <a href="/bookings/availability">الحجز</a>
+        <a href="/auth/login">دخول</a>
+    </nav>
+</header>
+
+<main class="page-shell">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+
+<nav class="mobile-nav">
+    <a href="{{ url_for('public.home') }}">الرئيسية</a>
+    <a href="/bookings/availability">الحجز</a>
+    <a href="/auth/login">حسابي</a>
+</nav>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="/static/js/app.js" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

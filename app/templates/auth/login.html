@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-card">
+    <div class="eyebrow">تسجيل الدخول</div>
+    <h1>مرحبًا بعودتك</h1>
+    <p>ادخل إلى حسابك لمتابعة الحجوزات والإشعارات.</p>
+    <form method="post" class="form-stack">
+        <label>الهاتف أو اسم المستخدم
+            <input name="identifier" required autocomplete="username">
+        </label>
+        <label>كلمة المرور
+            <input name="password" type="password" required autocomplete="current-password">
+        </label>
+        <button class="btn btn-primary" type="submit">دخول</button>
+    </form>
+</section>
+{% endblock %}
