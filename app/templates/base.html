@@ -39,10 +39,15 @@
     <nav class="topnav">
         <a href="{{ url_for('public.home') }}">الرئيسية</a>
         <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
+        <a href="{{ url_for('public.offers') }}">العروض</a>
+        <a href="{{ url_for('public.tournaments') }}">البطولات</a>
+        <a href="{{ url_for('public.news') }}">الأخبار</a>
+        <a href="{{ url_for('public.live') }}">البث</a>
         {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
           <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
+        {% elif not current_user.is_authenticated %}
+          <a href="{{ url_for('auth.login') }}">دخول</a>
         {% endif %}
-        {% if not current_user.is_authenticated %}<a href="{{ url_for('auth.login') }}">دخول</a>{% endif %}
     </nav>
 </header>
 
@@ -58,6 +63,7 @@
 <nav class="mobile-nav">
     <a href="{{ url_for('public.home') }}">الرئيسية</a>
     <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
+    <a href="{{ url_for('public.offers') }}">العروض</a>
     {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
       <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
     {% else %}
