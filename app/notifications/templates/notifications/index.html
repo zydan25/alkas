@@ -1,0 +1,18 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">المركز الموحد</div><h1>الإشعارات</h1><p>تنبيهات الحجز والدفع والعمليات مع حالة القراءة.</p></div><button class="btn btn-soft" type="button" data-read-all>✓ قراءة الكل</button></div>
+<section class="panel"><div class="notification-list" data-notification-list>{% for n in notifications %}<article class="notification-row {{ 'unread' if not n.is_read else '' }}" data-notification="{{ n.id }}"><div class="notification-icon">{{ '!' if n.priority == 'high' else '•' }}</div><div style="flex:1"><div style="display:flex;justify-content:space-between;gap:10px"><b>{{ n.title_ar }}</b>{% if not n.is_read %}<span class="badge badge-info">جديد</span>{% endif %}</div><p>{{ n.body_ar }}</p><small>{{ n.created_at.strftime("%Y-%m-%d %H:%M") }} · {{ n.kind }}</small></div>{% if not n.is_read %}<button class="btn btn-soft btn-mark-read" data-id="{{ n.id }}">قراءة</button>{% endif %}</article>{% else %}<div class="empty-state">لا توجد إشعارات.</div>{% endfor %}</div></section>
+{% endblock %}
+{% block scripts %}<script>
+(function(){
+ const token=document.querySelector('meta[name="csrf-token"]')?.content||'';
+ document.querySelectorAll('.btn-mark-read').forEach(btn=>btn.addEventListener('click',async()=>{
+   await fetch('/notifications/'+btn.dataset.id+'/read',{method:'POST',headers:{'X-CSRFToken':token}});
+   location.reload();
+ }));
+ document.querySelector('[data-read-all]')?.addEventListener('click',async()=>{
+   await fetch('/notifications/read-all',{method:'POST',headers:{'X-CSRFToken':token}});
+   location.reload();
+ });
+})();
+</script>{% endblock %}
