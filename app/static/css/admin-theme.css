@@ -250,3 +250,47 @@
   .page-actions,.toolbar-actions{grid-template-columns:1fr}
   .module-card{min-height:128px!important}
 }
+
+/* Admin shell controls */
+.apps-top-action{
+  background:linear-gradient(135deg,#e9f3ff,#eafcff)!important;
+  color:var(--admin-brand)!important;
+  border-color:#cfe2f5!important;
+}
+.apps-top-action:hover{background:#dff0ff!important;color:var(--admin-brand-dark)!important}
+.setup-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  margin-bottom:15px;
+  background:linear-gradient(135deg,#edf6ff,#ffffff)!important;
+  border-color:#cfe2f5!important;
+}
+.setup-banner h2{margin:6px 0;font-size:1.05rem;color:var(--admin-brand-dark)}
+.setup-banner p{margin:0;color:var(--admin-muted);font-size:.76rem;line-height:1.8}
+.venue-list-panel{margin-bottom:15px}
+.venue-list{display:grid;gap:8px}
+.venue-item{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:12px;border-radius:14px;background:#f7fbff;border:1px solid #e1edf7
+}
+.venue-main{display:flex;align-items:center;gap:10px;min-width:0}
+.venue-main>div{min-width:0}
+.venue-main strong,.venue-main small{display:block}
+.venue-main strong{font-size:.78rem;color:var(--admin-text)}
+.venue-main small{margin-top:3px;color:var(--admin-muted);font-size:.64rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.venue-icon{
+  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--admin-brand),var(--admin-cyan));color:#fff;font-weight:900
+}
+.venue-zones{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+.venue-zones span{
+  padding:5px 8px;border-radius:999px;background:#eaf4ff;color:var(--admin-brand);
+  border:1px solid #d5e8fa;font-size:.62rem;font-weight:850
+}
+@media(max-width:620px){
+  .setup-banner,.venue-item{align-items:stretch;flex-direction:column}
+  .setup-banner .btn{width:100%}
+  .venue-zones{justify-content:flex-start}
+  .apps-top-action{display:grid!important}
+  .resource-board{grid-template-columns:1fr!important}
+  .resource-card{padding:14px!important}
+}
