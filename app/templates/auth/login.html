@@ -5,6 +5,7 @@
     <h1>مرحبًا بعودتك</h1>
     <p>ادخل إلى حسابك لمتابعة الحجوزات والإشعارات.</p>
     <form method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="next" value="{{ next_url }}">
         <label>الهاتف أو اسم المستخدم
             <input name="identifier" required autocomplete="username">
