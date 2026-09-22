@@ -8,6 +8,8 @@ from ..extensions import db
 from ..invoices.models import Invoice
 from ..models import Booking
 from ..payments.models import Payment, Refund
+from ..cashier.models import CashShift, CashTransaction
+from ..employees.models import Employee
 from .models import BookingPolicy, RefundRequest
 
 
@@ -92,6 +94,20 @@ def approve_refund(request_id, approved_amount=None, user_id=None):
         reference_id=refund.id,
         user_id=user_id,
     )
+
+    if payment.method == "cash":
+        employee = Employee.query.filter_by(user_id=user_id, employment_status="active").first()
+        shift = CashShift.query.filter_by(employee_id=employee.id, status="open").first() if employee else None
+        if not shift:
+            raise ValueError("الاسترجاع النقدي يحتاج وردية صندوق مفتوحة")
+        db.session.add(CashTransaction(
+            shift_id=shift.id,
+            transaction_type="refund",
+            amount=approved,
+            reference_type="refund",
+            reference_id=refund.id,
+            description_ar=f"استرجاع {refund.number}",
+        ))
 
     cash_account = Account.query.filter_by(code="1100", is_active=True).first()
     bank_account = Account.query.filter_by(code="1200", is_active=True).first()
