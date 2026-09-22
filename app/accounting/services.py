@@ -9,6 +9,62 @@ from ..extensions import db
 from .models import Account, AccountingVoucher, Branch, FiscalPeriod, JournalEntry, JournalLine
 
 
+def ensure_default_booking_accounts():
+    """Ensure the minimum accounting setup required to confirm a booking."""
+    account_specs = [
+        ("1000", "الأصول", "asset", None),
+        ("1300", "ذمم العملاء", "asset", "1000"),
+        ("4000", "الإيرادات", "revenue", None),
+        ("4100", "إيرادات تأجير الملاعب", "revenue", "4000"),
+    ]
+    accounts = {}
+    for code, name_ar, account_type, parent_code in account_specs:
+        account = Account.query.filter_by(code=code).first()
+        if not account:
+            account = Account(
+                code=code,
+                name_ar=name_ar,
+                account_type=account_type,
+                parent_id=None,
+                is_control=False,
+                is_active=True,
+            )
+            db.session.add(account)
+            db.session.flush()
+        accounts[code] = account
+
+    for code, _, _, parent_code in account_specs:
+        if parent_code:
+            child = accounts[code]
+            parent = accounts[parent_code]
+            child.parent_id = parent.id
+            parent.is_control = True
+
+    today = date.today()
+    period = FiscalPeriod.query.filter(
+        FiscalPeriod.starts_on <= today,
+        FiscalPeriod.ends_on >= today,
+    ).order_by(FiscalPeriod.id.desc()).first()
+    if not period:
+        period = FiscalPeriod(
+            name=str(today.year),
+            starts_on=date(today.year, 1, 1),
+            ends_on=date(today.year, 12, 31),
+            status="open",
+        )
+        db.session.add(period)
+    elif period.status != "open":
+        raise ValueError("الفترة المالية الحالية مغلقة")
+
+    branch = Branch.query.filter_by(is_active=True).order_by(Branch.id).first()
+    if not branch:
+        branch = Branch(code="BR-01", name_ar="الفرع الرئيسي", is_active=True)
+        db.session.add(branch)
+
+    db.session.flush()
+    return accounts["1300"], accounts["4100"], branch
+
+
 def _check_open_period(entry_date):
     period = FiscalPeriod.query.filter(
         FiscalPeriod.starts_on <= entry_date,
