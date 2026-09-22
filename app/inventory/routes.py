@@ -38,6 +38,12 @@ def warehouse_create():
         db.session.add(Warehouse(code=(request.form.get('code') or '').strip(),name_ar=(request.form.get('name_ar') or '').strip()));db.session.commit()
     except Exception as exc: db.session.rollback();return {'error':str(exc)},400
     return redirect(url_for('inventory.ui'))
+@bp.get('/movement/new')
+@login_required
+def movement_new():
+    if not _allowed(): return {'error':'forbidden'},403
+    return render_template('inventory/movement_form.html',products=Product.query.filter_by(is_active=True).order_by(Product.name_ar).all(),warehouses=Warehouse.query.filter_by(is_active=True).order_by(Warehouse.name_ar).all())
+
 @bp.post('/movement')
 @login_required
 def movement_create():
