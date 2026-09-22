@@ -1,0 +1,23 @@
+/* Customer/public visual refresh */
+.public-home{display:grid;gap:18px}
+.announcement-strip{position:relative;overflow:hidden;padding:2px}
+.announcement-strip .section-head{margin-bottom:10px}
+.announcement-strip .section-head h2{font-size:1.25rem}
+.announcement-grid{gap:12px;padding:2px 2px 8px;scroll-snap-type:x mandatory}
+.announcement-card{flex-basis:min(360px,86vw);min-height:226px;border-radius:20px;box-shadow:0 14px 35px rgba(15,23,42,.07);scroll-snap-align:start}
+.announcement-media,.announcement-icon{height:132px}
+.announcement-body{padding:14px 15px 16px}
+.home-hero{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
+.hero{min-height:360px}
+.home-hero .hero-actions{margin-top:18px}
+.hero h1{font-size:clamp(2rem,5vw,4.2rem)}
+.home-quick-links{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:0}
+.home-quick-link{display:flex;align-items:center;gap:9px;padding:13px 14px;border-radius:15px;background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 8%,transparent);font-size:.76rem;font-weight:900}
+.home-quick-link b{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--secondary) 10%,var(--surface));color:var(--secondary)}
+.home-quick-link:hover{border-color:color-mix(in srgb,var(--secondary) 28%,transparent)}
+.home-section-card{padding:18px;border-radius:20px;background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 8%,transparent)}
+.home-section-card .sport-grid{margin-top:0}
+.section+.section{margin-top:24px}
+.live-now-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.home-hero{grid-template-columns:1fr}.hero{min-height:0}.home-quick-links{grid-template-columns:1fr 1fr}.live-now-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.page-shell{width:calc(100% - 14px)}.announcement-card{flex-basis:88vw}.hero{padding:22px;border-radius:20px}.hero h1{font-size:2.25rem}.hero p{font-size:.84rem}.hero-stats{grid-template-columns:repeat(3,1fr);display:grid}.hero-stats div{padding:10px;border-radius:14px}.hero-stats strong{font-size:1.1rem}.hero-stats span{font-size:.62rem}.home-quick-links{grid-template-columns:1fr 1fr;gap:8px}.home-quick-link{padding:11px;font-size:.68rem}.section-head{margin-bottom:10px}.section h2{font-size:1.3rem}.live-now-grid{grid-template-columns:1fr}}
