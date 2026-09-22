@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import Product, Warehouse, StockMovement
-bp=Blueprint("inventory",__name__,url_prefix="/admin/inventory")
+bp=Blueprint("inventory",__name__,url_prefix="/admin/inventory",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
