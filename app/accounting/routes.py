@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from .models import Account, FiscalPeriod, JournalEntry, JournalLine
 
-bp = Blueprint("accounting", __name__, url_prefix="/admin/accounting")
+bp = Blueprint("accounting", __name__, url_prefix="/admin/accounting", template_folder="templates")
 
 
 def _allowed():
