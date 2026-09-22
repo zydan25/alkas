@@ -11,6 +11,7 @@ DEFAULTS = {
     "hero_title": "كل ملاعبك في مكان واحد",
     "hero_subtitle": "احجز، العب، تابع البطولات، واكتشف العروض بسهولة.",
     "booking_hold_minutes": "10",
+    "asset_version": "1",
 }
 
 
