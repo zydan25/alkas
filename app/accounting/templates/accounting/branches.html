@@ -1,0 +1,19 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">Accounting Branches</div><h1>الفروع المحاسبية</h1><p>كل سند وقيد جديد يرتبط بفرع نشط، مع فرع افتراضي يستخدم عند عدم تمرير فرع.</p></div><a class="btn btn-soft" href="{{ url_for('accounting.ui') }}">المحاسبة</a></div>
+<section class="finance-grid">
+<section class="panel form-panel">
+<div class="panel-head"><div><span class="eyebrow">فرع جديد</span><h2>إضافة فرع</h2></div></div>
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" action="{{ url_for('accounting.branch_create') }}" class="form-stack">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-grid"><label>الكود<input name="code" required maxlength="40" placeholder="BR-01"></label><label>اسم الفرع<input name="name_ar" required maxlength="180"></label></div>
+<div class="form-grid"><label>الهاتف<input name="phone"></label><label>العنوان<input name="address_ar"></label></div>
+<button class="btn btn-primary">إضافة الفرع</button>
+</form></section>
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">الفروع</span><h2>قائمة الفروع</h2></div></div>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>الكود</th><th>الفرع</th><th>الهاتف</th><th>العنوان</th><th>الحالة</th><th></th></tr></thead><tbody>
+{% for b in rows %}<tr><td><b>{{ b.code }}</b></td><td>{{ b.name_ar }}</td><td>{{ b.phone or '-' }}</td><td>{{ b.address_ar or '-' }}</td><td><span class="badge badge-{{ 'success' if b.is_active else 'muted' }}">{{ 'نشط' if b.is_active else 'معطل' }}</span></td><td><form method="post" action="{{ url_for('accounting.branch_toggle',branch_id=b.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-soft btn-sm">{{ 'تعطيل' if b.is_active else 'تفعيل' }}</button></form></td></tr>{% endfor %}
+</tbody></table></div></section>
+</section>
+{% endblock %}
