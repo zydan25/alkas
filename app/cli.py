@@ -32,10 +32,10 @@ def register_commands(app):
         permission_specs = [
             ("admin.access", "دخول لوحة الإدارة"), ("settings.manage", "إدارة الإعدادات"),
             ("users.manage", "إدارة المستخدمين والصلاحيات"),
+            ("audit.view", "عرض سجل التدقيق"),
             ("booking.view", "عرض الحجوزات"), ("booking.create", "إنشاء الحجوزات"),
             ("booking.edit", "تعديل الحجوزات"), ("booking.cancel", "إلغاء الحجوزات"),
             ("payment.view", "عرض المدفوعات"), ("payment.create", "تسجيل المدفوعات"),
-            ("invoice.manage", "إدارة الفواتير"),
             ("payment.refund", "طلب الاسترجاع"), ("accounting.view", "عرض المحاسبة"),
             ("accounting.journal.create", "إنشاء القيود"), ("accounting.journal.post", "ترحيل القيود"),
             ("cashier.manage", "إدارة الصناديق"), ("closing.manage", "الإقفال المالي"),
@@ -84,6 +84,8 @@ def register_commands(app):
     @click.option("--admin-password", default="ChangeMe123!", show_default=False)
     def seed_demo(admin_password):
         permission_specs = [
+            ("admin.access", "دخول لوحة الإدارة"),
+            ("audit.view", "عرض سجل التدقيق"),
             ("settings.manage", "إدارة الإعدادات"),
             ("users.manage", "إدارة المستخدمين والصلاحيات"),
             ("booking.view", "عرض الحجوزات"),
@@ -141,7 +143,7 @@ def register_commands(app):
 
         role_matrix = {
             "accountant": [
-                "admin.access", "dashboard.view", "accounting.view", "accounting.journal.create", "accounting.journal.post",
+                "admin.access", "audit.view", "dashboard.view", "accounting.view", "accounting.journal.create", "accounting.journal.post",
                 "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
             ],
             "receptionist": [
