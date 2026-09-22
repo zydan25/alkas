@@ -1,0 +1,5 @@
+{% extends 'admin/layout.html' %}
+{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Packages</div><h1>باقة ساعات جديدة</h1></div></div>
+<section class='panel form-panel'><form method='post' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>{% if error %}<div class='flash danger'>{{ error }}</div>{% endif %}
+<div class='form-grid'><label>اسم الباقة<input name='name_ar' required></label><label>عدد الوحدات<input type='number' name='total_units' min='0' step='0.01' required></label><label>السعر<input type='number' name='price' min='0' step='0.01' required></label><label>الوحدة<input name='unit_name_ar' value='ساعة'></label><label>مدة الصلاحية<input type='number' name='duration_days' min='1'></label></div>
+<div class='page-actions'><a class='btn btn-soft' href='{{ url_for('packages.ui') }}'>إلغاء</a><button class='btn btn-primary'>حفظ الباقة</button></div></form></section>{% endblock %}
