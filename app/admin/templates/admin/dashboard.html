@@ -1,0 +1,82 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">الثلاثاء 22 سبتمبر 2026</div>
+    <h1>لوحة التحكم</h1>
+    <p>صورة تشغيلية سريعة لمدينة ملاعب الكأس — الحجز، المال، الموارد والعمليات في لحظة واحدة.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a>
+    <a class="btn btn-soft" href="/admin/reports">التقارير</a>
+  </div>
+</div>
+
+<section class="kpi-grid">
+  <a class="kpi-card accent" href="{{ url_for('admin.bookings') }}"><span>الحجوزات</span><strong>{{ stats.bookings }}</strong><small>{{ stats.confirmed }} مؤكدة الآن</small><b class="trend">تشغيل</b></a>
+  <a class="kpi-card" href="/admin/payments"><span>المقبوض</span><strong>{{ "{:,.0f}".format(stats.paid|float) }}</strong><small>حسب الدفعات المسجلة</small><b class="trend positive">مالي</b></a>
+  <a class="kpi-card" href="/admin/invoices"><span>المستحق</span><strong>{{ "{:,.0f}".format(stats.invoice_balance|float) }}</strong><small>رصيد العملاء والفواتير</small><b class="trend warning">متابعة</b></a>
+  <a class="kpi-card" href="/admin/customers"><span>العملاء</span><strong>{{ stats.customers }}</strong><small>حسابات فعّالة</small><b class="trend">CRM</b></a>
+  <a class="kpi-card" href="/admin/resources"><span>الموارد</span><strong>{{ stats.resources }}</strong><small>ملاعب ومرافق</small><b class="trend">تشغيل</b></a>
+  <a class="kpi-card" href="/admin/maintenance"><span>الصيانة</span><strong>{{ stats.open_maintenance }}</strong><small>طلبات مفتوحة</small><b class="trend danger">تنبيه</b></a>
+</section>
+
+<div class="dashboard-grid">
+  <section class="panel panel-lg">
+    <div class="panel-head">
+      <div><span class="eyebrow">الحجوزات الآن</span><h2>جدول اليوم</h2></div>
+      <a class="text-link" href="{{ url_for('admin.bookings') }}">فتح التقويم ↗</a>
+    </div>
+    <div class="live-schedule" data-live-bookings>
+      {% for item in today_bookings %}
+      <div class="schedule-row">
+        <div class="time-col"><strong>{{ item.start_at.strftime("%H:%M") }}</strong><small>{{ item.end_at.strftime("%H:%M") }}</small></div>
+        <div class="schedule-resource">
+          <strong>{{ item.resource_names|join('، ') }}</strong>
+          <span>{{ item.customer_name }} · {{ item.status_ar }}</span>
+        </div>
+        <span class="status-dot status-{{ item.tone }}"></span>
+      </div>
+      {% else %}
+      <div class="empty-state">لا توجد حجوزات اليوم بعد.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div><span class="eyebrow">صورة المدينة</span><h2>حالة الموارد</h2></div></div>
+    <div class="resource-status-grid">
+      {% for resource in resources_status %}
+      <div class="resource-mini">
+        <span class="resource-light {{ resource.tone }}"></span>
+        <strong>{{ resource.name }}</strong>
+        <small>{{ resource.status }}</small>
+      </div>
+      {% else %}
+      <div class="empty-state">أضف الموارد من إدارة الملاعب.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel panel-lg">
+    <div class="panel-head"><div><span class="eyebrow">الأداء</span><h2>الحجوزات خلال الأسبوع</h2></div><span class="mini-badge">آخر 7 أيام</span></div>
+    <div class="bar-chart">
+      {% for day in weekly_bookings %}
+      <div class="bar-day"><div class="bar-wrap"><div class="bar" style="height: {{ day.height }}%"><span>{{ day.count }}</span></div></div><small>{{ day.label }}</small></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div><span class="eyebrow">اختصارات</span><h2>تنفيذ سريع</h2></div></div>
+    <div class="quick-actions">
+      <a href="{{ url_for('bookings.booking_page') }}"><b>＋</b><span>حجز جديد</span></a>
+      <a href="/admin/customers"><b>◎</b><span>عميل جديد</span></a>
+      <a href="/admin/payments"><b>◉</b><span>سند قبض</span></a>
+      <a href="/admin/maintenance"><b>⚒</b><span>بلاغ صيانة</span></a>
+      <a href="/admin/tournaments"><b>🏆</b><span>بطولة</span></a>
+      <a href="{{ url_for('settings.index') }}"><b>⚙</b><span>المظهر</span></a>
+    </div>
+  </section>
+</div>
+{% endblock %}
