@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="{{ site_settings.theme.primary }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="/static/pwa/manifest.webmanifest">
+    <link rel="manifest" href="/static/pwa/manifest.webmanifest?v={{ site_settings.asset_version }}">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
     <style>
       :root {
-        --primary: {{ site_settings.theme.primary | tojson }};
-        --secondary: {{ site_settings.theme.secondary | tojson }};
-        --accent: {{ site_settings.theme.accent | tojson }};
-        --success: {{ site_settings.theme.success | tojson }};
-        --danger: {{ site_settings.theme.danger | tojson }};
-        --surface: {{ site_settings.theme.surface | tojson }};
-        --background: {{ site_settings.theme.background | tojson }};
-        --text: {{ site_settings.theme.text | tojson }};
-        --radius: {{ site_settings.theme.radius | tojson }};
+        --primary: {{ site_settings.theme.primary }};
+        --secondary: {{ site_settings.theme.secondary }};
+        --accent: {{ site_settings.theme.accent }};
+        --success: {{ site_settings.theme.success }};
+        --danger: {{ site_settings.theme.danger }};
+        --surface: {{ site_settings.theme.surface }};
+        --background: {{ site_settings.theme.background }};
+        --text: {{ site_settings.theme.text }};
+        --radius: {{ site_settings.theme.radius }};
       }
     </style>
-    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
@@ -57,7 +57,7 @@
 </nav>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-<script src="/static/js/app.js" defer></script>
+<script src="/static/js/app.js?v={{ site_settings.asset_version }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
