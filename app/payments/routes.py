@@ -6,7 +6,7 @@ from ..invoices.models import Invoice
 from .models import Payment
 from .services import record_payment_with_accounting
 
-bp = Blueprint("payments", __name__, url_prefix="/admin/payments")
+bp = Blueprint("payments", __name__, url_prefix="/admin/payments", template_folder="templates")
 
 
 @bp.get("")
