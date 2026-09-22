@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from ..accounting.models import Account
+from ..audit.services import record as audit_record
 from ..accounting.services import post_entry
 from ..extensions import db
 from ..invoices.models import Invoice
@@ -85,5 +86,6 @@ def record_payment_with_accounting(invoice_id, amount, method, number, user_id=N
                 "high",
             )
 
+    audit_record("payment.create", "Payment", payment.id, after={"number": payment.number, "amount": str(payment.amount), "method": payment.method})
     db.session.commit()
     return payment
