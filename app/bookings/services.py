@@ -122,6 +122,8 @@ def expire_holds(now=None):
     ).all()
     for booking in rows:
         booking.status = "expired"
+        for allocation in booking.allocations:
+            allocation.is_active = False
     if rows:
         db.session.commit()
     return len(rows)
@@ -141,6 +143,57 @@ def add_to_waitlist(customer_id, resource_id, desired_start_at, desired_end_at):
     db.session.add(row)
     db.session.commit()
     return row
+
+
+def cancel_booking(booking_id, reason_ar="", user_id=None):
+    booking = db.session.get(Booking, booking_id)
+    if not booking:
+        raise ValueError("الحجز غير موجود")
+    if booking.status in ("cancelled", "completed", "no_show", "expired"):
+        raise ValueError("لا يمكن إلغاء هذا الحجز")
+    booking.status = "cancelled"
+    for allocation in booking.allocations:
+        allocation.is_active = False
+
+    from ..policies.models import BookingPolicy, RefundRequest
+    from ..policies.services import cancellation_refund_percent
+    policy = BookingPolicy.query.filter_by(is_default=True, is_active=True).first()
+    refund_percent = cancellation_refund_percent(policy, booking.start_at) if policy else 0
+    requested_refund = (Decimal(booking.paid_amount or 0) * Decimal(str(refund_percent)) / Decimal("100")).quantize(Decimal("0.01"))
+
+    if requested_refund > 0:
+        db.session.add(RefundRequest(
+            booking_id=booking.id,
+            requested_amount=requested_refund,
+            reason_ar=reason_ar or "إلغاء الحجز",
+            requested_by_id=user_id,
+        ))
+
+    # Notify the first waiting customer for any released resource.
+    from ..models import Customer, WaitlistEntry
+    for allocation in booking.allocations:
+        waiting = WaitlistEntry.query.filter(
+            WaitlistEntry.resource_id == allocation.resource_id,
+            WaitlistEntry.status == "waiting",
+            WaitlistEntry.desired_start_at < allocation.end_at,
+            WaitlistEntry.desired_end_at > allocation.start_at,
+        ).order_by(WaitlistEntry.position).first()
+        if waiting:
+            waiting.status = "notified"
+            waiting.notified_at = datetime.now(timezone.utc)
+            waiting_customer = db.session.get(Customer, waiting.customer_id)
+            if waiting_customer and waiting_customer.user_id:
+                notify_user(
+                    waiting_customer.user_id,
+                    "أصبح الوقت متاحًا",
+                    f"أصبح وقت في مورد رقم {allocation.resource_id} متاحًا بعد إلغاء {booking.booking_number}.",
+                    "waitlist",
+                    "high",
+                )
+
+    db.session.commit()
+    emit_booking_event("booking.cancelled", booking)
+    return booking, requested_refund
 
 
 def confirm_booking(booking_id, user_id=None):
