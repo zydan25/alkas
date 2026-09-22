@@ -174,3 +174,19 @@
     if(!e.target.closest(".admin-search"))pop.hidden=true;
   });
 })();
+(function(){
+  const box=document.querySelector("[data-bulk-bookings]");
+  if(!box)return;
+  const selectAll=box.querySelector("[data-select-all]");
+  const bulkBar=box.querySelector("[data-bulk-bar]");
+  const count=box.querySelector("[data-bulk-count]");
+  function refresh(){
+    const checked=[...box.querySelectorAll("input[name=booking_ids]:checked")];
+    if(bulkBar) bulkBar.hidden=checked.length===0;
+    if(count) count.textContent=checked.length;
+    if(selectAll) selectAll.checked=checked.length>0 && checked.length===box.querySelectorAll("input[name=booking_ids]").length;
+  }
+  selectAll?.addEventListener("change",()=>{box.querySelectorAll("input[name=booking_ids]").forEach(i=>i.checked=selectAll.checked);refresh();});
+  box.querySelectorAll("input[name=booking_ids]").forEach(i=>i.addEventListener("change",refresh));
+  refresh();
+})();
