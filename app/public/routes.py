@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 
 from flask import Blueprint, Response, jsonify, render_template
+from sqlalchemy import or_
 import json
 
+from ..ads.models import AdCampaign, AdCreative
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Resource, Sport
@@ -17,6 +19,19 @@ bp = Blueprint("public", __name__)
 @bp.get("/")
 def home():
     now = datetime.now(timezone.utc)
+    ads = (
+        AdCreative.query
+        .join(AdCampaign, AdCreative.campaign_id == AdCampaign.id)
+        .filter(
+            AdCreative.status == "active",
+            AdCampaign.status == "active",
+            or_(AdCampaign.starts_at.is_(None), AdCampaign.starts_at <= now),
+            or_(AdCampaign.ends_at.is_(None), AdCampaign.ends_at > now),
+        )
+        .order_by(AdCreative.priority.desc(), AdCreative.id.desc())
+        .limit(8)
+        .all()
+    )
     announcements = AnnouncementCard.query.filter_by(status="published").order_by(
         AnnouncementCard.priority.desc(), AnnouncementCard.created_at.desc()
     ).all()
@@ -26,6 +41,7 @@ def home():
     live_now = LiveEvent.query.filter_by(status="live").order_by(LiveEvent.starts_at.desc()).limit(3).all()
     return render_template(
         "public/home.html",
+        ads=ads,
         announcements=announcements,
         sports=sports,
         resources=resources,
