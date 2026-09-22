@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import Resource, Sport, VenueZone
 
-bp=Blueprint("resources",__name__,url_prefix="/admin/resources")
+bp=Blueprint("resources",__name__,url_prefix="/admin/resources",template_folder="templates")
 
 def _allowed(): return current_user.username=="admin" or current_user.has_permission("resource.manage")
 
