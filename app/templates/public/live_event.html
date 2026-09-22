@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">{{ '🔴 مباشر الآن' if event.status == 'live' else 'فعالية' }}</div><h1>{{ event.name_ar }}</h1><p>{{ event.description_ar or '' }}</p></div><a class="btn btn-soft" href="{{ url_for('public.live') }}">← البث</a></div>
+<section class="panel live-player">{% if stream %}<div class="live-player-frame"><a class="btn btn-primary" href="{{ stream.playback_url or stream.stream_url }}" target="_blank" rel="noopener">▶ فتح البث</a></div><div class="content-body"><span class="badge badge-info">{{ stream.provider }}</span><p>مصدر البث مرتبط بهذا الحدث، ويمكن تبديله من لوحة الإدارة.</p></div>{% else %}<div class="empty-state">سيظهر رابط البث هنا عند إعداده.</div>{% endif %}</section>
+{% endblock %}
