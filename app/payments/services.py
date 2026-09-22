@@ -55,6 +55,7 @@ def record_payment(invoice_id, amount, method, number, user_id=None):
 def record_payment_with_accounting(invoice_id, amount, method, number, user_id=None):
     payment = record_payment(invoice_id, amount, method, number, user_id)
     invoice = db.session.get(Invoice, payment.invoice_id)
+
     cash_code = METHOD_ACCOUNT_CODES.get(method, "1100")
     cash = Account.query.filter_by(code=cash_code, is_active=True).first()
     receivable = Account.query.filter_by(code="1300", is_active=True).first()
@@ -73,11 +74,6 @@ def record_payment_with_accounting(invoice_id, amount, method, number, user_id=N
         user_id=user_id,
     )
 
-    if invoice.customer_id:
-        customer = db.session.execute(
-            db.select(db.Model.metadata.tables["customers"]).where(db.Model.metadata.tables["customers"].c.id == invoice.customer_id)
-        ).first()
-    # Notification is intentionally resolved through Booking/Customer models when possible.
     if invoice.booking_id:
         booking = db.session.get(Booking, invoice.booking_id)
         if booking and booking.customer and booking.customer.user_id:
