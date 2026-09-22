@@ -47,7 +47,7 @@ def next_account_code(parent_id=None):
 
 
 def get_postable_accounts(branch_id=None):
-    query = Account.query.filter_by(is_active=True, is_control=False).order_by(Account.code)
+    query = Account.query.filter(Account.is_active.is_(True), Account.is_control.is_(False), Account.parent_id.is_not(None)).order_by(Account.code)
     accounts = query.all()
     return [a for a in accounts if not a.children]
 
