@@ -64,11 +64,33 @@ def register_commands(app):
     def seed_demo(admin_password):
         permission_specs = [
             ("settings.manage", "إدارة الإعدادات"),
+            ("users.manage", "إدارة المستخدمين والصلاحيات"),
             ("booking.view", "عرض الحجوزات"),
             ("booking.create", "إنشاء الحجوزات"),
             ("booking.edit", "تعديل الحجوزات"),
+            ("booking.cancel", "إلغاء الحجوزات"),
             ("payment.view", "عرض المدفوعات"),
+            ("payment.create", "تسجيل المدفوعات"),
+            ("payment.refund", "طلب الاسترجاع"),
             ("accounting.view", "عرض المحاسبة"),
+            ("accounting.journal.create", "إنشاء القيود"),
+            ("accounting.journal.post", "ترحيل القيود"),
+            ("cashier.manage", "إدارة الصناديق"),
+            ("closing.manage", "الإقفال المالي"),
+            ("employee.view", "عرض الموظفين"),
+            ("employee.manage", "إدارة الموظفين"),
+            ("payroll.manage", "إدارة الرواتب"),
+            ("maintenance.view", "عرض الصيانة"),
+            ("maintenance.manage", "إدارة الصيانة"),
+            ("tournament.manage", "إدارة البطولات"),
+            ("team.manage", "إدارة الفرق واللاعبين"),
+            ("content.manage", "إدارة المحتوى"),
+            ("offer.manage", "إدارة العروض"),
+            ("ads.manage", "إدارة الإعلانات"),
+            ("live.manage", "إدارة البث"),
+            ("inventory.manage", "إدارة المخزون"),
+            ("supplier.manage", "إدارة الموردين"),
+            ("reports.view", "عرض التقارير"),
         ]
         perms = []
         for key, name_ar in permission_specs:
@@ -83,6 +105,28 @@ def register_commands(app):
             manager = Role(name="manager", name_ar="مدير", is_system=True)
             db.session.add(manager)
         manager.permissions = perms
+
+        role_matrix = {
+            "accountant": [
+                "accounting.view", "accounting.journal.create", "accounting.journal.post",
+                "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
+            ],
+            "receptionist": [
+                "booking.view", "booking.create", "booking.edit", "payment.view",
+                "payment.create", "cashier.manage", "customer.view"
+            ],
+            "maintenance": ["maintenance.view", "maintenance.manage"],
+            "content": ["content.manage", "offer.manage", "ads.manage", "live.manage"],
+        }
+        for role_name, keys in role_matrix.items():
+            role = Role.query.filter_by(name=role_name).first()
+            if not role:
+                role = Role(name=role_name, name_ar={
+                    "accountant": "محاسب", "receptionist": "استقبال",
+                    "maintenance": "صيانة", "content": "محتوى"
+                }[role_name])
+                db.session.add(role)
+            role.permissions = [p for p in perms if p.key in keys]
 
         admin = User.query.filter_by(username="admin").first()
         if not admin:
