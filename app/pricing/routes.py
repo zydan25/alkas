@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import PriceOverride, PriceRule
-bp=Blueprint("pricing",__name__,url_prefix="/admin/pricing")
+bp=Blueprint("pricing",__name__,url_prefix="/admin/pricing",template_folder="templates")
 
 @bp.get("")
 @login_required
