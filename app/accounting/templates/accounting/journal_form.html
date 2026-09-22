@@ -1,1 +1,41 @@
-{% extends "admin/layout.html" %}{% block content %}<div class="page-header compact"><div><div class="eyebrow">Journal Entry</div><h1>قيد يومية</h1><p>القيد لن يُرحل إلا إذا تساوى إجمالي المدين والدائن وكانت الفترة مفتوحة.</p></div></div><section class="panel form-panel">{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}<form method="post" class="form-stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-grid"><label>الفرع<select name="branch_id" required>{% for b in branches %}<option value="{{ b.id }}">{{ b.code }} · {{ b.name_ar }}</option>{% endfor %}</select></label><label>التاريخ<input type="date" name="entry_date" value="{{ today }}" required></label><label>المبلغ<input type="number" name="amount" min="0.01" step="0.01" required></label></div><div class="form-grid"><label>من حساب (مدين)<select name="debit_account" required><option value="">اختر</option>{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} · {{ a.name_ar }} — تفصيلي</option>{% endfor %}</select></label><label>إلى حساب (دائن)<select name="credit_account" required><option value="">اختر</option>{% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} · {{ a.name_ar }}</option>{% endfor %}</select></label></div><label>وصف القيد<textarea name="description_ar" rows="3" required></textarea></label><div class="page-actions"><a class="btn btn-soft" href="{{ url_for('accounting.ui') }}">إلغاء</a><button class="btn btn-primary">ترحيل القيد</button></div></form></section>{% endblock %}
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">Journal Entry</div><h1>قيد يومية متعدد السطور</h1><p>يمكن إضافة أي عدد من السطور؛ كل سطر حساب تفصيلي واحد فقط، ويجب أن يتساوى المدين والدائن.</p></div></div>
+<section class="panel form-panel">
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" class="form-stack" id="journalForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-grid"><label>الفرع<select name="branch_id" required>{% for b in branches %}<option value="{{ b.id }}">{{ b.code }} · {{ b.name_ar }}</option>{% endfor %}</select></label><label>التاريخ<input type="date" name="entry_date" value="{{ today }}" required></label></div>
+<div class="panel" style="padding:12px;background:var(--background)"><div class="panel-head"><div><span class="eyebrow">Lines</span><h2>سطور القيد</h2></div><button type="button" class="btn btn-soft" id="addLine">＋ سطر</button></div>
+<div class="table-wrap"><table class="data-table" id="lineTable"><thead><tr><th>الحساب التفصيلي</th><th>مدين</th><th>دائن</th><th></th></tr></thead><tbody id="lineBody"></tbody></table></div>
+<div class="page-actions" style="margin-top:12px"><span class="badge badge-info">إجمالي المدين: <b id="debitTotal">0.00</b></span><span class="badge badge-info">إجمالي الدائن: <b id="creditTotal">0.00</b></span><span class="badge" id="balanceBadge">غير متوازن</span></div></div>
+<label>وصف القيد<textarea name="description_ar" rows="3" required></textarea></label>
+<div class="page-actions"><a class="btn btn-soft" href="{{ url_for('accounting.ui') }}">إلغاء</a><button class="btn btn-primary" id="postButton" disabled>ترحيل القيد</button></div>
+</form></section>
+<script>
+const accountOptions="<option value=\"\">اختر حسابًا تفصيليًا</option>{% for a in accounts %}<option value=\"{{ a.id }}\">{{ a.code }} · {{ a.name_ar }}</option>{% endfor %}";
+const body=document.getElementById('lineBody');
+function addLine(){
+ const tr=document.createElement('tr');
+ tr.innerHTML='<td><select name="line_account" required>'+accountOptions+'</select></td><td><input name="line_debit" type="number" min="0" step="0.01" value="0"></td><td><input name="line_credit" type="number" min="0" step="0.01" value="0"></td><td><button type="button" class="icon-btn remove-line">×</button></td>';
+ body.appendChild(tr);
+ tr.querySelectorAll('input').forEach(x=>x.addEventListener('input',refresh));
+ tr.querySelector('.remove-line').addEventListener('click',()=>{tr.remove();refresh()});
+}
+function refresh(){
+ let d=0,c=0;
+ body.querySelectorAll('tr').forEach(tr=>{
+   const di=Number(tr.querySelector('[name=line_debit]').value||0),cr=Number(tr.querySelector('[name=line_credit]').value||0);
+   if(di>0){tr.querySelector('[name=line_credit]').value='0';c+=0} if(cr>0){tr.querySelector('[name=line_debit]').value='0';d+=0}
+   d+=Number(tr.querySelector('[name=line_debit]').value||0); c+=Number(tr.querySelector('[name=line_credit]').value||0);
+ });
+ document.getElementById('debitTotal').textContent=d.toFixed(2);document.getElementById('creditTotal').textContent=c.toFixed(2);
+ const ok=body.children.length>=2&&Math.abs(d-c)<0.005&&d>0;
+ document.getElementById('balanceBadge').textContent=ok?'متوازن ✓':'غير متوازن';
+ document.getElementById('balanceBadge').className='badge '+(ok?'badge-success':'badge-danger');
+ document.getElementById('postButton').disabled=!ok;
+}
+document.getElementById('addLine').addEventListener('click',()=>{addLine();refresh()});
+addLine();addLine();refresh();
+</script>
+{% endblock %}
