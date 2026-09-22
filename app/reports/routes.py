@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 from .models import SavedReport
 from .services import booking_report, dashboard_snapshot, financial_summary, trial_balance, utilization_report
 
-bp=Blueprint("reports",__name__,url_prefix="/admin/reports")
+bp=Blueprint("reports",__name__,url_prefix="/admin/reports",template_folder="templates")
 
 @bp.get("")
 @login_required
