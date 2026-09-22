@@ -53,12 +53,14 @@ class BookingAllocation(db.Model):
     end_at = db.Column(db.DateTime(timezone=True), nullable=False)
     allocated_range = db.Column(TSTZRANGE, nullable=False)
     price = db.Column(db.Numeric(14, 2), nullable=False, default=0)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
 
     __table_args__ = (
         ExcludeConstraint(
             ("resource_id", "="),
             ("allocated_range", "&&"),
             name="booking_allocations_resource_time_excl",
+            where="is_active",
             using="gist",
         ),
     )
