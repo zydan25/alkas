@@ -11,6 +11,7 @@
     <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
     <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
+    <link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
