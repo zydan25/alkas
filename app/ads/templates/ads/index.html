@@ -1,1 +1,88 @@
-{% extends "admin/layout.html" %}{% block content %}<div class="page-header compact"><div><div class="eyebrow">الحملات</div><h1>الإعلانات</h1><p>الحملات، أماكن العرض والمواد الإبداعية.</p></div><a class="btn btn-primary" href="{{ url_for('ads.new') }}">＋ حملة</a></div><section class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>الحملة</th><th>المعلن</th><th>الميزانية</th><th>البدء</th><th>النهاية</th><th>الحالة</th></tr></thead><tbody>{% for c in campaigns %}<tr><td><b>{{ c.name_ar }}</b></td><td>{{ c.advertiser_ar or '—' }}</td><td>{{ "{:,.0f}".format(c.budget|float) if c.budget else '—' }}</td><td>{{ c.starts_at or '—' }}</td><td>{{ c.ends_at or '—' }}</td><td><span class="badge badge-{{ 'success' if c.status == 'active' else 'warning' }}">{{ c.status }}</span></td></tr>{% else %}<tr><td colspan="6"><div class="empty-state">لا توجد حملات.</div></td></tr>{% endfor %}</tbody></table></div></section><section class="panel" style="margin-top:15px"><div class="panel-head"><div><span class="eyebrow">المواد</span><h2>Creative</h2></div></div><div class="dynamic-records">{% for c in creatives %}<div class="dynamic-record"><strong>{{ c.title_ar or 'مادة إعلانية' }}</strong><div class="dynamic-meta"><span>{{ 'فيديو' if c.video_url else 'صورة' if c.image_url else 'نص' }}</span><span>{{ c.status }}</span></div></div>{% else %}<div class="empty-state">لا توجد مواد.</div>{% endfor %}</div></section>{% endblock %}
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">الحملات</div><h1>الإعلانات</h1><p>الحملات، أماكن العرض والمواد الإبداعية.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('ads.new') }}">＋ حملة</a>
+</div>
+
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+{% if success %}<div class="flash success">{{ success }}</div>{% endif %}
+
+<section class="panel">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>الحملة</th><th>المعلن</th><th>الميزانية</th><th>البدء</th><th>النهاية</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for c in campaigns %}
+        <tr>
+          <td><b>{{ c.name_ar }}</b></td><td>{{ c.advertiser_ar or '—' }}</td>
+          <td>{{ "{:,.0f}".format(c.budget|float) if c.budget else '—' }}</td>
+          <td>{{ c.starts_at or '—' }}</td><td>{{ c.ends_at or '—' }}</td>
+          <td><span class="badge badge-{{ 'success' if c.status == 'active' else 'warning' }}">{{ c.status }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6"><div class="empty-state">لا توجد حملات.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel media-upload-panel" style="margin-top:15px">
+  <div class="panel-head">
+    <div><span class="eyebrow">مادة إعلانية</span><h2>إضافة صورة أو فيديو</h2><p>ارفع الملف من جهازك مباشرة، ولا تحتاج إلى لصق رابط للصورة أو الفيديو.</p></div>
+  </div>
+  <form method="post" action="{{ url_for('ads.creative_create') }}" enctype="multipart/form-data" class="form-stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-grid">
+      <label>الحملة
+        <select name="campaign_id" required>
+          <option value="">اختر الحملة</option>
+          {% for c in campaigns %}<option value="{{ c.id }}">{{ c.name_ar }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>مكان العرض
+        <select name="placement_id" required>
+          <option value="">اختر مكان العرض</option>
+          {% for p in placements %}<option value="{{ p.id }}">{{ p.name_ar }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>عنوان المادة<input name="title_ar" placeholder="مثال: العرض الصيفي"></label>
+      <label>الرابط عند الضغط<input name="target_url" type="url" placeholder="https://..."></label>
+      <label>الأولوية<input name="priority" type="number" value="0"></label>
+      <label>الحالة
+        <select name="status"><option value="active">فعالة</option><option value="paused">متوقفة</option></select>
+      </label>
+    </div>
+    <div class="upload-choice-grid">
+      <label class="upload-field">
+        <span class="upload-field-icon">🖼</span>
+        <span><b>رفع صورة</b><small>JPG · PNG · WEBP · GIF · SVG</small></span>
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml">
+      </label>
+      <label class="upload-field">
+        <span class="upload-field-icon">▶</span>
+        <span><b>رفع فيديو</b><small>MP4 · WEBM · MOV · M4V</small></span>
+        <input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v">
+      </label>
+    </div>
+    <button class="btn btn-primary" type="submit">حفظ المادة الإعلانية</button>
+  </form>
+</section>
+
+<section class="panel" style="margin-top:15px">
+  <div class="panel-head"><div><span class="eyebrow">المواد</span><h2>المواد المضافة</h2></div></div>
+  <div class="dynamic-records">
+    {% for c in creatives %}
+      <div class="dynamic-record">
+        <strong>{{ c.title_ar or 'مادة إعلانية' }}</strong>
+        <div class="dynamic-meta">
+          <span>{{ 'فيديو' if c.video_url else 'صورة' if c.image_url else 'نص' }}</span>
+          <span>{{ c.status }}</span>
+          {% if c.image_url or c.video_url %}<a href="{{ c.video_url or c.image_url }}" target="_blank" rel="noopener">عرض الملف</a>{% endif %}
+        </div>
+      </div>
+    {% else %}<div class="empty-state">لا توجد مواد.</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}
