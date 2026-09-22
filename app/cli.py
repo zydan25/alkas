@@ -1,7 +1,5 @@
 import click
 from flask import current_app
-from werkzeug.exceptions import BadRequest
-
 from .extensions import db
 from .models import (
     Account,
@@ -138,8 +136,7 @@ def register_commands(app):
     @click.option("--password", required=True, prompt=True, hide_input=True, confirmation_prompt=True)
     @click.option("--name", default="مدير النظام", show_default=True)
     def create_admin(username, password, name):
-        if User.query.filter_by(username=username).first():
-            raise BadRequest("اسم المستخدم موجود بالفعل")
+        existing_user = User.query.filter_by(username=username).first()
 
         permission_specs = [
             ("admin.access", "دخول لوحة الإدارة"), ("settings.manage", "إدارة الإعدادات"),
@@ -186,12 +183,15 @@ def register_commands(app):
         if not Branch.query.filter_by(code="BR-01").first():
             db.session.add(Branch(code="BR-01", name_ar="الفرع الرئيسي", is_active=True))
 
-        user = User(username=username, display_name=name)
+        user = existing_user or User(username=username, display_name=name)
+        user.display_name = name
+        user.is_active = True
         user.set_password(password)
         user.roles = [role]
         db.session.add(user)
+        _setup_core_data()
         db.session.commit()
-        click.echo(f"تم إنشاء المدير: {username}")
+        click.echo(f"تم تجهيز المدير: {username}")
 
     @app.cli.command("setup-core")
     def setup_core():
