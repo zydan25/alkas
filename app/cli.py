@@ -18,6 +18,8 @@ from .models import (
     VenueZone,
 )
 from .announcements.models import AnnouncementCard
+from .accounting.models import FiscalPeriod
+from datetime import date
 
 
 def register_commands(app):
@@ -66,6 +68,11 @@ def register_commands(app):
             role = Role(name="manager", name_ar="مدير", is_system=True)
             db.session.add(role)
         role.permissions = permission_rows
+
+        current_year = date.today().year
+        period_name = str(current_year)
+        if not FiscalPeriod.query.filter_by(name=period_name).first():
+            db.session.add(FiscalPeriod(name=period_name, starts_on=date(current_year,1,1), ends_on=date(current_year,12,31), status="open"))
 
         user = User(username=username, display_name=name)
         user.set_password(password)
@@ -266,6 +273,8 @@ def register_commands(app):
             ("1300", "ذمم العملاء", "asset", "1000"),
             ("4000", "الإيرادات", "revenue", None),
             ("4100", "إيرادات تأجير الملاعب", "revenue", "4000"),
+            ("2000", "الالتزامات", "liability", None),
+            ("2200", "رواتب مستحقة", "liability", "2000"),
             ("5000", "المصروفات", "expense", None),
             ("5100", "مصروفات التشغيل", "expense", "5000"),
         ]
@@ -280,6 +289,11 @@ def register_commands(app):
         for code, _, _, parent_code in account_specs:
             if parent_code:
                 accounts[code].parent_id = accounts[parent_code].id
+
+        current_year = date.today().year
+        period_name = str(current_year)
+        if not FiscalPeriod.query.filter_by(name=period_name).first():
+            db.session.add(FiscalPeriod(name=period_name, starts_on=date(current_year,1,1), ends_on=date(current_year,12,31), status="open"))
 
         db.session.commit()
         click.echo("تمت إضافة البيانات التجريبية للنواة.")
