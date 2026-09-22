@@ -1,0 +1,25 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">المنشأة</div><h1>إضافة منشأة / ملعب</h1><p>أنشئ المنشأة والمنطقة الأولى معها، ثم أضف الموارد الرياضية داخل المنطقة.</p></div>
+  <a class="btn btn-soft" href="{{ url_for('admin.resources') }}">العودة</a>
+</div>
+<section class="panel form-panel">
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" class="form-stack">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-grid">
+<label>الاسم بالعربي<input name="name_ar" placeholder="المدينة الرياضية الرئيسية" required></label>
+<label>الاسم الداخلي<input name="name" placeholder="Main Venue" required></label>
+<label>العنوان<input name="address" placeholder="اختياري"></label>
+<label>اسم المنطقة بالعربي<input name="zone_name_ar" value="الملاعب الرئيسية" required></label>
+<label>اسم المنطقة الداخلي<input name="zone_name" value="main" required></label>
+</div>
+<label>الوصف<textarea name="description" rows="3" placeholder="وصف المنشأة ومرافقها"></textarea></label>
+<div class="page-actions">
+<a class="btn btn-soft" href="{{ url_for('admin.resources') }}">إلغاء</a>
+<button class="btn btn-primary" type="submit">حفظ المنشأة</button>
+</div>
+</form>
+</section>
+{% endblock %}
