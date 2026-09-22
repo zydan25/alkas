@@ -22,6 +22,7 @@
       }
     </style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
+    <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
@@ -38,7 +39,10 @@
     <nav class="topnav">
         <a href="{{ url_for('public.home') }}">الرئيسية</a>
         <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
-        <a href="{{ url_for('auth.login') }}">دخول</a>
+        {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
+          <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
+        {% endif %}
+        {% if not current_user.is_authenticated %}<a href="{{ url_for('auth.login') }}">دخول</a>{% endif %}
     </nav>
 </header>
 
@@ -54,7 +58,11 @@
 <nav class="mobile-nav">
     <a href="{{ url_for('public.home') }}">الرئيسية</a>
     <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
-    <a href="{{ url_for('auth.login') }}">حسابي</a>
+    {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}
+      <a href="{{ url_for('admin.dashboard') }}">الإدارة</a>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}">حسابي</a>
+    {% endif %}
 </nav>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
