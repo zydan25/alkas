@@ -13,11 +13,7 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
-    socketio.init_app(
-        app,
-        message_queue=app.config.get("REDIS_URL"),
-        cors_allowed_origins=app.config.get("SOCKETIO_CORS", []),
-    )
+    socketio.init_app(app, message_queue=app.config.get("REDIS_URL"), cors_allowed_origins=app.config.get("SOCKETIO_CORS", []))
 
     from .models import register_models
     register_models()
@@ -63,14 +59,15 @@ def create_app(config_class=Config):
     from .inventory.routes import bp as inventory_bp
     from .closing.routes import bp as closing_bp
     from .policies.routes import bp as policies_bp
+    from .customer.routes import bp as customer_bp
 
     for blueprint in (
         auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp,
         accounting_bp, invoices_bp, payments_bp, cashier_bp, employees_bp,
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
-        live_bp, announcements_bp, notifications_bp, reports_bp,
-        suppliers_bp, inventory_bp, closing_bp, policies_bp,
+        live_bp, announcements_bp, notifications_bp, reports_bp, suppliers_bp,
+        inventory_bp, closing_bp, policies_bp, customer_bp,
     ):
         app.register_blueprint(blueprint)
 
