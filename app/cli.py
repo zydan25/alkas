@@ -31,6 +31,7 @@ def register_commands(app):
             raise BadRequest("اسم المستخدم موجود بالفعل")
 
         permissions = [
+            ("admin.access", "دخول لوحة الإدارة"),
             ("settings.manage", "إدارة الإعدادات"),
             ("booking.view", "عرض الحجوزات"),
             ("booking.create", "إنشاء الحجوزات"),
@@ -91,6 +92,7 @@ def register_commands(app):
             ("inventory.manage", "إدارة المخزون"),
             ("supplier.manage", "إدارة الموردين"),
             ("reports.view", "عرض التقارير"),
+            ("customer.view", "عرض العملاء"),
         ]
         perms = []
         for key, name_ar in permission_specs:
@@ -108,15 +110,15 @@ def register_commands(app):
 
         role_matrix = {
             "accountant": [
-                "accounting.view", "accounting.journal.create", "accounting.journal.post",
+                "admin.access", "accounting.view", "accounting.journal.create", "accounting.journal.post",
                 "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
             ],
             "receptionist": [
-                "booking.view", "booking.create", "booking.edit", "payment.view",
+                "admin.access", "booking.view", "booking.create", "booking.edit", "payment.view",
                 "payment.create", "cashier.manage", "customer.view"
             ],
-            "maintenance": ["maintenance.view", "maintenance.manage"],
-            "content": ["content.manage", "offer.manage", "ads.manage", "live.manage"],
+            "maintenance": ["admin.access", "maintenance.view", "maintenance.manage"],
+            "content": ["admin.access", "content.manage", "offer.manage", "ads.manage", "live.manage"],
         }
         for role_name, keys in role_matrix.items():
             role = Role.query.filter_by(name=role_name).first()
