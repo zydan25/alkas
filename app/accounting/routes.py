@@ -290,3 +290,22 @@ def journal_create():
     return redirect(url_for('accounting.ui'))
 
 
+
+@bp.get('/cost-centers')
+@login_required
+def cost_centers():
+    if not _view(): return {'error':'forbidden'},403
+    from .models import CostCenter
+    rows=CostCenter.query.order_by(CostCenter.code).all()
+    return render_template('accounting/cost_centers.html',rows=rows)
+
+@bp.post('/cost-centers/new')
+@login_required
+def cost_center_create():
+    if not _manage(): return {'error':'forbidden'},403
+    from .models import CostCenter
+    code=(request.form.get('code') or '').strip(); name=(request.form.get('name_ar') or '').strip()
+    if not code or not name: return {'error':'الكود واسم مركز التكلفة مطلوبان'},400
+    if CostCenter.query.filter_by(code=code).first(): return {'error':'كود مركز التكلفة مستخدم'},400
+    db.session.add(CostCenter(code=code,name_ar=name)); db.session.commit()
+    return redirect(url_for('accounting.cost_centers'))
