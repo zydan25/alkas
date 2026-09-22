@@ -17,11 +17,15 @@ def ui():
 @bp.get("/new")
 @login_required
 def new():
+    if current_user.username != "admin" and not current_user.has_permission("invoice.manage"):
+        return {"error": "forbidden"}, 403
     return render_template("invoices/form.html",customers=Customer.query.filter_by(is_active=True).order_by(Customer.name).limit(300).all())
 
 @bp.post("/new")
 @login_required
 def create():
+    if current_user.username != "admin" and not current_user.has_permission("invoice.manage"):
+        return {"error": "forbidden"}, 403
     try:
         invoice=issue_manual_invoice(int(request.form["customer_id"]),request.form.get("description_ar"),request.form["amount"],current_user.id)
     except (KeyError,TypeError,ValueError) as exc:
