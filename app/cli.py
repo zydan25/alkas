@@ -5,7 +5,6 @@ from werkzeug.exceptions import BadRequest
 from .extensions import db
 from .models import (
     Account,
-    Announcement,
     Customer,
     Permission,
     Resource,
@@ -18,6 +17,7 @@ from .models import (
     Venue,
     VenueZone,
 )
+from .announcements.models import AnnouncementCard
 
 
 def register_commands(app):
@@ -26,7 +26,6 @@ def register_commands(app):
     @click.option("--password", required=True, prompt=True, hide_input=True, confirmation_prompt=True)
     @click.option("--name", default="مدير النظام", show_default=True)
     def create_admin(username, password, name):
-        """إنشاء مستخدم مدير بصلاحيات النظام."""
         user = User.query.filter_by(username=username).first()
         if user:
             raise BadRequest("اسم المستخدم موجود بالفعل")
@@ -63,8 +62,6 @@ def register_commands(app):
     @app.cli.command("seed-demo")
     @click.option("--admin-password", default="ChangeMe123!", show_default=False)
     def seed_demo(admin_password):
-        """إضافة بيانات تجريبية أولية قابلة للتعديل."""
-        # Roles and permissions.
         permission_specs = [
             ("settings.manage", "إدارة الإعدادات"),
             ("booking.view", "عرض الحجوزات"),
@@ -100,38 +97,30 @@ def register_commands(app):
             customer_user.set_password("Demo123!")
             db.session.add(customer_user)
             db.session.flush()
-            customer = Customer(
+            db.session.add(Customer(
                 user_id=customer_user.id,
                 customer_code="CUS-0001",
                 name="عميل تجريبي",
                 phone="770000000",
-            )
-            db.session.add(customer)
+            ))
 
-        football = Sport.query.filter_by(key="football").first()
-        if not football:
-            football = Sport(key="football", name_ar="كرة القدم", icon="⚽", sort_order=1)
-            db.session.add(football)
-        tennis = Sport.query.filter_by(key="tennis").first()
-        if not tennis:
-            tennis = Sport(key="tennis", name_ar="التنس", icon="🎾", sort_order=2)
-            db.session.add(tennis)
-        basketball = Sport.query.filter_by(key="basketball").first()
-        if not basketball:
-            basketball = Sport(key="basketball", name_ar="كرة السلة", icon="🏀", sort_order=3)
-            db.session.add(basketball)
-        gymnastics = Sport.query.filter_by(key="gymnastics").first()
-        if not gymnastics:
-            gymnastics = Sport(key="gymnastics", name_ar="الجمباز", icon="🤸", sort_order=4)
-            db.session.add(gymnastics)
+        sport_specs = [
+            ("football", "كرة القدم", "⚽", 1),
+            ("tennis", "التنس", "🎾", 2),
+            ("basketball", "كرة السلة", "🏀", 3),
+            ("gymnastics", "الجمباز", "🤸", 4),
+        ]
+        sports = {}
+        for key, name_ar, icon, sort_order in sport_specs:
+            sport = Sport.query.filter_by(key=key).first()
+            if not sport:
+                sport = Sport(key=key, name_ar=name_ar, icon=icon, sort_order=sort_order)
+                db.session.add(sport)
+            sports[key] = sport
 
         venue = Venue.query.filter_by(name="Alkas Main Venue").first()
         if not venue:
-            venue = Venue(
-                name="Alkas Main Venue",
-                name_ar="مدينة ملاعب الكأس",
-                description="بيانات تجريبية قابلة للاستبدال من لوحة الإدارة.",
-            )
+            venue = Venue(name="Alkas Main Venue", name_ar="مدينة ملاعب الكأس", description="بيانات تجريبية قابلة للاستبدال.")
             db.session.add(venue)
             db.session.flush()
 
@@ -141,40 +130,33 @@ def register_commands(app):
             db.session.add(zone)
             db.session.flush()
 
-        resource_specs = [
-            ("football-1", "ملعب كرة قدم 1", football, 12000),
-            ("football-2", "ملعب كرة قدم 2", football, 12000),
-            ("football-3", "ملعب كرة قدم 3", football, 12000),
-            ("tennis-1", "ملعب تنس 1", tennis, 8000),
-            ("basketball-1", "ملعب سلة 1", basketball, 9000),
-            ("gym-1", "صالة الجمباز", gymnastics, 10000),
-        ]
-        resources = []
-        for key, name_ar, sport, price in resource_specs:
-            resource = Resource.query.filter_by(key=key).first()
-            if not resource:
-                resource = Resource(
-                    zone_id=zone.id,
-                    sport_id=sport.id,
-                    key=key,
-                    name_ar=name_ar,
-                    base_price=price,
-                )
-                db.session.add(resource)
-            resources.append(resource)
+        for key, name_ar, sport_key, price in [
+            ("football-1", "ملعب كرة قدم 1", "football", 12000),
+            ("football-2", "ملعب كرة قدم 2", "football", 12000),
+            ("football-3", "ملعب كرة قدم 3", "football", 12000),
+            ("tennis-1", "ملعب تنس 1", "tennis", 8000),
+            ("basketball-1", "ملعب سلة 1", "basketball", 9000),
+            ("gym-1", "صالة الجمباز", "gymnastics", 10000),
+        ]:
+            if not Resource.query.filter_by(key=key).first():
+                db.session.add(Resource(
+                    zone_id=zone.id, sport_id=sports[sport_key].id,
+                    key=key, name_ar=name_ar, base_price=price
+                ))
 
+        db.session.flush()
+        football_resources = Resource.query.filter(Resource.key.in_([ "football-1", "football-2", "football-3" ])).all()
         bundle = ResourceBundle.query.filter_by(name_ar="جميع ملاعب كرة القدم").first()
         if not bundle:
             bundle = ResourceBundle(
                 name_ar="جميع ملاعب كرة القدم",
                 description_ar="حجز جماعي للملاعب الثلاثة في عملية واحدة.",
                 bundle_type="group",
+                resources=football_resources,
             )
-            bundle.resources = resources[:3]
             db.session.add(bundle)
 
-        theme = SiteTheme.query.filter_by(name="default").first()
-        if not theme:
+        if not SiteTheme.query.filter_by(name="default").first():
             db.session.add(SiteTheme(name="default"))
 
         for key, value in {
@@ -189,27 +171,15 @@ def register_commands(app):
             if not row:
                 db.session.add(SiteSetting(key=key, value=value, is_public=True))
 
-        announcements = [
-            ("temporary", "خصم افتتاحي", "خصم تجريبي لمدة محددة — عدل المواعيد من لوحة الإدارة.", None, None, None),
-            ("text", "موسم البطولات", "تابع أخبار البطولات والنتائج أولًا بأول.", None, None, "/tournaments"),
-            ("link", "الحجز الجماعي", "يمكن حجز أكثر من ملعب من عملية واحدة.", None, None, "/bookings"),
+        demo_cards = [
+            dict(card_type="temporary", title_ar="عرض الافتتاح", body_ar="عرض تجريبي مؤقت يمكن تحديد موعد انتهائه من لوحة الإدارة.", accent_label_ar="لفترة محدودة", priority=30),
+            dict(card_type="image", title_ar="بطولة الأسبوع", body_ar="بطاقة بصورة أو إعلان بصري، ويمكن ربطها بصفحة البطولة.", image_url="/static/img/icon-512.svg", target_url="/admin/tournaments", button_text_ar="شاهد البطولة", accent_label_ar="رياضة", priority=20),
+            dict(card_type="video", title_ar="شاهد الأجواء", body_ar="بطاقة فيديو يمكن أن تحمل رابط YouTube أو مصدر بث خارجي.", video_url="https://www.youtube.com/", button_text_ar="مشاهدة", accent_label_ar="فيديو", priority=10),
         ]
-        for card_type, title, body, image_url, video_url, target_url in announcements:
-            exists = Announcement.query.filter_by(title_ar=title).first()
-            if not exists:
-                db.session.add(Announcement(
-                    card_type=card_type,
-                    title_ar=title,
-                    body_ar=body,
-                    image_url=image_url,
-                    video_url=video_url,
-                    target_url=target_url,
-                    button_text_ar="التفاصيل",
-                    priority=10,
-                    status="published",
-                ))
+        for data in demo_cards:
+            if not AnnouncementCard.query.filter_by(title_ar=data["title_ar"]).first():
+                db.session.add(AnnouncementCard(**data, status="published"))
 
-        # Basic chart of accounts for the financial foundation.
         account_specs = [
             ("1000", "الأصول", "asset", None),
             ("1100", "الصندوق", "asset", "1000"),
