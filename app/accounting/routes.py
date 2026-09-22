@@ -5,8 +5,8 @@ from flask import Blueprint, jsonify, redirect, render_template, request, url_fo
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from .models import Account, FiscalPeriod, JournalEntry, JournalLine
-from .services import create_account, post_entry
+from .models import Account, AccountingVoucher, Branch, FiscalPeriod, JournalEntry, JournalLine
+from .services import create_account, create_voucher, get_postable_accounts, post_entry
 
 bp = Blueprint("accounting", __name__, url_prefix="/admin/accounting", template_folder="templates")
 
@@ -19,6 +19,17 @@ def _manage():
     return current_user.username == "admin" or current_user.has_permission("accounting.journal.create")
 
 
+def _branch_manage():
+    return current_user.username == "admin" or current_user.has_permission("closing.manage")
+
+
+def _context():
+    branches = Branch.query.filter_by(is_active=True).order_by(Branch.code).all()
+    accounts = Account.query.filter_by(is_active=True).order_by(Account.code).all()
+    leaves = get_postable_accounts()
+    return branches, accounts, leaves
+
+
 @bp.get("")
 @login_required
 def ui():
@@ -26,8 +37,14 @@ def ui():
         return {"error": "forbidden"}, 403
     roots = Account.query.filter_by(parent_id=None, is_active=True).order_by(Account.code).all()
     entries = JournalEntry.query.order_by(JournalEntry.id.desc()).limit(40).all()
+    vouchers = AccountingVoucher.query.order_by(AccountingVoucher.id.desc()).limit(30).all()
     open_periods = FiscalPeriod.query.filter_by(status="open").order_by(FiscalPeriod.starts_on).all()
-    return render_template("accounting/index.html", roots=roots, entries=entries, open_periods=open_periods)
+    branches, accounts, leaves = _context()
+    return render_template(
+        "accounting/index.html",
+        roots=roots, entries=entries, vouchers=vouchers, open_periods=open_periods,
+        branches=branches, leaf_accounts=leaves, all_accounts=accounts,
+    )
 
 
 @bp.get("/accounts/new")
@@ -55,7 +72,11 @@ def account_create():
         db.session.commit()
     except (KeyError, TypeError, ValueError) as exc:
         db.session.rollback()
-        return render_template("accounting/account_form.html", accounts=Account.query.filter_by(is_active=True).order_by(Account.code).all(), error=str(exc)), 400
+        return render_template(
+            "accounting/account_form.html",
+            accounts=Account.query.filter_by(is_active=True).order_by(Account.code).all(),
+            error=str(exc),
+        ), 400
     return redirect(url_for("accounting.ui"))
 
 
@@ -64,7 +85,8 @@ def account_create():
 def journal_new():
     if not _manage():
         return {"error": "forbidden"}, 403
-    return render_template("accounting/journal_form.html", accounts=Account.query.filter_by(is_active=True).order_by(Account.code).all(), today=date.today())
+    branches, _, leaves = _context()
+    return render_template("accounting/journal_form.html", accounts=leaves, branches=branches, today=date.today())
 
 
 @bp.post("/journal/new")
@@ -77,6 +99,7 @@ def journal_create():
         credit_account = int(request.form["credit_account"])
         amount = request.form["amount"]
         entry_date = date.fromisoformat(request.form["entry_date"])
+        branch_id = int(request.form["branch_id"])
         entry = post_entry(
             number=f"JV-MAN-{uuid4().hex[:10].upper()}",
             description_ar=request.form.get("description_ar"),
@@ -87,12 +110,95 @@ def journal_create():
             ],
             reference_type="manual",
             user_id=current_user.id,
+            branch_id=branch_id,
         )
         db.session.commit()
     except (KeyError, TypeError, ValueError) as exc:
         db.session.rollback()
-        return render_template("accounting/journal_form.html", accounts=Account.query.filter_by(is_active=True).order_by(Account.code).all(), today=date.today(), error=str(exc)), 400
+        branches, _, leaves = _context()
+        return render_template(
+            "accounting/journal_form.html",
+            accounts=leaves, branches=branches, today=date.today(), error=str(exc),
+        ), 400
     return redirect(url_for("accounting.ui"))
+
+
+@bp.get("/vouchers")
+@login_required
+def vouchers():
+    if not _view():
+        return {"error": "forbidden"}, 403
+    branches, _, leaves = _context()
+    rows = AccountingVoucher.query.order_by(AccountingVoucher.id.desc()).limit(100).all()
+    return render_template("accounting/vouchers.html", rows=rows, branches=branches, accounts=leaves)
+
+
+@bp.post("/vouchers/new")
+@login_required
+def voucher_create():
+    if current_user.username != "admin" and not current_user.has_permission("payment.create"):
+        return {"error": "forbidden"}, 403
+    try:
+        voucher = create_voucher(
+            voucher_type=(request.form.get("voucher_type") or "receipt").strip(),
+            amount=request.form["amount"],
+            from_account_id=int(request.form["from_account_id"]),
+            to_account_id=int(request.form["to_account_id"]),
+            voucher_date=date.fromisoformat(request.form["voucher_date"]),
+            branch_id=int(request.form["branch_id"]),
+            reference=request.form.get("reference"),
+            description_ar=request.form.get("description_ar"),
+            user_id=current_user.id,
+        )
+        db.session.commit()
+    except (KeyError, TypeError, ValueError) as exc:
+        db.session.rollback()
+        branches, _, leaves = _context()
+        rows = AccountingVoucher.query.order_by(AccountingVoucher.id.desc()).limit(100).all()
+        return render_template(
+            "accounting/vouchers.html", rows=rows, branches=branches, accounts=leaves, error=str(exc)
+        ), 400
+    return redirect(url_for("accounting.vouchers"))
+
+
+@bp.get("/branches")
+@login_required
+def branches():
+    if not _view():
+        return {"error": "forbidden"}, 403
+    rows = Branch.query.order_by(Branch.is_active.desc(), Branch.code).all()
+    return render_template("accounting/branches.html", rows=rows)
+
+
+@bp.post("/branches/new")
+@login_required
+def branch_create():
+    if not _branch_manage():
+        return {"error": "forbidden"}, 403
+    code = (request.form.get("code") or "").strip()
+    name = (request.form.get("name_ar") or "").strip()
+    if not code or not name:
+        return render_template("accounting/branches.html", rows=Branch.query.order_by(Branch.code).all(), error="الكود واسم الفرع مطلوبان"), 400
+    if Branch.query.filter_by(code=code).first():
+        return render_template("accounting/branches.html", rows=Branch.query.order_by(Branch.code).all(), error="كود الفرع مستخدم"), 400
+    db.session.add(Branch(code=code, name_ar=name, phone=request.form.get("phone") or None, address_ar=request.form.get("address_ar") or None))
+    db.session.commit()
+    return redirect(url_for("accounting.branches"))
+
+
+@bp.post("/branches/<int:branch_id>/toggle")
+@login_required
+def branch_toggle(branch_id):
+    if not _branch_manage():
+        return {"error": "forbidden"}, 403
+    branch = db.session.get(Branch, branch_id)
+    if not branch:
+        return {"error": "الفرع غير موجود"}, 404
+    if branch.is_active and Branch.query.filter_by(is_active=True).count() <= 1:
+        return {"error": "يجب إبقاء فرع محاسبي واحد على الأقل فعالًا"}, 400
+    branch.is_active = not branch.is_active
+    db.session.commit()
+    return redirect(url_for("accounting.branches"))
 
 
 @bp.get("/api")
@@ -102,8 +208,11 @@ def api():
         return jsonify({"error": "forbidden"}), 403
     return jsonify({
         "accounts": Account.query.filter_by(is_active=True).count(),
+        "postable_accounts": len(get_postable_accounts()),
+        "branches": Branch.query.filter_by(is_active=True).count(),
         "open_periods": FiscalPeriod.query.filter_by(status="open").count(),
         "posted_entries": JournalEntry.query.filter_by(status="posted").count(),
+        "vouchers": AccountingVoucher.query.count(),
         "lines": JournalLine.query.count(),
     })
 
@@ -132,6 +241,7 @@ def period_create():
         db.session.add(FiscalPeriod(name=name,starts_on=starts,ends_on=ends,status="open"))
         db.session.commit()
     except (KeyError,TypeError,ValueError) as exc:
+        db.session.rollback()
         return render_template("accounting/period_form.html",error=str(exc)),400
     return redirect(url_for("accounting.ui"))
 
