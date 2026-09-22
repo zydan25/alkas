@@ -1,2 +1,50 @@
-{% extends 'admin/layout.html' %}
-{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Ads</div><h1>حملة إعلانية جديدة</h1></div></div><section class='panel form-panel'><form method='post' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>{% if error %}<div class='flash danger'>{{ error }}</div>{% endif %}<div class='form-grid'><label>اسم الحملة<input name='name_ar' required></label><label>المعلن<input name='advertiser_ar'></label><label>الميزانية<input type='number' name='budget' min='0' step='0.01'></label><label>الحالة<select name='status'><option value='draft'>مسودة</option><option value='active'>فعالة</option><option value='paused'>متوقفة</option></select></label><label>من<input type='datetime-local' name='starts_at'></label><label>إلى<input type='datetime-local' name='ends_at'></label></div><button class='btn btn-primary'>حفظ الحملة</button></form></section>{% endblock %}
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">Ads</div><h1>حملة إعلانية جديدة</h1><p>أنشئ الحملة وارفع المادة الإعلانية من جهازك مباشرة.</p></div>
+</div>
+<section class="panel form-panel">
+  <form method="post" enctype="multipart/form-data" class="form-stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+
+    <div class="form-grid">
+      <label>اسم الحملة<input name="name_ar" required></label>
+      <label>المعلن<input name="advertiser_ar"></label>
+      <label>الميزانية<input type="number" name="budget" min="0" step="0.01"></label>
+      <label>الحالة<select name="status"><option value="draft">مسودة</option><option value="active">فعالة</option><option value="paused">متوقفة</option></select></label>
+      <label>من<input type="datetime-local" name="starts_at"></label>
+      <label>إلى<input type="datetime-local" name="ends_at"></label>
+    </div>
+
+    <div class="media-upload-divider"><span>المادة الإعلانية</span><small>اختياري — يمكنك إضافة الصورة أو الفيديو الآن</small></div>
+    <div class="form-grid">
+      <label>عنوان المادة<input name="creative_title_ar" placeholder="مثال: خصم الصيف"></label>
+      <label>مكان العرض
+        <select name="placement_id">
+          <option value="">بدون مادة مرفوعة</option>
+          {% for p in placements %}<option value="{{ p.id }}">{{ p.name_ar }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>الرابط عند الضغط<input name="target_url" type="url" placeholder="https://..."></label>
+      <label>أولوية المادة<input name="priority" type="number" value="0"></label>
+      <label>حالة المادة<select name="creative_status"><option value="active">فعالة</option><option value="paused">متوقفة</option></select></label>
+    </div>
+
+    <div class="upload-choice-grid">
+      <label class="upload-field">
+        <span class="upload-field-icon">🖼</span>
+        <span><b>رفع صورة الإعلان</b><small>JPG · PNG · WEBP · GIF · SVG</small></span>
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml">
+      </label>
+      <label class="upload-field">
+        <span class="upload-field-icon">▶</span>
+        <span><b>رفع فيديو الإعلان</b><small>MP4 · WEBM · MOV · M4V</small></span>
+        <input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v">
+      </label>
+    </div>
+
+    <button class="btn btn-primary" type="submit">حفظ الحملة والإعلان</button>
+  </form>
+</section>
+{% endblock %}
