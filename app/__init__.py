@@ -76,6 +76,11 @@ def create_app(config_class=Config):
         app.register_blueprint(blueprint)
 
     ADMIN_PERMISSIONS = [
+        ("/admin", "dashboard.view"),
+        ("/admin/bookings", "booking.view"),
+        ("/admin/customers", "customer.view"),
+        ("/admin/resources", "resource.manage"),
+        ("/admin/money", "accounting.view"),
         ("/admin/workspace/accounting", "accounting.view"),
         ("/admin/workspace/invoices", "invoice.view"),
         ("/admin/workspace/payments", "payment.view"),
