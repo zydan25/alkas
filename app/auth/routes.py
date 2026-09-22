@@ -12,8 +12,8 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 @bp.get("/login")
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("public.home"))
-    return render_template("auth/login.html")
+        return redirect(request.args.get("next") or url_for("public.home"))
+    return render_template("auth/login.html", next_url=request.args.get("next", ""))
 
 
 @bp.post("/login")
@@ -31,7 +31,7 @@ def login_post():
     login_user(user, remember=True)
     user.last_login_at = datetime.now(timezone.utc)
     db.session.commit()
-    return redirect(url_for("public.home"))
+    return redirect(request.form.get("next") or url_for("public.home"))
 
 
 @bp.post("/logout")
