@@ -171,3 +171,20 @@
     });
   }
 })();
+
+(function(){
+  const csrfToken=document.querySelector('meta[name="csrf-token"]')?.content||"";
+  document.querySelectorAll(".btn-cancel-booking").forEach(btn=>{
+    btn.addEventListener("click",async()=>{
+      if(!confirm("سيتم إلغاء الحجز وتطبيق سياسة الاسترجاع. متابعة؟")) return;
+      btn.disabled=true;
+      try{
+        const r=await fetch("/bookings/"+btn.dataset.bookingId+"/cancel",{method:"POST",headers:{"X-CSRFToken":csrfToken,"Content-Type":"application/json"},body:JSON.stringify({reason_ar:"إلغاء من العميل"})});
+        const data=await r.json();
+        if(!r.ok) throw new Error(data.error||"تعذر الإلغاء");
+        alert("تم الإلغاء. مبلغ الاسترجاع المطلوب: "+data.requested_refund);
+        location.reload();
+      }catch(e){alert(e.message);btn.disabled=false;}
+    });
+  });
+})();
