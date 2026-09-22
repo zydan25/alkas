@@ -41,7 +41,7 @@
           </div>
           {% if bundles %}
           <div class="eyebrow">حزم جاهزة</div>
-          <div class="resource-grid bundle-grid">{% for bundle in bundles %}<label class="resource-option bundle-option"><input type="checkbox" name="bundle_ids" value="{{ bundle.id }}"><span><strong>{{ bundle.name_ar }}</strong><small>{{ bundle.resources|length }} موارد · حجز جماعي</small></span></label>{% endfor %}</div>
+          <div class="resource-grid bundle-grid">{% for bundle in bundles %}<label class="resource-option bundle-option" data-bundle-resources="{{ bundle.resources|map(attribute='id')|join(',') }}"><input type="checkbox" name="bundle_ids" value="{{ bundle.id }}"><span><strong>{{ bundle.name_ar }}</strong><small>{{ bundle.resources|length }} موارد · حجز جماعي</small></span></label>{% endfor %}</div>
           {% endif %}
           <div class="eyebrow">الملاعب لهذه الفترة</div>
           <div class="resource-grid">
