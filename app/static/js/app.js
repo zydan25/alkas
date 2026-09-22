@@ -18,6 +18,18 @@
     socket.on("notification", function (payload) {
       window.dispatchEvent(new CustomEvent("alkas:notification", { detail: payload }));
     });
+
+    socket.on("announcement", function (payload) {
+      window.dispatchEvent(new CustomEvent("alkas:announcement", { detail: payload }));
+      const announcements = document.querySelector("[data-announcements]");
+      if (announcements) {
+        const card = document.createElement("article");
+        card.className = "announcement-card live-arrival";
+        card.innerHTML = "<div class='announcement-icon'>✦</div><div class='announcement-body'><div class='card-meta'>جديد الآن</div><h3></h3><p>تم نشر بطاقة جديدة في الصفحة الرئيسية.</p></div>";
+        card.querySelector("h3").textContent = payload.title_ar || "إعلان جديد";
+        announcements.prepend(card);
+      }
+    });
   }
 
   document.querySelectorAll("[data-sport]").forEach(function (button) {
