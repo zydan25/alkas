@@ -198,3 +198,49 @@
   box.querySelectorAll("input[name=booking_ids]").forEach(i=>i.addEventListener("change",refresh));
   refresh();
 })();
+
+/* Global admin cache reset */
+(function () {
+  const actions = document.querySelector(".topbar-actions");
+  if (!actions || actions.querySelector("[data-clear-app-cache]")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "top-action";
+  button.dataset.clearAppCache = "1";
+  button.title = "مسح الكاش وتحديث التطبيق";
+  button.setAttribute("aria-label", "مسح الكاش وتحديث التطبيق");
+  button.textContent = "↻";
+  actions.insertBefore(button, actions.firstChild);
+
+  button.addEventListener("click", async function () {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.textContent = "…";
+
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(
+          keys
+            .filter(key => key.startsWith("alkas-"))
+            .map(key => caches.delete(key))
+        );
+      }
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration => registration.unregister()));
+      }
+      try { sessionStorage.clear(); } catch (_) {}
+      try { localStorage.removeItem("alkas-ui-cache"); } catch (_) {}
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("refresh", Date.now().toString());
+      window.location.replace(url.toString());
+    } catch (_) {
+      button.disabled = false;
+      button.textContent = "↻";
+      window.location.reload(true);
+    }
+  });
+})();
