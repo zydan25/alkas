@@ -1,0 +1,5 @@
+{% extends 'admin/layout.html' %}
+{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Purchasing</div><h1>فاتورة شراء جديدة</h1></div></div>
+<section class='panel form-panel'><form method='post' action='{{ url_for('suppliers.invoice_create') }}' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>
+<div class='form-grid'><label>المورد<select name='supplier_id' required>{% for s in suppliers %}<option value='{{ s.id }}'>{{ s.code }} · {{ s.name_ar }}</option>{% endfor %}</select></label><label>رقم الفاتورة<input name='number' placeholder='PINV-000001'></label><label>التاريخ<input type='date' name='issue_date'></label><label>الإجمالي<input type='number' name='total' min='0.01' step='0.01' required></label></div>
+<button class='btn btn-primary'>حفظ فاتورة الشراء</button></form></section>{% endblock %}
