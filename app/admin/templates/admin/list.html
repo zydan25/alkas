@@ -1,0 +1,44 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div>
+    <div class="eyebrow">{{ eyebrow or 'إدارة' }}</div>
+    <h1>{{ heading }}</h1>
+    <p>{{ description or 'إدارة البيانات ومراجعة العمليات من مكان واحد.' }}</p>
+  </div>
+  {% if create_url %}<a class="btn btn-primary" href="{{ create_url }}">＋ {{ create_label or 'إضافة جديد' }}</a>{% endif %}
+</div>
+
+<section class="panel">
+  <div class="toolbar">
+    <div class="filter-search"><span>⌕</span><input type="search" placeholder="بحث سريع..." data-table-search></div>
+    <div class="toolbar-actions">
+      {% if filters %}<button class="btn btn-soft" type="button" data-filter-toggle>⚑ الفلاتر</button>{% endif %}
+      <button class="btn btn-soft" type="button" onclick="window.print()">⎙ طباعة</button>
+    </div>
+  </div>
+  {% if filters %}
+  <div class="filters" data-filters hidden>
+    {% for filter in filters %}
+      <label>{{ filter.label }}<select><option value="">الكل</option>{% for option in filter.options %}<option>{{ option }}</option>{% endfor %}</select></label>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="table-wrap">
+    <table class="data-table" data-data-table>
+      <thead><tr>{% for col in columns %}<th>{{ col.label }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for col in columns %}
+            <td>{% if col.key == '_actions' %}<div class="row-actions"><a href="{{ row.actions_url or '#' }}">فتح</a><button type="button" class="icon-btn">⋯</button></div>{% elif col.status %}<span class="badge badge-{{ row[col.key+'_tone'] or 'neutral' }}">{{ row[col.key] }}</span>{% else %}{{ row[col.key] }}{% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% else %}
+        <tr><td colspan="{{ columns|length }}"><div class="empty-state">لا توجد بيانات مطابقة.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
