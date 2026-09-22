@@ -21,6 +21,7 @@ from ..notifications.models import Notification, NotificationLog, NotificationPr
 from ..offers.models import Coupon, Offer, OfferComment, OfferInquiry
 from ..packages.models import BookingPackage, CustomerPackage, PackageConsumption
 from ..payments.models import Payment, Refund
+from ..pricing.models import PriceOverride, PriceRule
 from ..payroll.models import EmployeeAdvance, PayrollLine, PayrollRun, SalaryStructure
 from ..policies.models import BookingPolicy, PaymentPolicy, RefundRequest
 from ..reports.models import SavedReport
