@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from .models import CashRegister, CashShift, CashTransaction
 
-bp = Blueprint("cashier", __name__, url_prefix="/admin/cashier")
+bp = Blueprint("cashier", __name__, url_prefix="/admin/cashier", template_folder="templates")
 
 @bp.get("")
 @login_required
