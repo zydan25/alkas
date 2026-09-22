@@ -294,3 +294,16 @@
   .resource-board{grid-template-columns:1fr!important}
   .resource-card{padding:14px!important}
 }
+
+.btn-apps{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#eaf3ff,#e9fbff)!important;
+  color:var(--admin-brand-dark)!important;
+  border:1px solid #cfe2f5!important;
+}
+.btn-apps .ui-icon{width:18px;height:18px;color:var(--admin-brand)!important}
+.btn-apps:hover{background:#dff0ff!important;border-color:#aacceb!important}
+@media(max-width:620px){
+  .btn-apps span{display:none}
+  .btn-apps{min-width:46px}
+}
