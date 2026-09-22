@@ -7,7 +7,7 @@ from ..extensions import db
 from .models import AnnouncementCard
 from ..realtime import emit_public_event
 
-bp = Blueprint("announcements", __name__, url_prefix="/admin/announcements")
+bp = Blueprint("announcements", __name__, url_prefix="/admin/announcements", template_folder="templates")
 
 
 def _allowed():
