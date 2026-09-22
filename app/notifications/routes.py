@@ -15,6 +15,18 @@ def ui():
     return render_template("notifications/index.html", notifications=rows, unread=unread)
 
 
+@bp.post("/preferences")
+@login_required
+def preferences():
+    pref=NotificationPreference.query.filter_by(user_id=current_user.id).first()
+    if not pref:
+        pref=NotificationPreference(user_id=current_user.id)
+        db.session.add(pref)
+    for field in ("push_enabled","whatsapp_enabled","sms_enabled","email_enabled"):
+        setattr(pref,field,request.form.get(field)=="1")
+    db.session.commit()
+    return redirect(url_for("notifications.ui"))
+
 @bp.get("/api")
 @login_required
 def api():
