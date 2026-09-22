@@ -45,14 +45,14 @@ def test_refund_policy_cutoff():
 
 def test_root_account_is_never_postable():
     from app.accounting.models import Account
-    root = Account(code="1000", name_ar="الأصول", account_type="asset")
+    root = Account(code="1000", name_ar="الأصول", account_type="asset", is_active=True, is_control=False)
     assert root.is_postable is False
 
 
 def test_account_with_child_is_not_postable():
     from app.accounting.models import Account
-    parent = Account(code="1100", name_ar="الصندوق", account_type="asset", parent_id=1)
-    child = Account(code="110001", name_ar="صندوق الاستقبال", account_type="asset", parent_id=2)
+    parent = Account(code="1100", name_ar="الصندوق", account_type="asset", parent_id=1, is_active=True, is_control=False)
+    child = Account(code="110001", name_ar="صندوق الاستقبال", account_type="asset", parent_id=2, is_active=True, is_control=False)
     parent.children.append(child)
     assert parent.is_postable is False
-    assert child.is_postable is False or child.parent_id == 2
+    assert child.is_postable is True
