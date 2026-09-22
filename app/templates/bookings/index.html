@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section-head">
+  <div>
+    <span class="eyebrow">حجز ذكي</span>
+    <h1>احجز أكثر من ملعب من شاشة واحدة</h1>
+    <p>اختر ملعبًا واحدًا أو عدة ملاعب، ثم حدد الوقت. النظام يحجزها كوحدة واحدة.</p>
+  </div>
+</section>
+
+<section class="booking-layout">
+  <div class="panel">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">1 — الملاعب</span>
+        <h2>اختر الموارد</h2>
+      </div>
+      <span>{{ customer.name }}</span>
+    </div>
+    <form data-booking-form class="form-stack">
+      <div class="resource-grid">
+        {% for resource in resources %}
+        <label class="resource-option">
+          <input type="checkbox" name="resource_ids" value="{{ resource.id }}">
+          <span>
+            <strong>{{ resource.name_ar }}</strong>
+            <small>{{ resource.sport.name_ar }} • {{ resource.base_price }} / ساعة</small>
+          </span>
+        </label>
+        {% else %}
+        <div class="empty-state">لم تتم إضافة الملاعب بعد.</div>
+        {% endfor %}
+      </div>
+
+      <div>
+        <div class="eyebrow">2 — التاريخ والوقت</div>
+        <input name="start_at" type="datetime-local" required>
+      </div>
+
+      <div>
+        <div class="eyebrow">3 — المدة</div>
+        <select name="duration">
+          <option value="60">60 دقيقة</option>
+          <option value="90">90 دقيقة</option>
+          <option value="120">120 دقيقة</option>
+          <option value="180">180 دقيقة</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" type="submit">حجز مؤقت الآن</button>
+      <div class="booking-result" data-booking-result></div>
+    </form>
+  </div>
+
+  <aside class="panel booking-summary">
+    <span class="eyebrow">حجز متعدد الموارد</span>
+    <h2>وقت واحد، عدة ملاعب</h2>
+    <p>ستُعامل الملاعب المختارة كعملية حجز واحدة، وتظهر لاحقًا في الفاتورة والمدفوعات والتقارير كعملية مترابطة.</p>
+    <div class="timeline-demo">
+      <span class="available">متاح — يمكن اختياره</span>
+      <span class="selected">مختار — يدخل في العملية</span>
+      <span class="busy">متعارض — يرفضه النظام</span>
+    </div>
+  </aside>
+</section>
+{% endblock %}
