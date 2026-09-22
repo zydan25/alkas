@@ -61,11 +61,12 @@ def create_app(config_class=Config):
     from .policies.routes import bp as policies_bp
     from .pricing.routes import bp as pricing_bp
     from .customer.routes import bp as customer_bp
+    from .admin.search import bp as admin_search_bp
     from .users.routes import bp as users_bp
     from .staff.routes import bp as staff_bp
 
     for blueprint in (
-        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp,
+        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp, admin_search_bp,
         accounting_bp, invoices_bp, payments_bp, cashier_bp, employees_bp,
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
