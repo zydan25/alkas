@@ -129,6 +129,8 @@ def create_app(config_class=Config):
         ("/admin/suppliers", "supplier.manage"),
         ("/admin/inventory", "inventory.manage"),
         ("/admin/reports", "reports.view"),
+        ("/admin/policies", "payment.refund"),
+        ("/admin/audit", "audit.view"),
         ("/admin/users", "users.manage"),
         ("/admin/search", "admin.access"),
     ]
