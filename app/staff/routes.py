@@ -7,7 +7,7 @@ from ..employees.models import Attendance, Employee
 from ..maintenance.models import MaintenanceRequest
 from ..models import Booking
 
-bp = Blueprint("staff", __name__, url_prefix="/staff")
+bp = Blueprint("staff", __name__, url_prefix="/staff", template_folder="templates")
 
 
 def _employee():
