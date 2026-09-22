@@ -34,6 +34,7 @@ def create_app(config_class=Config):
 
     from .auth.routes import bp as auth_bp
     from .public.routes import bp as public_bp
+    from .resources.routes import bp as resources_bp
     from .bookings.routes import bp as bookings_bp
     from .settings.routes import bp as settings_bp
     from .admin.routes import bp as admin_bp
@@ -71,7 +72,7 @@ def create_app(config_class=Config):
     from .audit.routes import bp as audit_bp
 
     for blueprint in (
-        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp, admin_search_bp,
+        auth_bp, public_bp, resources_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp, admin_search_bp,
         accounting_bp, invoices_bp, payments_bp, cashier_bp, employees_bp,
         shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
         training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
