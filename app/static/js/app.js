@@ -117,7 +117,36 @@
         } catch(e) {}
       }
 
-      const response = await fetch("/bookings/holds",
+      const formAuthenticated = form.dataset.authenticated === "1";
+      if (!formAuthenticated) {
+        const guestName = form.querySelector("[data-guest-name]")?.value.trim() || "";
+        const guestPhone = form.querySelector("[data-guest-phone]")?.value.trim() || "";
+        const guestEmail = form.querySelector("[data-guest-email]")?.value.trim() || "";
+
+        if (!guestName || !guestPhone) {
+          result.className = "booking-result error";
+          result.textContent = "أدخل الاسم الكامل ورقم الهاتف قبل المتابعة.";
+          return;
+        }
+
+        result.className = "booking-result ok";
+        result.textContent = "تم حفظ اختياراتك. سيتم نقلك لتسجيل الدخول لإكمال الحجز.";
+        const prepareResponse = await fetch("/bookings/prepare", {
+          method: "POST",
+          headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
+          body: JSON.stringify({name: guestName, phone: guestPhone, email: guestEmail, items})
+        });
+        const prepareData = await prepareResponse.json();
+        if (!prepareResponse.ok) {
+          result.className = "booking-result error";
+          result.textContent = prepareData.error || "تعذر حفظ بيانات الحجز.";
+          return;
+        }
+        window.location.href = prepareData.continue_url;
+        return;
+      }
+
+      const response = await fetch("/bookings/holds", {
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
         body: JSON.stringify({items, source: "pwa_web"})
@@ -199,3 +228,38 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   });
 }
+
+(function(){
+  const box=document.querySelector("[data-booking-confirm][data-resume-booking-id]");
+  if(!box) return;
+  const bookingId=box.dataset.resumeBookingId;
+  const bookingNumber=box.dataset.resumeBookingNumber||"";
+  const expiresAt=new Date(box.dataset.resumeExpires).getTime();
+  const numberNode=box.querySelector("[data-hold-number]");
+  const countdownNode=box.querySelector("[data-hold-countdown]");
+  const button=box.querySelector("[data-confirm-booking]");
+  const result=document.querySelector("[data-booking-result]");
+  if(numberNode) numberNode.textContent=bookingNumber;
+  const tick=()=>{
+    const remaining=Math.max(0,expiresAt-Date.now());
+    const totalSeconds=Math.floor(remaining/1000);
+    if(countdownNode) countdownNode.textContent=String(Math.floor(totalSeconds/60)).padStart(2,"0")+":"+String(totalSeconds%60).padStart(2,"0");
+    if(!remaining&&button){button.disabled=true;if(countdownNode)countdownNode.textContent="انتهت المهلة";clearInterval(timer);}
+  };
+  const timer=setInterval(tick,500);tick();
+  button?.addEventListener("click",async()=>{
+    button.disabled=true;
+    try{
+      const csrf=document.querySelector('meta[name="csrf-token"]')?.content||"";
+      const response=await fetch("/bookings/"+bookingId+"/confirm",{method:"POST",headers:{"X-CSRFToken":csrf}});
+      const data=await response.json();
+      if(!response.ok) throw new Error(data.error||"تعذر تأكيد الحجز.");
+      clearInterval(timer);
+      if(result){result.className="booking-result ok";result.textContent="تم تأكيد الحجز "+data.invoice_number+" — المتبقي "+data.balance_due;}
+      button.textContent="تم التأكيد ✓";
+    }catch(error){
+      button.disabled=false;
+      if(result){result.className="booking-result error";result.textContent=error.message;}
+    }
+  });
+})();
