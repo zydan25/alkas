@@ -14,8 +14,14 @@ depends_on = None
 
 
 def upgrade():
+    # booking_allocations uses EXCLUDE USING gist with an INTEGER equality
+    # operator. PostgreSQL supplies the required GiST operator class through
+    # the btree_gist extension.
+    op.execute("CREATE EXTENSION IF NOT EXISTS btree_gist")
+
     from app import create_app
     from app.extensions import db
+
     app = create_app()
     with app.app_context():
         db.metadata.create_all(bind=op.get_bind())
