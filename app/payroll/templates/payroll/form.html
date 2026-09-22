@@ -1,0 +1,7 @@
+{% extends 'admin/layout.html' %}
+{% block content %}
+<div class='page-header compact'><div><div class='eyebrow'>Payroll</div><h1>إنشاء دورة رواتب</h1><p>يتم احتساب الموظفين النشطين ثم يمكن ترحيل الدورة محاسبيًا.</p></div></div>
+<section class='panel form-panel'><form method='post' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>{% if error %}<div class='flash danger'>{{ error }}</div>{% endif %}
+<div class='form-grid'><label>اسم الدورة<input name='period_name' placeholder='راتب سبتمبر 2026' required></label><label>من<input type='date' name='start_date' required></label><label>إلى<input type='date' name='end_date' value='{{ today }}' required></label></div>
+<div class='page-actions'><a class='btn btn-soft' href='{{ url_for('payroll.ui') }}'>إلغاء</a><button class='btn btn-primary'>توليد المسودة</button></div></form></section>
+{% endblock %}
