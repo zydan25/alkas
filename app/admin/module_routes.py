@@ -49,6 +49,15 @@ PERMISSION_BY_SLUG = {
     "customers":"customer.view","resources":"resource.manage","users":"users.manage","audit":"audit.view","settings":"settings.manage",
 }
 
+MODULE_ICONS = {
+    "accounting":"ledger","invoices":"file","payments":"money","cashier":"cash","closing":"check",
+    "employees":"employee","payroll":"payroll","shifts":"clock","maintenance":"wrench","memberships":"star",
+    "packages":"package","pricing":"tag","training":"training","tournaments":"trophy","teams":"team",
+    "announcements":"megaphone","news":"news","offers":"percent","ads":"megaphone","live":"broadcast",
+    "notifications":"bell","reports":"chart","suppliers":"truck","inventory":"box","bookings":"calendar",
+    "customers":"users","resources":"stadium","users":"user","audit":"shield","settings":"settings",
+}
+
 MODULES = {
     "accounting": ("المحاسبة", "شجرة الحسابات والقيود والسندات والفروع والفترات", "/admin/accounting/api", Account, "/admin/accounting"),
     "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices/api", Invoice, "/admin/invoices"),
@@ -99,6 +108,7 @@ def index():
             "description": description,
             "count": model.query.count() if model is not None else 0,
             "ui_path": ui_path,
+            "icon": MODULE_ICONS.get(slug, "grid"),
         })
     return render_template("admin/modules.html", modules=modules)
 
