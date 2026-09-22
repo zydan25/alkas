@@ -4,14 +4,17 @@
   <div>
     <span class="eyebrow">مركز التحكم</span>
     <h1>لوحة تشغيل ملاعب الكأس</h1>
-    <p>نظرة واحدة على الحجز، المال، الموارد والعمليات. كل بطاقة تقود إلى الوحدة المتخصصة.</p>
+    <p>الحجز والمال والموارد والبطولات والموظفون أمامك في مكان واحد.</p>
   </div>
-  <a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a>
+    <a class="btn btn-soft" href="{{ url_for('settings.index') }}">⚙ الإعدادات</a>
+  </div>
 </section>
 
 <section class="kpi-grid">
   <a class="kpi-card accent" href="/admin/reports/dashboard"><span>إجمالي الحجوزات</span><strong>{{ stats.bookings }}</strong><small>المؤكد {{ stats.confirmed }}</small></a>
-  <a class="kpi-card" href="/admin/invoices"><span>المستحقات</span><strong>{{ "{:,.0f}".format(stats.invoice_balance|float) }}</strong><small>رصيد فواتير غير مسدد</small></a>
+  <a class="kpi-card" href="/admin/invoices"><span>المستحقات</span><strong>{{ "{:,.0f}".format(stats.invoice_balance|float) }}</strong><small>رصيد الفواتير</small></a>
   <a class="kpi-card" href="/admin/payments"><span>المقبوض</span><strong>{{ "{:,.0f}".format(stats.paid|float) }}</strong><small>دفعات مكتملة</small></a>
   <a class="kpi-card" href="/admin/reports/dashboard"><span>العملاء</span><strong>{{ stats.customers }}</strong><small>ملفات فعالة</small></a>
   <a class="kpi-card" href="/admin/maintenance"><span>الصيانة</span><strong>{{ stats.open_maintenance }}</strong><small>طلبات مفتوحة</small></a>
@@ -20,8 +23,9 @@
 
 <section class="admin-grid">
   <div class="panel">
-    <div class="section-head"><div><span class="eyebrow">العمليات</span><h2>وحدات الإدارة</h2></div></div>
+    <div class="section-head"><div><span class="eyebrow">الوحدات</span><h2>تشغيل سريع</h2></div></div>
     <div class="admin-shortcuts">
+      <a href="/bookings">الحجوزات</a>
       <a href="/admin/reports/dashboard">التقارير</a>
       <a href="/admin/invoices">الفواتير</a>
       <a href="/admin/payments">المدفوعات</a>
@@ -43,14 +47,13 @@
       <a href="/admin/suppliers">الموردون</a>
       <a href="/admin/inventory">المخزون</a>
       <a href="/admin/closing">الإقفال المالي</a>
-      <a href="/settings">الإعدادات</a>
     </div>
   </div>
 
   <div class="panel">
-    <div class="section-head"><div><span class="eyebrow">فوري</span><h2>موجز العمليات</h2></div><span class="live-pill">Real-time</span></div>
+    <div class="section-head"><div><span class="eyebrow">فوري</span><h2>العمليات الآن</h2></div><span class="live-pill">Real-time</span></div>
     <div class="live-feed" data-live-bookings>
-      <div class="empty-state">بانتظار أحداث الحجز والدفع...</div>
+      <div class="empty-state">بانتظار الحجز والدفع والتحديثات...</div>
     </div>
   </div>
 </section>
