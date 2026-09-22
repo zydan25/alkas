@@ -2,14 +2,42 @@
 {% block content %}
 <div class="page-header compact"><div><div class="eyebrow">محتوى الصفحة الرئيسية</div><h1>بطاقات الإعلانات</h1><p>أنشئ بطاقة نصية أو صورة أو فيديو أو رابطًا، وحدد الأولوية وفترة الظهور.</p></div></div>
 <div class="payment-layout">
-<section class="panel"><div class="panel-head"><div><span class="eyebrow">بطاقة جديدة</span><h2>إضافة سريعة</h2></div></div>
-{% if success %}<div class="flash success">{{ success }}</div>{% endif %}
-<form class="form-stack" method="post" action="/admin/announcements/create">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<label>العنوان<input name="title_ar" required></label><label>الوصف<textarea name="body_ar" rows="3"></textarea></label>
-<label>النوع<select name="card_type"><option value="text">نص</option><option value="temporary">مؤقت</option><option value="image">صورة</option><option value="video">فيديو</option><option value="link">رابط</option></select></label>
-<label>رابط الصورة<input name="image_url"></label><label>رابط الفيديو<input name="video_url"></label><label>الرابط المستهدف<input name="target_url"></label><label>نص الزر<input name="button_text_ar" value="عرض التفاصيل"></label><label>الوسم<input name="accent_label_ar"></label><label>يبدأ الظهور<input name="starts_at" type="datetime-local"></label><label>ينتهي الظهور<input name="ends_at" type="datetime-local"></label><label>الأولوية<input name="priority" type="number" value="0"></label>
-<button class="btn btn-primary">نشر البطاقة</button></form></section>
-<section class="panel"><div class="panel-head"><div><span class="eyebrow">المنشور</span><h2>البطاقات الحالية</h2></div></div><div class="announcement-grid">{% for r in rows %}<article class="announcement-card"><div class="announcement-icon">{{ '▶' if r.card_type == 'video' else ('🖼' if r.card_type == 'image' else '✦') }}</div><div class="announcement-body"><div class="card-meta">{{ r.accent_label_ar or r.card_type }}</div><h3>{{ r.title_ar }}</h3><p>{{ r.body_ar or '' }}</p><div class="row-actions" style="margin-top:12px"><span class="badge badge-success">{{ r.status }}</span><button class="icon-btn">⋯</button></div></div></article>{% else %}<div class="empty-state">لا توجد بطاقات.</div>{% endfor %}</div></section>
+<section class="panel">
+  <div class="panel-head"><div><span class="eyebrow">بطاقة جديدة</span><h2>إضافة سريعة</h2></div></div>
+  {% if success %}<div class="flash success">{{ success }}</div>{% endif %}
+  {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+  <form class="form-stack" method="post" action="{{ url_for('announcements.create') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>العنوان<input name="title_ar" required></label>
+    <label>الوصف<textarea name="body_ar" rows="3"></textarea></label>
+    <label>النوع
+      <select name="card_type">
+        <option value="text">نص</option><option value="temporary">مؤقت</option><option value="image">صورة</option><option value="video">فيديو</option><option value="link">رابط</option>
+      </select>
+    </label>
+    <div class="upload-choice-grid">
+      <label class="upload-field"><span class="upload-field-icon">🖼</span><span><b>رفع صورة</b><small>للنوع: صورة</small></span><input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"></label>
+      <label class="upload-field"><span class="upload-field-icon">▶</span><span><b>رفع فيديو</b><small>للنوع: فيديو</small></span><input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v"></label>
+    </div>
+    <label>الرابط المستهدف<input name="target_url" type="url" placeholder="https://..."></label>
+    <label>نص الزر<input name="button_text_ar" value="عرض التفاصيل"></label>
+    <label>الوسم<input name="accent_label_ar"></label>
+    <label>يبدأ الظهور<input name="starts_at" type="datetime-local"></label>
+    <label>ينتهي الظهور<input name="ends_at" type="datetime-local"></label>
+    <label>الأولوية<input name="priority" type="number" value="0"></label>
+    <button class="btn btn-primary">نشر البطاقة</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="panel-head"><div><span class="eyebrow">المنشور</span><h2>البطاقات الحالية</h2></div></div>
+  <div class="announcement-grid">
+    {% for r in rows %}
+      <article class="announcement-card">
+        <div class="announcement-icon">{{ '▶' if r.card_type == 'video' else ('🖼' if r.card_type == 'image' else '✦') }}</div>
+        <div class="announcement-body"><div class="card-meta">{{ r.accent_label_ar or r.card_type }}</div><h3>{{ r.title_ar }}</h3><p>{{ r.body_ar or '' }}</p><div class="row-actions" style="margin-top:12px"><span class="badge badge-success">{{ r.status }}</span></div></div>
+      </article>
+    {% else %}<div class="empty-state">لا توجد بطاقات.</div>{% endfor %}
+  </div>
+</section>
 </div>
 {% endblock %}
