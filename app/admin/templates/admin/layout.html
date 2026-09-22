@@ -28,38 +28,38 @@
       <a class="side-link {{ 'active' if request.path.startswith('/admin/bookings') else '' }}" href="{{ url_for('admin.bookings') }}"><span>◷</span> الحجوزات</a>
       <a class="side-link {{ 'active' if request.path.startswith('/admin/customers') else '' }}" href="{{ url_for('admin.customers') }}"><span>◎</span> العملاء</a>
       <a class="side-link {{ 'active' if request.path.startswith('/admin/resources') else '' }}" href="{{ url_for('admin.resources') }}"><span>▦</span> الملاعب والموارد</a>
-      <a class="side-link {{ 'active' if request.path.startswith('/admin/maintenance') else '' }}" href="/admin/maintenance"><span>⚒</span> الصيانة</a>
+      <a class="side-link {{ 'active' if request.path.startswith('/admin/maintenance') else '' }}" href="/admin/workspace/maintenance"><span>⚒</span> الصيانة</a>
 
       <div class="side-section-title">المال</div>
-      <a class="side-link" href="/admin/invoices"><span>▤</span> الفواتير</a>
-      <a class="side-link" href="/admin/payments"><span>◉</span> المدفوعات</a>
-      <a class="side-link" href="/admin/cashier"><span>▣</span> الصناديق</a>
-      <a class="side-link" href="/admin/accounting"><span>⌘</span> المحاسبة</a>
-      <a class="side-link" href="/admin/closing"><span>✓</span> الإقفال المالي</a>
+      <a class="side-link" href="/admin/workspace/invoices"><span>▤</span> الفواتير</a>
+      <a class="side-link" href="/admin/workspace/payments"><span>◉</span> المدفوعات</a>
+      <a class="side-link" href="/admin/workspace/cashier"><span>▣</span> الصناديق</a>
+      <a class="side-link" href="/admin/workspace/accounting"><span>⌘</span> المحاسبة</a>
+      <a class="side-link" href="/admin/workspace/closing"><span>✓</span> الإقفال المالي</a>
 
       <div class="side-section-title">الفريق</div>
-      <a class="side-link" href="/admin/employees"><span>♙</span> الموظفون</a>
-      <a class="side-link" href="/admin/payroll"><span>▥</span> الرواتب</a>
-      <a class="side-link" href="/admin/shifts"><span>⏱</span> الورديات</a>
+      <a class="side-link" href="/admin/workspace/employees"><span>♙</span> الموظفون</a>
+      <a class="side-link" href="/admin/workspace/payroll"><span>▥</span> الرواتب</a>
+      <a class="side-link" href="/admin/workspace/shifts"><span>⏱</span> الورديات</a>
 
       <div class="side-section-title">الرياضة</div>
-      <a class="side-link" href="/admin/tournaments"><span>🏆</span> البطولات</a>
-      <a class="side-link" href="/admin/teams"><span>👥</span> الفرق واللاعبون</a>
-      <a class="side-link" href="/admin/training"><span>🎓</span> التدريب</a>
-      <a class="side-link" href="/admin/memberships"><span>★</span> العضويات</a>
-      <a class="side-link" href="/admin/packages"><span>▱</span> الباقات</a>
+      <a class="side-link" href="/admin/workspace/tournaments"><span>🏆</span> البطولات</a>
+      <a class="side-link" href="/admin/workspace/teams"><span>👥</span> الفرق واللاعبون</a>
+      <a class="side-link" href="/admin/workspace/training"><span>🎓</span> التدريب</a>
+      <a class="side-link" href="/admin/workspace/memberships"><span>★</span> العضويات</a>
+      <a class="side-link" href="/admin/workspace/packages"><span>▱</span> الباقات</a>
 
       <div class="side-section-title">المحتوى</div>
-      <a class="side-link" href="/admin/announcements"><span>◈</span> بطاقات الرئيسية</a>
-      <a class="side-link" href="/admin/news"><span>✎</span> الأخبار</a>
-      <a class="side-link" href="/admin/offers"><span>%</span> العروض</a>
-      <a class="side-link" href="/admin/ads"><span>◇</span> الإعلانات</a>
-      <a class="side-link" href="/admin/live"><span>●</span> البث المباشر</a>
+      <a class="side-link" href="/admin/workspace/announcements"><span>◈</span> بطاقات الرئيسية</a>
+      <a class="side-link" href="/admin/workspace/news"><span>✎</span> الأخبار</a>
+      <a class="side-link" href="/admin/workspace/offers"><span>%</span> العروض</a>
+      <a class="side-link" href="/admin/workspace/ads"><span>◇</span> الإعلانات</a>
+      <a class="side-link" href="/admin/workspace/live"><span>●</span> البث المباشر</a>
 
       <div class="side-section-title">المخزون والتقارير</div>
-      <a class="side-link" href="/admin/suppliers"><span>⌁</span> الموردون</a>
-      <a class="side-link" href="/admin/inventory"><span>▤</span> المخزون</a>
-      <a class="side-link" href="/admin/reports"><span>◫</span> التقارير</a>
+      <a class="side-link" href="/admin/workspace/suppliers"><span>⌁</span> الموردون</a>
+      <a class="side-link" href="/admin/workspace/inventory"><span>▤</span> المخزون</a>
+      <a class="side-link" href="/admin/workspace/reports"><span>◫</span> التقارير</a>
       <a class="side-link" href="{{ url_for('settings.index') }}"><span>⚙</span> الإعدادات</a>
     </div>
     <div class="sidebar-footer">
