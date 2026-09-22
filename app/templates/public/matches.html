@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">المنافسات</div><h1>المباريات والنتائج</h1></div></div>
+<section class="panel"><div class="match-list">{% for match in matches %}<div class="match-row"><div><small>{{ match.starts_at.strftime("%Y-%m-%d %H:%M") if match.starts_at else 'غير محدد' }}</small><strong>{{ match.team_a_id or 'فريق A' }}</strong><strong>{{ match.team_b_id or 'فريق B' }}</strong></div><div class="score"><b>{{ match.score_a if match.score_a is not none else '-' }}</b><span>:</span><b>{{ match.score_b if match.score_b is not none else '-' }}</b></div><span class="badge badge-info">{{ match.status }}</span></div>{% else %}<div class="empty-state">لا توجد مباريات.</div>{% endfor %}</div></section>
+{% endblock %}
