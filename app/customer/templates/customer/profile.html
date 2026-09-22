@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">بيانات العميل</div><h1>ملفي</h1></div></div>
+<section class="panel profile-card"><div class="profile-big"><span class="avatar">{{ customer.name[:1] }}</span><div><h2>{{ customer.name }}</h2><span>{{ customer.customer_code }}</span></div></div><div class="profile-fields"><div><small>الهاتف</small><b>{{ customer.phone or '—' }}</b></div><div><small>البريد</small><b>{{ customer.email or '—' }}</b></div><div><small>الرصيد الدائن</small><b>{{ "{:,.0f}".format(customer.credit_balance|float) }}</b></div></div></section>
+{% endblock %}
