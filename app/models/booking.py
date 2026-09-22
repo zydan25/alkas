@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import CheckConstraint, Index, text
+from sqlalchemy import CheckConstraint, Index
 from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSTZRANGE
 
 from ..extensions import db
@@ -80,11 +80,7 @@ class BookingHold(db.Model):
 
     @classmethod
     def new(cls, booking_id, token, minutes=10):
-        return cls(
-            booking_id=booking_id,
-            token=token,
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
-        )
+        return cls(booking_id=booking_id, token=token, expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes))
 
 
 class RecurringBooking(db.Model):
