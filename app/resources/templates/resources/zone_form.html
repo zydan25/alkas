@@ -1,0 +1,26 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">المنشأة</div><h1>إضافة منطقة</h1><p>المنطقة تساعدك على تقسيم المدينة إلى ملاعب وصالات وأقسام.</p></div>
+  <a class="btn btn-soft" href="{{ url_for('admin.resources') }}">العودة</a>
+</div>
+<section class="panel form-panel">
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" class="form-stack">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>المنشأة<select name="venue_id" required>
+<option value="">اختر المنشأة</option>
+{% for venue in venues %}<option value="{{ venue.id }}">{{ venue.name_ar }}</option>{% endfor %}
+</select></label>
+<div class="form-grid">
+<label>اسم المنطقة بالعربي<input name="name_ar" placeholder="ملعب كرة القدم" required></label>
+<label>الاسم الداخلي<input name="name" placeholder="football" required></label>
+<label>ترتيب العرض<input type="number" name="sort_order" value="0" min="0"></label>
+</div>
+<div class="page-actions">
+<a class="btn btn-soft" href="{{ url_for('admin.resources') }}">إلغاء</a>
+<button class="btn btn-primary" type="submit">حفظ المنطقة</button>
+</div>
+</form>
+</section>
+{% endblock %}
