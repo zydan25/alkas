@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, redirect, render_template
 from flask_login import current_user, login_required
 
 from ..accounting.models import Account
@@ -85,13 +85,5 @@ def index():
 def module(slug):
     if not _allowed() or slug not in MODULES:
         abort(404)
-    title, description, api, model, ui_path = MODULES[slug]
+    _, _, _, _, ui_path = MODULES[slug]
     return redirect(ui_path)
-
-        "admin/module.html",
-        title=title,
-        description=description,
-        count=model.query.count() if model is not None else 0,
-        api=api,
-        module_key=slug,
-    )
