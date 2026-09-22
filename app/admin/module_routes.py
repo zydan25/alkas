@@ -32,7 +32,7 @@ bp = Blueprint("module_ui", __name__, url_prefix="/admin/workspace", template_fo
 
 
 def _allowed():
-    return current_user.username == "admin" or current_user.has_permission("booking.view")
+    return current_user.username == "admin" or current_user.has_permission("admin.access")
 
 
 MODULES = {
