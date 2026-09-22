@@ -26,21 +26,35 @@ def register_commands(app):
     @click.option("--password", required=True, prompt=True, hide_input=True, confirmation_prompt=True)
     @click.option("--name", default="مدير النظام", show_default=True)
     def create_admin(username, password, name):
-        user = User.query.filter_by(username=username).first()
-        if user:
+        if User.query.filter_by(username=username).first():
             raise BadRequest("اسم المستخدم موجود بالفعل")
 
-        permissions = [
-            ("admin.access", "دخول لوحة الإدارة"),
-            ("settings.manage", "إدارة الإعدادات"),
-            ("booking.view", "عرض الحجوزات"),
-            ("booking.create", "إنشاء الحجوزات"),
-            ("booking.edit", "تعديل الحجوزات"),
-            ("payment.view", "عرض المدفوعات"),
-            ("accounting.view", "عرض المحاسبة"),
+        permission_specs = [
+            ("admin.access", "دخول لوحة الإدارة"), ("settings.manage", "إدارة الإعدادات"),
+            ("users.manage", "إدارة المستخدمين والصلاحيات"),
+            ("booking.view", "عرض الحجوزات"), ("booking.create", "إنشاء الحجوزات"),
+            ("booking.edit", "تعديل الحجوزات"), ("booking.cancel", "إلغاء الحجوزات"),
+            ("payment.view", "عرض المدفوعات"), ("payment.create", "تسجيل المدفوعات"),
+            ("invoice.manage", "إدارة الفواتير"),
+            ("payment.refund", "طلب الاسترجاع"), ("accounting.view", "عرض المحاسبة"),
+            ("accounting.journal.create", "إنشاء القيود"), ("accounting.journal.post", "ترحيل القيود"),
+            ("cashier.manage", "إدارة الصناديق"), ("closing.manage", "الإقفال المالي"),
+            ("employee.view", "عرض الموظفين"), ("employee.manage", "إدارة الموظفين"),
+            ("payroll.manage", "إدارة الرواتب"), ("maintenance.view", "عرض الصيانة"),
+            ("maintenance.manage", "إدارة الصيانة"), ("tournament.manage", "إدارة البطولات"),
+            ("team.manage", "إدارة الفرق واللاعبين"), ("content.manage", "إدارة المحتوى"),
+            ("offer.manage", "إدارة العروض"), ("ads.manage", "إدارة الإعلانات"),
+            ("live.manage", "إدارة البث"), ("pricing.manage", "إدارة قواعد التسعير"),
+            ("pricing.view", "عرض التسعير"), ("dashboard.view", "عرض لوحة التحكم"),
+            ("inventory.manage", "إدارة المخزون"), ("supplier.manage", "إدارة الموردين"),
+            ("reports.view", "عرض التقارير"), ("resource.manage", "إدارة الموارد"),
+            ("customer.view", "عرض العملاء"), ("invoice.view", "عرض الفواتير"),
+            ("invoice.manage", "إدارة الفواتير"), ("shift.manage", "إدارة الورديات"),
+            ("membership.manage", "إدارة العضويات"), ("package.manage", "إدارة الباقات"),
+            ("training.manage", "إدارة التدريب"),
         ]
         permission_rows = []
-        for key, label in permissions:
+        for key, label in permission_specs:
             item = Permission.query.filter_by(key=key).first()
             if not item:
                 item = Permission(key=key, name_ar=label)
