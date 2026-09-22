@@ -60,6 +60,7 @@ def create_app(config_class=Config):
     from .closing.routes import bp as closing_bp
     from .policies.routes import bp as policies_bp
     from .customer.routes import bp as customer_bp
+    from .customer.routes import bp as customer_bp
 
     for blueprint in (
         auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp,
