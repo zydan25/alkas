@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">مركز التنبيهات</div><h1>الإشعارات</h1><p>تأكيدات الحجز والدفع والتنبيهات المهمة.</p></div></div>
+<section class="panel"><div class="notification-list">{% for n in notifications %}<article class="notification-row {{ 'unread' if not n.is_read else '' }}"><div class="notification-icon">{{ '!' if n.priority == 'high' else '•' }}</div><div><b>{{ n.title_ar }}</b><p>{{ n.body_ar }}</p><small>{{ n.created_at.strftime("%Y-%m-%d %H:%M") }}</small></div></article>{% else %}<div class="empty-state">لا توجد إشعارات.</div>{% endfor %}</div></section>
+{% endblock %}
