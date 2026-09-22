@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, Response, jsonify, render_template
+import json
 
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
@@ -81,3 +82,47 @@ def teams():
 def api_sports():
     sports = Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all()
     return jsonify([{"id": s.id, "key": s.key, "name_ar": s.name_ar, "icon": s.icon} for s in sports])
+
+
+@bp.get("/manifest.webmanifest")
+def manifest():
+    return Response(
+        json.dumps({
+            "name": "ملاعب الكأس",
+            "short_name": "الكأس",
+            "lang": "ar",
+            "dir": "rtl",
+            "start_url": "/",
+            "scope": "/",
+            "display": "standalone",
+            "background_color": "#f8fafc",
+            "theme_color": get_site_color("primary"),
+            "icons": [
+                {"src": "/static/img/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"},
+                {"src": "/static/img/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"},
+            ],
+        }, ensure_ascii=False),
+        mimetype="application/manifest+json",
+    )
+
+
+@bp.get("/sw.js")
+def service_worker():
+    js = """const CACHE='alkas-shell-v1';
+const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/js/app.js'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{
+  const u=new URL(e.request.url);
+  if(e.request.method!=='GET'||u.pathname.startsWith('/api')||u.pathname.startsWith('/admin')) return;
+  e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('/'))));
+});"""
+    return Response(js,mimetype="application/javascript")
+
+
+def get_site_color(key):
+    try:
+        from ..settings.services import get_site_settings
+        return get_site_settings()["theme"].get(key, "#0f172a")
+    except Exception:
+        return "#0f172a"
