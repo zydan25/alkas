@@ -6,6 +6,8 @@ from ..accounting.services import post_entry
 from ..extensions import db
 from ..invoices.models import Invoice
 from ..models import Booking
+from ..cashier.models import CashShift, CashTransaction
+from ..employees.models import Employee
 from ..notifications.services import notify_user
 from ..realtime import emit_booking_event
 from .models import Payment
@@ -62,6 +64,20 @@ def record_payment_with_accounting(invoice_id, amount, method, number, user_id=N
     receivable = Account.query.filter_by(code="1300", is_active=True).first()
     if not cash or not receivable:
         raise ValueError("حساب النقدية أو الذمم غير مهيأ")
+
+    if payment.method == "cash":
+        employee = Employee.query.filter_by(user_id=user_id, employment_status="active").first()
+        shift = CashShift.query.filter_by(employee_id=employee.id, status="open").first() if employee else None
+        if not shift:
+            raise ValueError("لا يمكن تسجيل دفع نقدي بدون وردية صندوق مفتوحة")
+        db.session.add(CashTransaction(
+            shift_id=shift.id,
+            transaction_type="receipt",
+            amount=payment.amount,
+            reference_type="payment",
+            reference_id=payment.id,
+            description_ar=f"تحصيل {invoice.number}",
+        ))
 
     post_entry(
         number=f"JV-PAY-{payment.id}",
