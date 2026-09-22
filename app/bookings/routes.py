@@ -70,14 +70,21 @@ def create_hold():
 
     data = request.get_json(silent=True) or {}
     try:
-        resource_ids = [int(value) for value in data.get("resource_ids", [])]
-        start_at = datetime.fromisoformat(data["start_at"])
-        end_at = datetime.fromisoformat(data["end_at"])
+        items = data.get("items")
+        if items is None:
+            resource_ids = [int(value) for value in data.get("resource_ids", [])]
+            start_at = datetime.fromisoformat(data["start_at"])
+            end_at = datetime.fromisoformat(data["end_at"])
+        else:
+            resource_ids = None
+            start_at = end_at = None
+
         booking, token = create_hold_booking(
             customer_id=customer.id,
             resource_ids=resource_ids,
             start_at=start_at,
             end_at=end_at,
+            items=items,
             source=data.get("source", "web"),
         )
     except (KeyError, ValueError, TypeError) as exc:
@@ -94,6 +101,7 @@ def create_hold():
             "payment_status": booking.payment_status,
             "total": str(booking.total),
             "hold_expires_at": booking.hold_expires_at.isoformat(),
+            "allocations": len(booking.allocations),
         },
         "hold_token": token,
     }), 201
