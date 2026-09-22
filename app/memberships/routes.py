@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import Membership, MembershipPlan
-bp=Blueprint("memberships",__name__,url_prefix="/admin/memberships")
+bp=Blueprint("memberships",__name__,url_prefix="/admin/memberships",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
