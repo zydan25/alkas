@@ -9,6 +9,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: alkas
+          POSTGRES_PASSWORD: alkas
+          POSTGRES_DB: alkas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U alkas -d alkas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://alkas:alkas@127.0.0.1:5432/alkas
+      SECRET_KEY: ci-test-secret
+      TIMEZONE: Asia/Aden
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,6 +35,8 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Compile
-        run: python -m compileall -q app
+        run: python -m compileall -q app migrations
+      - name: Database upgrade
+        run: flask --app wsgi db upgrade
       - name: Tests
         run: pytest -q
