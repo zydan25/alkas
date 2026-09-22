@@ -1,29 +1,30 @@
 from flask import Blueprint, abort, render_template
 from flask_login import current_user, login_required
 
-from ..ads.models import AdCampaign, AdCreative
+from ..accounting.models import Account
+from ..ads.models import AdCampaign
 from ..announcements.models import AnnouncementCard
-from ..cashier.models import CashRegister, CashShift
+from ..cashier.models import CashShift
 from ..closing.models import FinancialClose
 from ..employees.models import Employee
 from ..extensions import db
 from ..invoices.models import Invoice
-from ..inventory.models import Product, Warehouse
-from ..live.models import LiveEvent, Stream
+from ..inventory.models import Product
+from ..live.models import LiveEvent
 from ..maintenance.models import MaintenanceRequest
-from ..memberships.models import Membership, MembershipPlan
+from ..memberships.models import Membership
 from ..news.models import Post
 from ..notifications.models import Notification
-from ..offers.models import Offer, Coupon
-from ..packages.models import BookingPackage, CustomerPackage
-from ..payments.models import Payment, Refund
+from ..offers.models import Offer
+from ..packages.models import CustomerPackage
+from ..payments.models import Payment
 from ..payroll.models import PayrollRun
 from ..reports.models import SavedReport
 from ..shifts.models import WorkShift
-from ..suppliers.models import Supplier, PurchaseInvoice
-from ..teams.models import Player, Team
-from ..tournaments.models import Tournament, Match
-from ..training.models import Coach, TrainingProgram
+from ..suppliers.models import Supplier
+from ..teams.models import Team
+from ..tournaments.models import Tournament
+from ..training.models import TrainingProgram
 
 
 bp = Blueprint("module_ui", __name__, url_prefix="/admin/workspace", template_folder="templates")
@@ -34,43 +35,30 @@ def _allowed():
 
 
 MODULES = {
-    "accounting": ("المحاسبة", "شجرة الحسابات، القيود، الأستاذ، الفترات والإقفال", "/admin/accounting", "Accounting"),
-    "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices", "Invoice"),
-    "payments": ("المدفوعات والاسترجاعات", "التحصيل وطرق الدفع وحالات الاسترجاع", "/admin/payments", "Payment"),
-    "cashier": ("الصناديق", "الصناديق والورديات والحركات النقدية", "/admin/cashier", "Cashier"),
-    "closing": ("الإقفال المالي", "إغلاق اليوم ومطابقة النقد والفرق", "/admin/closing", "Closing"),
-    "employees": ("الموظفون", "الملفات الوظيفية والأقسام والحالة", "/admin/employees", "Employee"),
-    "payroll": ("الرواتب", "الدورات والمرتبات والخصومات والسلف", "/admin/payroll", "Payroll"),
-    "shifts": ("الورديات", "جداول العمل وتوزيع الموظفين", "/admin/shifts", "Shifts"),
-    "maintenance": ("الصيانة", "بلاغات الأعطال وأوامر العمل وحجب الموارد", "/admin/maintenance", "Maintenance"),
-    "memberships": ("العضويات", "الباقات والعضويات الفعالة", "/admin/memberships", "Memberships"),
-    "packages": ("باقات الساعات", "الباقات واستهلاك ساعات العملاء", "/admin/packages", "Packages"),
-    "training": ("التدريب", "المدربون والبرامج والحصص", "/admin/training", "Training"),
-    "tournaments": ("البطولات", "البطولات والمباريات والنتائج", "/admin/tournaments", "Tournaments"),
-    "teams": ("الفرق واللاعبون", "الفرق واللاعبين وتسجيلاتهم", "/admin/teams", "Teams"),
-    "announcements": ("بطاقات الرئيسية", "بطاقات نصية وصورية وفيديو ومؤقتة وروابط", "/admin/announcements", "Announcements"),
-    "news": ("الأخبار", "المحتوى المنشور والمقالات والتصنيفات", "/admin/news", "News"),
-    "offers": ("العروض", "العروض والكوبونات والتعليقات والاستفسارات", "/admin/offers", "Offers"),
-    "ads": ("الإعلانات", "الحملات الإعلانية والمواد والأماكن", "/admin/ads", "Ads"),
-    "live": ("البث المباشر", "الأحداث ومصادر البث والمشاهدون", "/admin/live", "Live"),
-    "notifications": ("الإشعارات", "إشعارات العملاء والسجل والقنوات", "/notifications", "Notifications"),
-    "reports": ("التقارير", "التقارير التشغيلية والمالية المحفوظة", "/admin/reports", "Reports"),
-    "suppliers": ("الموردون", "الموردون وفواتير المشتريات والمدفوعات", "/admin/suppliers", "Suppliers"),
-    "inventory": ("المخزون", "المنتجات والمستودعات وحركات المخزون", "/admin/inventory", "Inventory"),
+    "accounting": ("المحاسبة", "شجرة الحسابات والقيود والفترات والأستاذ", "/admin/accounting", Account),
+    "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices", Invoice),
+    "payments": ("المدفوعات والاسترجاعات", "التحصيل وطرق الدفع والاسترجاعات", "/admin/payments", Payment),
+    "cashier": ("الصناديق والوردية", "الصناديق والورديات والحركات النقدية", "/admin/cashier", CashShift),
+    "closing": ("الإقفال المالي", "إقفال اليوم ومطابقة النقد والفرق", "/admin/closing", FinancialClose),
+    "employees": ("الموظفون", "الملفات الوظيفية والأقسام والحالة", "/admin/employees", Employee),
+    "payroll": ("الرواتب", "الدورات والرواتب والخصومات والسلف", "/admin/payroll", PayrollRun),
+    "shifts": ("الورديات", "جداول العمل وتوزيع الموظفين", "/admin/shifts", WorkShift),
+    "maintenance": ("الصيانة", "بلاغات الأعطال وأوامر العمل وحجب الموارد", "/admin/maintenance", MaintenanceRequest),
+    "memberships": ("العضويات", "خطط العضوية والاشتراكات النشطة", "/admin/memberships", Membership),
+    "packages": ("الباقات", "باقات الساعات واستهلاك العملاء", "/admin/packages", CustomerPackage),
+    "training": ("التدريب", "المدربون والبرامج والحصص", "/admin/training", TrainingProgram),
+    "tournaments": ("البطولات", "البطولات والمباريات والنتائج", "/admin/tournaments", Tournament),
+    "teams": ("الفرق واللاعبون", "الفرق وقواعد اللاعبين", "/admin/teams", Team),
+    "announcements": ("بطاقات الرئيسية", "بطاقات نصية وصورية وفيديو ومؤقتة وروابط", "/admin/announcements", AnnouncementCard),
+    "news": ("الأخبار", "المقالات والتصنيفات والمحتوى", "/admin/news", Post),
+    "offers": ("العروض", "العروض والكوبونات والتعليقات والاستفسارات", "/admin/offers", Offer),
+    "ads": ("الإعلانات", "الحملات الإعلانية والمواد ومواقع العرض", "/admin/ads", AdCampaign),
+    "live": ("البث المباشر", "الأحداث ومصادر البث والمشاهدون", "/admin/live", LiveEvent),
+    "notifications": ("الإشعارات", "إشعارات المستخدمين وقنوات الإرسال", "/notifications", Notification),
+    "reports": ("التقارير", "لوحات المؤشرات والتقارير المحفوظة", "/admin/reports/dashboard", SavedReport),
+    "suppliers": ("الموردون", "الموردون وفواتير المشتريات والمدفوعات", "/admin/suppliers", Supplier),
+    "inventory": ("المخزون", "المنتجات والمستودعات وحركات المخزون", "/admin/inventory", Product),
 }
-
-
-def _count(slug):
-    model_pairs = {
-        "invoices": Invoice, "payments": Payment, "cashier": CashShift, "closing": FinancialClose,
-        "employees": Employee, "payroll": PayrollRun, "shifts": WorkShift, "maintenance": MaintenanceRequest,
-        "memberships": Membership, "packages": CustomerPackage, "training": TrainingProgram,
-        "tournaments": Tournament, "teams": Team, "announcements": AnnouncementCard, "news": Post,
-        "offers": Offer, "ads": AdCampaign, "live": LiveEvent, "notifications": Notification,
-        "reports": SavedReport, "suppliers": Supplier, "inventory": Product,
-    }
-    model = model_pairs.get(slug)
-    return model.query.count() if model is not None else 0
 
 
 @bp.get("")
@@ -78,13 +66,15 @@ def _count(slug):
 def index():
     if not _allowed():
         abort(403)
-    cards = []
-    for slug, (title, description, api, _) in MODULES.items():
-        cards.append({
-            "slug": slug, "title": title, "description": description,
-            "count": _count(slug), "api": api,
+    modules = []
+    for slug, (title, description, api, model) in MODULES.items():
+        modules.append({
+            "slug": slug,
+            "title": title,
+            "description": description,
+            "count": model.query.count() if model is not None else 0,
         })
-    return render_template("admin/modules.html", modules=cards)
+    return render_template("admin/modules.html", modules=modules)
 
 
 @bp.get("/<slug>")
@@ -92,12 +82,12 @@ def index():
 def module(slug):
     if not _allowed() or slug not in MODULES:
         abort(404)
-    title, description, api, key = MODULES[slug]
+    title, description, api, model = MODULES[slug]
     return render_template(
         "admin/module.html",
         title=title,
         description=description,
-        count=_count(slug),
+        count=model.query.count() if model is not None else 0,
         api=api,
-        module_key=key,
+        module_key=slug,
     )
