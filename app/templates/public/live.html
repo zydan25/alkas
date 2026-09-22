@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="public-header"><div><div class="eyebrow">مباشر</div><h1>البث والفعاليات المباشرة</h1><p>تابع الفعاليات عند توفر البث.</p></div></div>
+<section class="content-grid">{% for event in events %}<article class="live-card"><div class="live-cover"><span class="live-tag">{{ "🔴 مباشر" if event.status == "live" else event.status }}</span></div><div class="content-body"><h2>{{ event.name_ar }}</h2><p>{{ event.description_ar }}</p><a class="btn btn-soft" href="/live/{{ event.id }}">فتح الحدث</a></div></article>{% else %}<div class="empty-state">لا يوجد بث حالي.</div>{% endfor %}</section>
+{% endblock %}
