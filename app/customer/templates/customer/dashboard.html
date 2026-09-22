@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="customer-welcome"><div><div class="eyebrow">حسابي</div><h1>مرحبًا، {{ customer.name }}</h1><p>كل حجوزاتك وفواتيرك وإشعاراتك في مكان واحد.</p></div><a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ احجز الآن</a></div>
+<section class="customer-kpis"><div><span>الحجوزات</span><strong>{{ bookings|length }}</strong></div><div><span>المستحقات</span><strong>{{ "{:,.0f}".format((invoices|sum(attribute='balance_due'))|float) }}</strong></div><div><span>الإشعارات غير المقروءة</span><strong>{{ unread }}</strong></div></section>
+<div class="customer-grid">
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">جدولك</span><h2>آخر الحجوزات</h2></div><a class="text-link" href="{{ url_for('customer.bookings') }}">كل الحجوزات ↗</a></div>
+{% for b in bookings %}<div class="customer-booking"><div class="customer-booking-time"><strong>{{ b.start_at.strftime("%d %b") }}</strong><span>{{ b.start_at.strftime("%H:%M") }}</span></div><div><b>{{ b.booking_number }}</b><small>{{ b.status }} · {{ b.payment_status }}</small></div><strong>{{ "{:,.0f}".format(b.total|float) }}</strong></div>{% else %}<div class="empty-state">لا توجد حجوزات بعد.</div>{% endfor %}
+</section>
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">المال</span><h2>الفواتير</h2></div></div>{% for invoice in invoices %}<div class="customer-booking"><div><b>{{ invoice.number }}</b><small>{{ invoice.issue_date }}</small></div><span class="badge badge-{{ 'success' if invoice.status == 'paid' else 'warning' }}">{{ invoice.status }}</span><strong>{{ "{:,.0f}".format(invoice.balance_due|float) }}</strong></div>{% else %}<div class="empty-state">لا توجد فواتير.</div>{% endfor %}</section>
+</div>
+{% endblock %}
