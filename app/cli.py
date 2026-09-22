@@ -21,6 +21,7 @@ from .announcements.models import AnnouncementCard
 from .accounting.models import FiscalPeriod
 from .policies.models import BookingPolicy, PaymentPolicy
 from .cashier.models import CashRegister
+from .accounting.models import Branch
 from datetime import date
 
 
@@ -75,6 +76,8 @@ def register_commands(app):
         period_name = str(current_year)
         if not FiscalPeriod.query.filter_by(name=period_name).first():
             db.session.add(FiscalPeriod(name=period_name, starts_on=date(current_year,1,1), ends_on=date(current_year,12,31), status="open"))
+        if not Branch.query.filter_by(code="BR-01").first():
+            db.session.add(Branch(code="BR-01", name_ar="الفرع الرئيسي", is_active=True))
 
         user = User(username=username, display_name=name)
         user.set_password(password)
@@ -296,6 +299,8 @@ def register_commands(app):
         period_name = str(current_year)
         if not FiscalPeriod.query.filter_by(name=period_name).first():
             db.session.add(FiscalPeriod(name=period_name, starts_on=date(current_year,1,1), ends_on=date(current_year,12,31), status="open"))
+        if not Branch.query.filter_by(code="BR-01").first():
+            db.session.add(Branch(code="BR-01", name_ar="الفرع الرئيسي", is_active=True))
 
         if not BookingPolicy.query.filter_by(is_default=True, is_active=True).first():
             db.session.add(BookingPolicy(
