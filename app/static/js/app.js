@@ -6,7 +6,12 @@
     socket.on("booking", function (payload) {
       window.dispatchEvent(new CustomEvent("alkas:booking", { detail: payload }));
       document.querySelectorAll("[data-live-bookings]").forEach(function (node) {
-        node.dispatchEvent(new CustomEvent("alkas:refresh", { detail: payload }));
+        const empty = node.querySelector(".empty-state");
+        if (empty) empty.remove();
+        const item = document.createElement("div");
+        item.className = "live-event";
+        item.textContent = "حجز " + (payload.booking_number || payload.booking_id) + " — " + payload.event;
+        node.prepend(item);
       });
     });
 
@@ -17,8 +22,7 @@
 
   document.querySelectorAll("[data-sport]").forEach(function (button) {
     button.addEventListener("click", function () {
-      const sportId = button.dataset.sport;
-      window.dispatchEvent(new CustomEvent("alkas:sport-selected", { detail: { sportId: sportId } }));
+      window.dispatchEvent(new CustomEvent("alkas:sport-selected", { detail: { sportId: button.dataset.sport } }));
     });
   });
 
@@ -81,14 +85,11 @@
 
       const response = await fetch("/bookings/holds", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken
-        },
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
         body: JSON.stringify({items, source: "pwa_web"})
       });
-
       const data = await response.json();
+
       if (!response.ok) {
         result.className = "booking-result error";
         result.textContent = data.error || "تعذر إنشاء الحجز.";
