@@ -2,6 +2,10 @@ from flask import Blueprint, abort, redirect, render_template
 from flask_login import current_user, login_required
 
 from ..accounting.models import Account
+from ..bookings.models import Booking
+from ..customers.models import Customer
+from ..resources.models import Resource
+from ..users.models import User
 from ..ads.models import AdCampaign
 from ..announcements.models import AnnouncementCard
 from ..cashier.models import CashShift
@@ -35,6 +39,16 @@ def _allowed():
     return current_user.username == "admin" or current_user.has_permission("admin.access")
 
 
+PERMISSION_BY_SLUG = {
+    "accounting":"accounting.view","invoices":"invoice.view","payments":"payment.view","cashier":"cashier.manage",
+    "closing":"closing.manage","employees":"employee.view","payroll":"payroll.manage","shifts":"shift.manage",
+    "maintenance":"maintenance.view","memberships":"membership.manage","packages":"package.manage","pricing":"pricing.view",
+    "training":"training.manage","tournaments":"tournament.manage","teams":"team.manage","announcements":"content.manage",
+    "news":"content.manage","offers":"offer.manage","ads":"ads.manage","live":"live.manage","notifications":"admin.access",
+    "reports":"reports.view","suppliers":"supplier.manage","inventory":"inventory.manage","bookings":"booking.view",
+    "customers":"customer.view","resources":"resource.manage","users":"users.manage","audit":"audit.view","settings":"settings.manage",
+}
+
 MODULES = {
     "accounting": ("المحاسبة", "شجرة الحسابات والقيود والسندات والفروع والفترات", "/admin/accounting/api", Account, "/admin/accounting"),
     "invoices": ("الفواتير", "فواتير العملاء والأرصدة والمستحقات", "/admin/invoices/api", Invoice, "/admin/invoices"),
@@ -60,6 +74,12 @@ MODULES = {
     "reports": ("التقارير", "لوحات المؤشرات والتقارير المحفوظة", "/admin/reports/dashboard", SavedReport, "/admin/reports/dashboard"),
     "suppliers": ("الموردون", "الموردون وفواتير المشتريات والمدفوعات", "/admin/suppliers/api", Supplier, "/admin/suppliers"),
     "inventory": ("المخزون", "المنتجات والمستودعات وحركات المخزون", "/admin/inventory/api", Product, "/admin/inventory"),
+    "bookings": ("الحجوزات", "التقويم والحجوزات والتعارضات", "/bookings", Booking, "/admin/bookings"),
+    "customers": ("العملاء", "ملفات العملاء والهواتف والذمم", "/admin/customers", Customer, "/admin/customers"),
+    "resources": ("الملاعب والموارد", "المنشأة والموارد وحزم الحجز", "/admin/resources", Resource, "/admin/resources"),
+    "users": ("المستخدمون", "المستخدمون والأدوار والصلاحيات", "/admin/users", User, "/admin/users"),
+    "audit": ("سجل التدقيق", "سجل العمليات الحساسة والمراجعة", "/admin/audit", None, "/admin/audit"),
+    "settings": ("الإعدادات", "هوية الموقع والثيم وسياسات التشغيل", "/settings", None, "/settings"),
 }
 
 
@@ -70,6 +90,9 @@ def index():
         abort(403)
     modules = []
     for slug, (title, description, api, model, ui_path) in MODULES.items():
+        permission = PERMISSION_BY_SLUG.get(slug, "admin.access")
+        if current_user.username != "admin" and not current_user.has_permission(permission):
+            continue
         modules.append({
             "slug": slug,
             "title": title,
