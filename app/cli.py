@@ -153,10 +153,10 @@ def register_commands(app):
         role_matrix = {
             "accountant": [
                 "admin.access", "audit.view", "dashboard.view", "accounting.view", "accounting.journal.create", "accounting.journal.post",
-                "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
+                "invoice.view", "invoice.manage", "payment.view", "payment.create", "reports.view", "cashier.manage", "closing.manage"
             ],
             "receptionist": [
-                "admin.access", "booking.view", "dashboard.view", "booking.create", "booking.edit", "payment.view",
+                "admin.access", "booking.view", "dashboard.view", "booking.create", "booking.edit", "invoice.view", "payment.view",
                 "payment.create", "cashier.manage", "customer.view"
             ],
             "maintenance": ["admin.access", "maintenance.view", "maintenance.manage", "employee.view"],
