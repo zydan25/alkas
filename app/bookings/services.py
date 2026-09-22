@@ -23,6 +23,8 @@ def _as_aware(value):
 
 
 def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=None, source="web", minutes=10, items=None):
+    expire_holds()
+
     if items is None:
         if not resource_ids or start_at is None or end_at is None:
             raise ValueError("يجب تحديد ملعب ووقت")
@@ -62,6 +64,9 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
     ).scalars().all()
     if len(resources) != len(resource_ids):
         raise ValueError("أحد الملاعب غير متاح أو غير موجود")
+    unavailable = [r.name_ar for r in resources if r.status != "available"]
+    if unavailable:
+        raise ValueError("الموارد التالية غير متاحة للحجز: " + "، ".join(unavailable))
 
     resource_map = {resource.id: resource for resource in resources}
     booking = Booking(
