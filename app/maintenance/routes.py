@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from .models import MaintenanceRequest
 
-bp = Blueprint("maintenance", __name__, url_prefix="/admin/maintenance")
+bp = Blueprint("maintenance", __name__, url_prefix="/admin/maintenance", template_folder="templates")
 
 @bp.get("")
 @login_required
