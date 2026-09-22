@@ -7,7 +7,7 @@
     <p>صورة تشغيلية سريعة لمدينة ملاعب الكأس — الحجز، المال، الموارد والعمليات في لحظة واحدة.</p>
   </div>
   <div class="page-actions">
-    <a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.booking_new') }}">＋ حجز جديد</a>
     <a class="btn btn-soft" href="/admin/reports">التقارير</a>
   </div>
 </div>
@@ -70,7 +70,7 @@
   <section class="panel">
     <div class="panel-head"><div><span class="eyebrow">اختصارات</span><h2>تنفيذ سريع</h2></div></div>
     <div class="quick-actions">
-      <a href="{{ url_for('bookings.booking_page') }}"><b>＋</b><span>حجز جديد</span></a>
+      <a href="{{ url_for('admin.booking_new') }}"><b>＋</b><span>حجز جديد</span></a>
       <a href="/admin/customers"><b>◎</b><span>عميل جديد</span></a>
       <a href="/admin/payments"><b>◉</b><span>سند قبض</span></a>
       <a href="/admin/maintenance"><b>⚒</b><span>بلاغ صيانة</span></a>
