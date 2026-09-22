@@ -20,7 +20,8 @@ def booking_page():
         return render_template("bookings/no_customer.html")
 
     resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
-    return render_template("bookings/index.html", customer=customer, resources=resources)
+    bundles = ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all()
+    return render_template("bookings/index.html", customer=customer, resources=resources, bundles=bundles)
 
 
 @bp.get("/availability")
