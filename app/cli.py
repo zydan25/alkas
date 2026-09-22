@@ -48,6 +48,7 @@ def _setup_core_data():
     for code, _, _, parent_code in account_specs:
         if parent_code:
             accounts[code].parent_id = accounts[parent_code].id
+            accounts[parent_code].is_control = True
 
     current_year = date.today().year
     period_name = str(current_year)
