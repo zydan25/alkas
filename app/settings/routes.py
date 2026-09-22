@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, abort, jsonify, request
 from flask_login import current_user, login_required
 
@@ -6,6 +8,7 @@ from ..models import SiteSetting, SiteTheme
 from ..settings.services import get_site_settings
 
 bp = Blueprint("settings", __name__, url_prefix="/settings")
+HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 
 def _can_manage():
@@ -43,8 +46,52 @@ def save_theme():
         "radius": "radius",
     }
     for db_key, json_key in allowed.items():
-        if json_key in data:
-            setattr(theme, db_key, str(data[json_key]))
+        if json_key not in data:
+            continue
+        value = str(data[json_key]).strip()
+        if db_key != "radius" and not HEX_RE.fullmatch(value):
+            return jsonify({"error": f"قيمة اللون غير صحيحة: {json_key}"}), 400
+        setattr(theme, db_key, value)
+
+    version = SiteSetting.query.filter_by(key="asset_version").first()
+    if not version:
+        version = SiteSetting(key="asset_version", value_type="string", is_public=True)
+        db.session.add(version)
+    version.value = str(int(version.value or "0") + 1)
+
+    db.session.commit()
+    return jsonify(get_site_settings())
+
+
+@bp.post("/site")
+@login_required
+def save_site():
+    if not _can_manage():
+        abort(403)
+
+    data = request.get_json(silent=True) or {}
+    allowed = {
+        "site_name", "site_short_name", "logo_url", "favicon_url",
+        "hero_title", "hero_subtitle", "booking_hold_minutes",
+    }
+    changed = False
+
+    for key in allowed:
+        if key not in data:
+            continue
+        row = SiteSetting.query.filter_by(key=key).first()
+        if not row:
+            row = SiteSetting(key=key, value_type="string", is_public=True)
+            db.session.add(row)
+        row.value = str(data[key])
+        changed = True
+
+    if changed:
+        version = SiteSetting.query.filter_by(key="asset_version").first()
+        if not version:
+            version = SiteSetting(key="asset_version", value_type="string", is_public=True, value="1")
+            db.session.add(version)
+        version.value = str(int(version.value or "0") + 1)
 
     db.session.commit()
     return jsonify(get_site_settings())
