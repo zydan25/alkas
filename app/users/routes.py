@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from ..models import Permission, Role, User
 
-bp = Blueprint("users", __name__, url_prefix="/admin/users")
+bp = Blueprint("users", __name__, url_prefix="/admin/users", template_folder="templates")
 
 
 def _allowed():
