@@ -307,3 +307,60 @@
   .btn-apps span{display:none}
   .btn-apps{min-width:46px}
 }
+
+/* Voucher mobile layout */
+.voucher-layout{align-items:start}
+.voucher-table-wrap{overflow:visible}
+.voucher-table{min-width:0!important;width:100%}
+@media(max-width:760px){
+  .voucher-layout{grid-template-columns:1fr!important}
+  .voucher-table-wrap{width:100%;overflow:visible}
+  .voucher-table,.voucher-table tbody,.voucher-table tr,.voucher-table td{display:block;width:100%}
+  .voucher-table thead{display:none}
+  .voucher-table tr{
+    margin-bottom:10px;
+    padding:11px;
+    border:1px solid var(--admin-border);
+    border-radius:15px;
+    background:#fff;
+    box-shadow:0 7px 20px rgba(21,67,108,.045);
+  }
+  .voucher-table td{
+    min-height:0!important;
+    padding:7px 4px!important;
+    border:0!important;
+    display:grid!important;
+    grid-template-columns:82px minmax(0,1fr);
+    gap:8px;
+    align-items:center;
+    font-size:.72rem!important;
+    overflow-wrap:anywhere;
+  }
+  .voucher-table td::before{
+    content:attr(data-label);
+    color:var(--admin-muted);
+    font-size:.62rem;
+    font-weight:900;
+  }
+  .voucher-table td[data-label="السند"]{
+    background:#f7fbff;
+    border-radius:10px!important;
+    margin-bottom:4px;
+  }
+  .voucher-table td[data-label="السند"] b{
+    color:var(--admin-brand-dark);
+    font-size:.74rem;
+  }
+  .voucher-table td[data-label="النوع"] .badge{justify-self:start}
+  .voucher-table td[data-label="المبلغ"]{
+    color:var(--admin-brand-dark);
+    font-weight:950;
+    font-size:.9rem!important;
+  }
+  .voucher-layout .form-grid{grid-template-columns:1fr!important}
+  .voucher-layout .panel{min-width:0}
+}
+@media(max-width:420px){
+  .voucher-table td{grid-template-columns:68px minmax(0,1fr)}
+  .voucher-layout .btn{width:100%}
+}
