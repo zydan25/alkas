@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section-head">
+  <div>
+    <span class="eyebrow">إدارة الهوية</span>
+    <h1>إعدادات ملاعب الكأس</h1>
+    <p>غيّر الاسم، النصوص والألوان، وستظهر التغييرات على الواجهة العامة دون تعديل ملفات CSS.</p>
+  </div>
+</section>
+
+<section class="booking-layout">
+  <form class="panel form-stack" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>الموقع</h2>
+    <label>اسم المنشأة
+      <input name="site_name" value="{{ settings.site_name }}">
+    </label>
+    <label>الاسم المختصر
+      <input name="site_short_name" value="{{ settings.site_short_name }}">
+    </label>
+    <label>رابط الشعار
+      <input name="logo_url" value="{{ settings.logo_url }}">
+    </label>
+    <label>العنوان الرئيسي
+      <input name="hero_title" value="{{ settings.hero_title }}">
+    </label>
+    <label>الوصف الرئيسي
+      <input name="hero_subtitle" value="{{ settings.hero_subtitle }}">
+    </label>
+    <button class="btn btn-primary" type="submit">حفظ إعدادات الموقع</button>
+  </form>
+
+  <form class="panel form-stack" method="post" action="{{ url_for('settings.theme_form') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>المظهر</h2>
+    {% for key, label in [
+      ("primary","اللون الأساسي"),
+      ("secondary","اللون الثانوي"),
+      ("accent","لون التركيز"),
+      ("success","لون النجاح"),
+      ("danger","لون الخطر"),
+      ("surface","لون البطاقات"),
+      ("background","خلفية الموقع"),
+      ("text","لون النص")
+    ] %}
+    <label>{{ label }}
+      <input type="color" name="{{ key }}" value="{{ settings.theme[key] }}">
+    </label>
+    {% endfor %}
+    <label>استدارة البطاقات
+      <input name="radius" value="{{ settings.theme.radius }}" pattern="^[0-9]+(px|rem|%)$">
+    </label>
+    <button class="btn btn-primary" type="submit">تطبيق المظهر</button>
+  </form>
+</section>
+{% endblock %}
