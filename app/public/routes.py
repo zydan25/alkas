@@ -124,8 +124,8 @@ def manifest():
 
 @bp.get("/sw.js")
 def service_worker():
-    js = """const CACHE='alkas-shell-v1';
-const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/js/app.js'];
+    js = """const CACHE='alkas-shell-v3';
+const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/js/app.js','/static/css/public-modern.css','/static/css/admin-modern.css','/static/img/admin-icons.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{
