@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import AdCampaign, AdCreative
-bp=Blueprint("ads",__name__,url_prefix="/admin/ads")
+bp=Blueprint("ads",__name__,url_prefix="/admin/ads",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
