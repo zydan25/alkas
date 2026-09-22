@@ -1,0 +1,18 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">التحصيل</div><h1>المدفوعات</h1><p>سجّل التحصيل ليُحدّث الفاتورة والحجز والقيد المحاسبي في العملية نفسها.</p></div></div>
+<div class="payment-layout">
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">عملية جديدة</span><h2>سند قبض</h2></div></div>
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}{% if success %}<div class="flash success">{{ success }}</div>{% endif %}
+<form class="form-stack" method="post" action="/admin/payments/create">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>الفاتورة<select name="invoice_id" required><option value="">اختر فاتورة مستحقة</option>{% for inv in invoices %}<option value="{{ inv.id }}">{{ inv.number }} — متبقي {{ "{:,.0f}".format(inv.balance_due|float) }}</option>{% endfor %}</select></label>
+<label>المبلغ<input name="amount" type="number" min="0.01" step="0.01" required></label>
+<label>طريقة الدفع<select name="method"><option value="cash">نقدي</option><option value="bank_transfer">تحويل بنكي</option><option value="card">بطاقة</option><option value="wallet">محفظة</option></select></label>
+<label>رقم السند (اختياري)<input name="number"></label>
+<button class="btn btn-primary">تسجيل وترحيل</button>
+</form></section>
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">الحركة</span><h2>آخر المدفوعات</h2></div></div>
+<div class="mini-table">{% for p in rows %}<div class="mini-row"><span><b>{{ p.number }}</b><small>فاتورة #{{ p.invoice_id }} · {{ p.method }}</small></span><strong>{{ "{:,.0f}".format(p.amount|float) }}</strong></div>{% else %}<div class="empty-state">لا توجد مدفوعات.</div>{% endfor %}</div></section>
+</div>
+{% endblock %}
