@@ -6,7 +6,7 @@
     <meta name="theme-color" content="{{ site_settings.theme.primary }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="/static/pwa/manifest.webmanifest?v={{ site_settings.asset_version }}">
+    <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
     <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
