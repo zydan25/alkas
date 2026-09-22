@@ -6,7 +6,7 @@ from ..models import Booking, BookingAllocation, Customer
 from ..notifications.models import Notification
 from ..invoices.models import Invoice
 
-bp = Blueprint("customer", __name__, url_prefix="/customer")
+bp = Blueprint("customer", __name__, url_prefix="/customer", template_folder="templates")
 
 
 def _customer():
