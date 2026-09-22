@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, redirect, request, url_for
+from flask_login import current_user
 
 from .config import Config
 from .extensions import csrf, db, login_manager, migrate, socketio
@@ -25,23 +26,60 @@ def create_app(config_class=Config):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        try:
+            return db.session.get(User, int(user_id))
+        except (TypeError, ValueError):
+            return None
+
+    # Register realtime handlers during application bootstrap.
+    from . import realtime  # noqa: F401
 
     from .auth.routes import bp as auth_bp
     from .public.routes import bp as public_bp
     from .bookings.routes import bp as bookings_bp
     from .settings.routes import bp as settings_bp
+    from .admin.routes import bp as admin_bp
+    from .accounting.routes import bp as accounting_bp
+    from .invoices.routes import bp as invoices_bp
+    from .payments.routes import bp as payments_bp
+    from .cashier.routes import bp as cashier_bp
+    from .employees.routes import bp as employees_bp
+    from .shifts.routes import bp as shifts_bp
+    from .payroll.routes import bp as payroll_bp
+    from .maintenance.routes import bp as maintenance_bp
+    from .memberships.routes import bp as memberships_bp
+    from .packages.routes import bp as packages_bp
+    from .training.routes import bp as training_bp
+    from .tournaments.routes import bp as tournaments_bp
+    from .teams.routes import bp as teams_bp
+    from .news.routes import bp as news_bp
+    from .offers.routes import bp as offers_bp
+    from .ads.routes import bp as ads_bp
+    from .live.routes import bp as live_bp
+    from .announcements.routes import bp as announcements_bp
+    from .notifications.routes import bp as notifications_bp
+    from .reports.routes import bp as reports_bp
+    from .suppliers.routes import bp as suppliers_bp
+    from .inventory.routes import bp as inventory_bp
+    from .closing.routes import bp as closing_bp
 
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(public_bp)
-    app.register_blueprint(bookings_bp)
-    app.register_blueprint(settings_bp)
+    for blueprint in (
+        auth_bp, public_bp, bookings_bp, settings_bp, admin_bp,
+        accounting_bp, invoices_bp, payments_bp, cashier_bp, employees_bp,
+        shifts_bp, payroll_bp, maintenance_bp, memberships_bp, packages_bp,
+        training_bp, tournaments_bp, teams_bp, news_bp, offers_bp, ads_bp,
+        live_bp, announcements_bp, notifications_bp, reports_bp,
+        suppliers_bp, inventory_bp, closing_bp,
+    ):
+        app.register_blueprint(blueprint)
+
+    @app.before_request
+    def protect_admin_area():
+        if request.path.startswith("/admin") and not current_user.is_authenticated:
+            return redirect(url_for("auth.login", next=request.full_path))
 
     from .context import inject_site_settings
     app.context_processor(inject_site_settings)
-
-    from .cli import register_commands
-    register_commands(app)
 
     @app.get("/health")
     def health():
