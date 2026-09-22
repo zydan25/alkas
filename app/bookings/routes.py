@@ -12,16 +12,124 @@ bp = Blueprint("bookings", __name__, url_prefix="/bookings")
 
 @bp.get("")
 def booking_page():
-    if not current_user.is_authenticated:
-        return redirect(url_for("auth.login", next=url_for("bookings.booking_page")))
+    customer = (
+        Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+        if current_user.is_authenticated else None
+    )
+    resume = session.pop("booking_resume", None)
+    return render_template(
+        "bookings/index.html",
+        customer=customer,
+        resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
+        bundles=ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all(),
+        is_guest=not current_user.is_authenticated,
+        resume=resume,
+        resume_error=request.args.get("resume_error"),
+    )
+
+
+@bp.post("/prepare")
+def prepare_guest_booking():
+    if current_user.is_authenticated:
+        return jsonify({"continue_url": url_for("bookings.booking_page")})
+
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    email = (data.get("email") or "").strip()
+    items = data.get("items") or []
+
+    if len(name) < 2:
+        return jsonify({"error": "أدخل اسم العميل أولًا"}), 400
+    if len(phone) < 6:
+        return jsonify({"error": "أدخل رقم هاتف صحيحًا"}), 400
+    if not items:
+        return jsonify({"error": "اختر فترة حجز واحدة على الأقل"}), 400
+
+    clean_items = []
+    for item in items:
+        try:
+            resource_ids = [int(value) for value in (item.get("resource_ids") or [])]
+            bundle_ids = [int(value) for value in (item.get("bundle_ids") or [])]
+            start_at = datetime.fromisoformat(item["start_at"])
+            end_at = datetime.fromisoformat(item["end_at"])
+        except (KeyError, TypeError, ValueError):
+            return jsonify({"error": "بيانات إحدى فترات الحجز غير صحيحة"}), 400
+        if not resource_ids and not bundle_ids:
+            return jsonify({"error": "اختر ملعبًا أو حزمة لكل فترة"}), 400
+        if end_at <= start_at:
+            return jsonify({"error": "وقت النهاية يجب أن يكون بعد وقت البداية"}), 400
+        clean_items.append({
+            "resource_ids": list(dict.fromkeys(resource_ids)),
+            "bundle_ids": list(dict.fromkeys(bundle_ids)),
+            "start_at": start_at.isoformat(),
+            "end_at": end_at.isoformat(),
+        })
+
+    session["pending_booking"] = {
+        "name": name,
+        "phone": phone,
+        "email": email[:180],
+        "items": clean_items,
+    }
+    session.modified = True
+    return jsonify({"continue_url": url_for("auth.login", next=url_for("bookings.resume"))})
+
+
+@bp.get("/resume")
+@login_required
+def resume_guest_booking():
+    draft = session.pop("pending_booking", None)
+    if not draft:
+        return redirect(url_for("bookings.booking_page"))
 
     customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
     if not customer:
-        return render_template("bookings/no_customer.html")
+        customer = Customer(
+            user_id=current_user.id,
+            customer_code=f"CUS-{datetime.now().strftime('%Y%m%d%H%M%S%f')[-10:]}",
+            name=draft["name"],
+            phone=draft["phone"],
+            email=draft.get("email") or None,
+            is_active=True,
+        )
+        db.session.add(customer)
+        db.session.flush()
+    elif draft.get("email") and not customer.email:
+        customer.email = draft["email"]
 
-    resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
-    bundles = ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all()
-    return render_template("bookings/index.html", customer=customer, resources=resources, bundles=bundles)
+    try:
+        expanded_items = []
+        for item in draft["items"]:
+            for resource_id in expand_resource_bundles(item.get("resource_ids", []), item.get("bundle_ids", [])):
+                expanded_items.append({
+                    "resource_id": resource_id,
+                    "start_at": item["start_at"],
+                    "end_at": item["end_at"],
+                })
+        if not expanded_items:
+            raise ValueError("لم يتم اختيار أي ملعب")
+        booking, token = create_hold_booking(
+            customer_id=customer.id,
+            items=expanded_items,
+            source="web",
+        )
+        db.session.commit()
+    except (KeyError, TypeError, ValueError) as exc:
+        db.session.rollback()
+        return redirect(url_for("bookings.booking_page", resume_error=str(exc)))
+    except Exception:
+        db.session.rollback()
+        return redirect(url_for("bookings.booking_page", resume_error="تعذر إنشاء الحجز؛ ربما حدث تعارض زمني"))
+
+    session["booking_resume"] = {
+        "booking_id": booking.id,
+        "booking_number": booking.booking_number,
+        "hold_token": token,
+        "hold_expires_at": booking.hold_expires_at.isoformat(),
+    }
+    session.modified = True
+    return redirect(url_for("bookings.booking_page", resumed="1"))
 
 
 @bp.get("/availability")
@@ -81,7 +189,6 @@ def availability_batch():
 
 
 @bp.post("/quote")
-@login_required
 def quote():
     from ..pricing.services import calculate_price
     data = request.get_json(silent=True) or {}
