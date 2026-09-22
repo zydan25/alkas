@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required
 from .models import WorkShift, EmployeeShift
-bp=Blueprint("shifts",__name__,url_prefix="/admin/shifts")
+bp=Blueprint("shifts",__name__,url_prefix="/admin/shifts",template_folder="templates")
 @bp.get("")
 @login_required
 def ui():
