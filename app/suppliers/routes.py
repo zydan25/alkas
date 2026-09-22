@@ -24,6 +24,12 @@ def create():
         db.session.add(Supplier(code=code,name_ar=name,phone=request.form.get('phone'),address_ar=request.form.get('address_ar')));db.session.commit()
     except (KeyError,TypeError,ValueError) as exc: db.session.rollback();return render_template('suppliers/form.html',error=str(exc)),400
     return redirect(url_for('suppliers.ui'))
+@bp.get('/invoice/new')
+@login_required
+def invoice_new():
+    if not _allowed(): return {'error':'forbidden'},403
+    return render_template('suppliers/invoice_form.html',suppliers=Supplier.query.filter_by(is_active=True).order_by(Supplier.name_ar).all())
+
 @bp.post('/invoice')
 @login_required
 def invoice_create():
