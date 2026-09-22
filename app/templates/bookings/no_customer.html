@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-card">
+  <div class="eyebrow">الحساب</div>
+  <h1>لم يتم ربط ملف عميل</h1>
+  <p>الحساب مسجل لكنه لا يملك ملف عميل صالحًا للحجز حتى الآن.</p>
+  <a class="btn btn-primary" href="{{ url_for('public.home') }}">العودة للرئيسية</a>
+</section>
+{% endblock %}
