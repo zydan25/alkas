@@ -18,6 +18,9 @@ def create_app(config_class=Config):
     from .models import register_models
     register_models()
 
+    from .cli import register_commands
+    register_commands(app)
+
     from .users.models import User
 
     @login_manager.user_loader
