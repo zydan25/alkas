@@ -94,20 +94,31 @@ def journal_new():
 def journal_create():
     if not _manage():
         return {"error": "forbidden"}, 403
+
+    branches, _, leaves = _context()
     try:
-        debit_account = int(request.form["debit_account"])
-        credit_account = int(request.form["credit_account"])
-        amount = request.form["amount"]
         entry_date = date.fromisoformat(request.form["entry_date"])
         branch_id = int(request.form["branch_id"])
-        entry = post_entry(
+        account_ids = request.form.getlist("line_account")
+        debits = request.form.getlist("line_debit")
+        credits = request.form.getlist("line_credit")
+
+        if len(account_ids) < 2 or len(account_ids) != len(debits) or len(account_ids) != len(credits):
+            raise ValueError("القيد يحتاج إلى سطرين متوازنين على الأقل")
+
+        lines = []
+        for account_id, debit, credit in zip(account_ids, debits, credits):
+            lines.append({
+                "account_id": int(account_id),
+                "debit": debit or 0,
+                "credit": credit or 0,
+            })
+
+        post_entry(
             number=f"JV-MAN-{uuid4().hex[:10].upper()}",
             description_ar=request.form.get("description_ar"),
             entry_date=entry_date,
-            lines=[
-                {"account_id": debit_account, "debit": amount, "credit": 0},
-                {"account_id": credit_account, "debit": 0, "credit": amount},
-            ],
+            lines=lines,
             reference_type="manual",
             user_id=current_user.id,
             branch_id=branch_id,
@@ -115,11 +126,14 @@ def journal_create():
         db.session.commit()
     except (KeyError, TypeError, ValueError) as exc:
         db.session.rollback()
-        branches, _, leaves = _context()
         return render_template(
             "accounting/journal_form.html",
-            accounts=leaves, branches=branches, today=date.today(), error=str(exc),
+            accounts=leaves,
+            branches=branches,
+            today=date.today(),
+            error=str(exc),
         ), 400
+
     return redirect(url_for("accounting.ui"))
 
 
