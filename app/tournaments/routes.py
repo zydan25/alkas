@@ -27,6 +27,15 @@ def create():
         db.session.add(Tournament(name_ar=name,sport_id=int(request.form['sport_id']),starts_on=start,ends_on=end,registration_open=request.form.get('registration_open')=='1',status=request.form.get('status','draft'),entry_fee=request.form.get('entry_fee') or 0,prize_description_ar=request.form.get('prize_description_ar'),rules_ar=request.form.get('rules_ar')));db.session.commit()
     except (KeyError,TypeError,ValueError) as exc: db.session.rollback();return render_template('tournaments/form.html',sports=Sport.query.filter_by(is_active=True).all(),error=str(exc)),400
     return redirect(url_for('tournaments.ui'))
+@bp.get('/matches/new')
+@login_required
+def match_new():
+    if not _allowed(): return {'error':'forbidden'},403
+    return render_template('tournaments/match_form.html',
+        tournaments=Tournament.query.order_by(Tournament.id.desc()).all(),
+        teams=Team.query.filter_by(is_active=True).order_by(Team.name_ar).all(),
+        resources=Resource.query.filter_by(is_active=True).order_by(Resource.id).all())
+
 @bp.post('/matches/new')
 @login_required
 def match_create():
