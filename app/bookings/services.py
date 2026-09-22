@@ -17,17 +17,45 @@ def _as_aware(value):
     return value.replace(tzinfo=ZoneInfo("Asia/Aden"))
 
 
-def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web", minutes=10):
-    resource_ids = list(dict.fromkeys(resource_ids))
-    if not resource_ids:
-        raise ValueError("يجب اختيار ملعب واحد على الأقل")
+def create_hold_booking(
+    customer_id,
+    resource_ids=None,
+    start_at=None,
+    end_at=None,
+    source="web",
+    minutes=10,
+    items=None,
+):
+    if items is None:
+        if not resource_ids or start_at is None or end_at is None:
+            raise ValueError("يجب تحديد ملعب ووقت")
+        items = [
+            {"resource_id": resource_id, "start_at": start_at, "end_at": end_at}
+            for resource_id in dict.fromkeys(resource_ids)
+        ]
 
-    start_at = _as_aware(start_at)
-    end_at = _as_aware(end_at)
+    normalized = []
+    for item in items:
+        try:
+            resource_id = int(item["resource_id"])
+            item_start = _as_aware(datetime.fromisoformat(item["start_at"])) if isinstance(item["start_at"], str) else _as_aware(item["start_at"])
+            item_end = _as_aware(datetime.fromisoformat(item["end_at"])) if isinstance(item["end_at"], str) else _as_aware(item["end_at"])
+        except (KeyError, ValueError, TypeError) as exc:
+            raise ValueError("بيانات إحدى فترات الحجز غير صحيحة") from exc
 
-    if end_at <= start_at:
-        raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
+        if item_end <= item_start:
+            raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
 
+        normalized.append({
+            "resource_id": resource_id,
+            "start_at": item_start,
+            "end_at": item_end,
+        })
+
+    if not normalized:
+        raise ValueError("أضف فترة حجز واحدة على الأقل")
+
+    resource_ids = list(dict.fromkeys(item["resource_id"] for item in normalized))
     resources = db.session.execute(
         select(Resource)
         .where(Resource.id.in_(resource_ids), Resource.is_active.is_(True))
@@ -37,14 +65,15 @@ def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web
     if len(resources) != len(resource_ids):
         raise ValueError("أحد الملاعب غير متاح أو غير موجود")
 
+    resource_map = {resource.id: resource for resource in resources}
     booking = Booking(
         booking_number=f"BK-{uuid4().hex[:10].upper()}",
         customer_id=customer_id,
         source=source,
         status="hold",
         payment_status="unpaid",
-        start_at=start_at,
-        end_at=end_at,
+        start_at=min(item["start_at"] for item in normalized),
+        end_at=max(item["end_at"] for item in normalized),
         hold_expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
     )
     db.session.add(booking)
@@ -55,19 +84,20 @@ def create_hold_booking(customer_id, resource_ids, start_at, end_at, source="web
     booking.hold_expires_at = hold.expires_at
     db.session.add(hold)
 
-    hours = Decimal(str((end_at - start_at).total_seconds() / 3600))
     total = Decimal("0")
-
-    for resource in resources:
+    for item in normalized:
+        resource = resource_map[item["resource_id"]]
+        hours = Decimal(str((item["end_at"] - item["start_at"]).total_seconds() / 3600))
         price = (Decimal(resource.base_price or 0) * hours).quantize(Decimal("0.01"))
         total += price
+
         db.session.add(
             BookingAllocation(
                 booking_id=booking.id,
                 resource_id=resource.id,
-                start_at=start_at,
-                end_at=end_at,
-                allocated_range=Range(start_at, end_at, bounds="[)"),
+                start_at=item["start_at"],
+                end_at=item["end_at"],
+                allocated_range=Range(item["start_at"], item["end_at"], bounds="[)"),
                 price=price,
             )
         )
