@@ -20,37 +20,42 @@
 <section id="announcements" class="section">
     <div class="section-head">
         <div>
-            <span class="eyebrow">لائحة متحركة</span>
-            <h2>إعلانات ملاعب الكأس</h2>
+            <span class="eyebrow">بطاقات ذكية</span>
+            <h2>آخر ما يحدث في ملاعب الكأس</h2>
         </div>
-        <span class="live-pill">مباشر</span>
+        <span class="live-pill">محدث لحظيًا</span>
     </div>
 
-    <div class="announcement-grid">
+    <div class="announcement-grid" data-announcements>
         {% for item in announcements %}
         <article class="announcement-card type-{{ item.card_type }}">
-            {% if item.card_type == "image" and item.image_url %}
-                <div class="announcement-media"><img src="{{ item.image_url }}" alt="{{ item.title_ar }}"></div>
+            {% if item.card_type in ("image", "link") and item.image_url %}
+                <div class="announcement-media">
+                    <img src="{{ item.image_url }}" alt="{{ item.title_ar }}">
+                </div>
             {% elif item.card_type == "video" and item.video_url %}
                 <div class="announcement-media video-cover">
                     <a href="{{ item.video_url }}" target="_blank" rel="noopener">▶ مشاهدة الفيديو</a>
                 </div>
             {% else %}
                 <div class="announcement-icon">
-                    {% if item.card_type == "link" %}↗{% elif item.card_type == "temporary" %}⏱{% else %}✦{% endif %}
+                    {% if item.card_type == "temporary" %}⏱{% elif item.card_type == "link" %}↗{% elif item.card_type == "video" %}▶{% else %}✦{% endif %}
                 </div>
             {% endif %}
             <div class="announcement-body">
-                <div class="card-meta">{{ "إعلان مؤقت" if item.card_type == "temporary" else "جديد" }}</div>
+                <div class="card-meta">{{ item.accent_label_ar or ("مؤقت" if item.card_type == "temporary" else "جديد") }}</div>
                 <h3>{{ item.title_ar }}</h3>
                 {% if item.body_ar %}<p>{{ item.body_ar }}</p>{% endif %}
+                {% if item.ends_at %}
+                  <small class="card-expiry">حتى {{ item.ends_at.strftime("%Y-%m-%d %H:%M") }}</small>
+                {% endif %}
                 {% if item.target_url %}
                     <a class="text-link" href="{{ item.target_url }}">{{ item.button_text_ar or "عرض التفاصيل" }} ↗</a>
                 {% endif %}
             </div>
         </article>
         {% else %}
-        <div class="empty-state">ستظهر هنا الإعلانات والعروض والبطاقات المؤقتة والفيديوهات والصور من لوحة الإدارة.</div>
+        <div class="empty-state">ستظهر هنا الإعلانات المؤقتة، الصور، الفيديوهات والروابط التي ينشرها المدير.</div>
         {% endfor %}
     </div>
 </section>
@@ -75,9 +80,9 @@
 <section class="section booking-preview">
     <div class="preview-panel">
         <div>
-            <span class="eyebrow">حالة النظام</span>
-            <h2>الحجز مبني لعدة ملاعب من عملية واحدة</h2>
-            <p>يمكن للعميل تحديد ملعب واحد، عدة ملاعب، أو حزمة مثل «جميع ملاعب المنطقة». وعند التأكيد يمنع PostgreSQL أي تداخل زمني على المورد نفسه.</p>
+            <span class="eyebrow">حجز مرن</span>
+            <h2>عدة أوقات وعدة ملاعب في عملية واحدة</h2>
+            <p>اختر ملعبًا أو عدة ملاعب، وأضف فترات أخرى من نفس الشاشة. النظام يحافظ على كل تخصيص زمني ويرفض التعارض من قاعدة البيانات.</p>
         </div>
         <div class="timeline-demo">
             <span class="available">18:00 متاح</span>
