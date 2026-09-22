@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5M9 21v-6h6v6"/></symbol>
+<symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3M13 14h3M8 17h3"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c.6-3.5 2.5-5 6-5s5.4 1.5 6 5M16 5.5a3 3 0 0 1 0 5.8M17 15c2.2.2 3.5 1.7 4 5"/></symbol>
+<symbol id="stadium" viewBox="0 0 24 24"><path d="M4 8h16v11H4zM7 5h10v3H7zM9 19v-5h6v5"/><path d="M2 8h20M7 11h10"/></symbol>
+<symbol id="wrench" viewBox="0 0 24 24"><path d="M14 6a5 5 0 0 0 6 6l-8 8-4-4 8-8a5 5 0 0 0-6-6l3 3-3 3-3-3 3-3"/></symbol>
+<symbol id="file" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h4M9 13h6M9 17h6"/></symbol>
+<symbol id="money" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M7 9h.01M17 16h.01"/></symbol>
+<symbol id="cash" viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M7 7V5h10v2M7 12h10M8 16h2M14 16h2"/></symbol>
+<symbol id="ledger" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="employee" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M9 12h6"/></symbol>
+<symbol id="payroll" viewBox="0 0 24 24"><path d="M4 4h16v17H4zM8 8h8M8 12h8M8 16h5"/></symbol>
+<symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM5 5H3v2a4 4 0 0 0 4 4M19 5h2v2a4 4 0 0 1-4 4M12 13v4M8 20h8M9 17h6"/></symbol>
+<symbol id="team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c.5-3.4 2.6-5 6-5s5.5 1.6 6 5M14 15c3.2-.2 5.5 1.5 6 5"/></symbol>
+<symbol id="training" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/><path d="m7 19-1 2M17 19l1 2"/></symbol>
+<symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+<symbol id="package" viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4zM4 7v10l8 4 8-4V7M12 11v10"/></symbol>
+<symbol id="tag" viewBox="0 0 24 24"><path d="M4 5v6l9 9 6-6-9-9z"/><circle cx="9" cy="9" r="1"/></symbol>
+<symbol id="megaphone" viewBox="0 0 24 24"><path d="m4 11 12-5v12L4 13zM16 9l4-2v10l-4-2M6 14l1 6h3l-1-6"/></symbol>
+<symbol id="news" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM7 8h10M7 12h10M7 16h6"/></symbol>
+<symbol id="percent" viewBox="0 0 24 24"><path d="M7 7h.01M17 17h.01M6 18 18 6"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></symbol>
+<symbol id="broadcast" viewBox="0 0 24 24"><path d="M8 9a5 5 0 0 0 0 6M5 6a9 9 0 0 0 0 12M16 9a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12"/><circle cx="12" cy="12" r="1.5"/></symbol>
+<symbol id="truck" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7zM6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4M18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/></symbol>
+<symbol id="box" viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10"/></symbol>
+<symbol id="chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16v-5M12 16V7M16 16v-8M20 16v-4"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m8 12 2.5 2.5L16 9"/></symbol>
+<symbol id="settings" viewBox="0 0 24 24"><path d="M9.5 3h5l.8 3 2.7 1.6 2.9-.7 2.5 4.3-2.2 2.1v3.1l2.2 2.1-2.5 4.3-2.9-.7-2.7 1.6-.8 3h-5l-.8-3L6 22.3l-2.9.7L.6 18.7l2.2-2.1v-3.1L.6 11.4 3.1 7.1l2.9.7 2.7-1.6z"/><circle cx="12" cy="13" r="3"/></symbol>
+<symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+<symbol id="logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></symbol>
+<symbol id="menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5zM10 20h4"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-1a7 7 0 0 1 14 0v1"/></symbol>
+</svg>
