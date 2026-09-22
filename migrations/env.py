@@ -1,8 +1,6 @@
 from logging.config import fileConfig
 
 from alembic import context
-from flask import current_app
-
 from app import create_app
 from app.extensions import db
 
@@ -17,7 +15,7 @@ with app.app_context():
 
 
 def get_url():
-    return current_app.config["SQLALCHEMY_DATABASE_URI"]
+    return app.config["SQLALCHEMY_DATABASE_URI"]
 
 
 def run_migrations_offline():
