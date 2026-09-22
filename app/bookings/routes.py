@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Booking, BookingAllocation, Customer, Resource
-from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles
+from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
 
@@ -33,6 +33,7 @@ def availability():
 
     start_at = datetime.fromisoformat(start_raw)
     end_at = datetime.fromisoformat(end_raw)
+    expire_holds()
     conflicts = (
         BookingAllocation.query.join(Booking).filter(
             Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress"]),
