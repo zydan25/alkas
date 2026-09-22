@@ -65,6 +65,7 @@ def create_app(config_class=Config):
     from .admin.search import bp as admin_search_bp
     from .users.routes import bp as users_bp
     from .staff.routes import bp as staff_bp
+    from .audit.routes import bp as audit_bp
 
     for blueprint in (
         auth_bp, public_bp, bookings_bp, settings_bp, admin_bp, module_ui_bp, admin_search_bp,
