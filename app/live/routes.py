@@ -23,6 +23,12 @@ def create():
         db.session.add(LiveEvent(name_ar=name,description_ar=request.form.get('description_ar'),event_type=request.form.get('event_type','match'),starts_at=datetime.fromisoformat(request.form['starts_at']) if request.form.get('starts_at') else None,status=request.form.get('status','scheduled'),cover_url=request.form.get('cover_url')));db.session.commit()
     except (KeyError,TypeError,ValueError) as exc: db.session.rollback();return render_template('live/form.html',error=str(exc)),400
     return redirect(url_for('live.ui'))
+@bp.get('/streams/new')
+@login_required
+def stream_new():
+    if not _allowed(): return {'error':'forbidden'},403
+    return render_template('live/stream_form.html',events=LiveEvent.query.order_by(LiveEvent.id.desc()).all())
+
 @bp.post('/stream')
 @login_required
 def stream_create():
