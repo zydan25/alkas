@@ -94,6 +94,7 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <a class="top-action apps-top-action" href="/admin/workspace" title="كل التطبيقات">{{ icon('grid') }}</a>
         <a class="top-action" href="/notifications" title="الإشعارات">{{ icon('bell') }}<i data-notification-count></i></a>
         <a class="user-chip" href="{{ url_for('settings.index') }}"><span class="avatar">{{ (current_user.display_name or 'م')[:1] }}</span><span class="user-chip-name">{{ current_user.display_name }}</span></a>
       </div>
