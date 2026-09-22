@@ -4,6 +4,7 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from .models import AnnouncementCard
+from ..realtime import emit_public_event
 
 bp = Blueprint("announcements", __name__, url_prefix="/admin/announcements")
 
@@ -52,4 +53,5 @@ def create():
         return {"error": "العنوان مطلوب"}, 400
     db.session.add(row)
     db.session.commit()
+    emit_public_event("announcement", {"id": row.id, "title_ar": row.title_ar, "type": row.card_type})
     return render_template("announcements/index.html", rows=AnnouncementCard.query.order_by(AnnouncementCard.priority.desc(), AnnouncementCard.id.desc()).limit(100).all(), success="تمت إضافة البطاقة")
