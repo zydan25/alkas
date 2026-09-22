@@ -5,7 +5,7 @@ from ..bookings.models import Booking, BookingAllocation, BookingHold, Recurring
 from ..settings.models import SiteSetting, SiteTheme
 from ..announcements.models import AnnouncementCard
 
-from ..accounting.models import Account, CostCenter, FiscalPeriod, JournalEntry, JournalLine
+from ..accounting.models import Account, AccountingVoucher, Branch, CostCenter, FiscalPeriod, JournalEntry, JournalLine
 from ..ads.models import AdCampaign, AdCreative, AdPlacement
 from ..audit.models import AuditLog
 from ..cashier.models import CashRegister, CashShift, CashTransaction
