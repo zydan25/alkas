@@ -10,7 +10,7 @@ from ..employees.models import Employee
 from ..extensions import db
 from ..invoices.models import Invoice
 from ..maintenance.models import MaintenanceRequest
-from ..models import Booking, BookingAllocation, Customer, Resource
+from ..models import Booking, BookingAllocation, Customer, Resource, Venue
 from ..bookings.services import cancel_booking, create_hold_booking
 from ..payments.models import Payment
 from ..tournaments.models import Tournament
@@ -170,7 +170,8 @@ def resources():
     if not _allowed():
         return {"error": "forbidden"}, 403
     rows = Resource.query.options(joinedload(Resource.sport), joinedload(Resource.zone)).filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
-    return render_template("admin/resources.html", rows=rows)
+    venues = Venue.query.filter_by(is_active=True).order_by(Venue.id).all()
+    return render_template("admin/resources.html", rows=rows, venues=venues)
 
 
 @bp.get("/bookings/new")
