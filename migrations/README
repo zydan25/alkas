@@ -1,0 +1,11 @@
+# Alkas database migrations
+
+This directory is managed by Flask-Migrate/Alembic.
+
+Upgrade with:
+
+`flask --app wsgi db upgrade`
+
+Create a revision after model changes with:
+
+`flask --app wsgi db migrate -m "describe change"`
