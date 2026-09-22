@@ -1,12 +1,26 @@
 from datetime import datetime
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
-from ..bookings.services import create_hold_booking
-from ..models import Booking, BookingAllocation, Resource
-from ..realtime import emit_booking_event
+from ..extensions import db
+from ..models import Booking, BookingAllocation, Customer, Resource
+from .services import create_hold_booking
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
+
+
+@bp.get("")
+def booking_page():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=url_for("bookings.booking_page")))
+
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer:
+        return render_template("bookings/no_customer.html")
+
+    resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
+    return render_template("bookings/index.html", customer=customer, resources=resources)
 
 
 @bp.get("/availability")
@@ -25,7 +39,7 @@ def availability():
         BookingAllocation.query
         .join(Booking)
         .filter(
-            Booking.status.in_([ "hold", "pending", "confirmed", "checked_in", "in_progress" ]),
+            Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress"]),
             BookingAllocation.resource_id == resource_id,
             BookingAllocation.start_at < end_at,
             BookingAllocation.end_at > start_at,
@@ -35,7 +49,12 @@ def availability():
     resource = Resource.query.get_or_404(resource_id)
 
     return jsonify({
-        "available": conflicts == 0 and resource.is_active and resource.status == "available",
+        "available": (
+            conflicts == 0
+            and resource.is_active
+            and resource.status == "available"
+            and end_at > start_at
+        ),
         "resource_id": resource.id,
         "start": start_at.isoformat(),
         "end": end_at.isoformat(),
@@ -43,15 +62,19 @@ def availability():
 
 
 @bp.post("/holds")
+@login_required
 def create_hold():
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer:
+        return jsonify({"error": "لا يوجد ملف عميل مرتبط بحسابك"}), 403
+
     data = request.get_json(silent=True) or {}
     try:
-        customer_id = int(data["customer_id"])
         resource_ids = [int(value) for value in data.get("resource_ids", [])]
         start_at = datetime.fromisoformat(data["start_at"])
         end_at = datetime.fromisoformat(data["end_at"])
         booking, token = create_hold_booking(
-            customer_id=customer_id,
+            customer_id=customer.id,
             resource_ids=resource_ids,
             start_at=start_at,
             end_at=end_at,
@@ -60,7 +83,6 @@ def create_hold():
     except (KeyError, ValueError, TypeError) as exc:
         return jsonify({"error": str(exc)}), 400
     except Exception:
-        from ..extensions import db
         db.session.rollback()
         return jsonify({"error": "تعذر إنشاء الحجز؛ ربما يوجد تعارض زمني"}), 409
 
