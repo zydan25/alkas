@@ -1,0 +1,5 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">نهاية اليوم</div><h1>الإقفال المالي</h1><p>لا تغلق اليوم إلا بعد مطابقة النقد والدفعات والفرق.</p></div><button class="btn btn-primary">✓ إقفال اليوم</button></div>
+<section class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>التاريخ</th><th>الحالة</th><th>المتوقع</th><th>الفعلي</th><th>الفرق</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.close_date }}</td><td><span class="badge badge-{{ 'success' if row.status == 'closed' else 'warning' }}">{{ row.status }}</span></td><td>{{ "{:,.0f}".format(row.expected_cash|float) }}</td><td>{{ "{:,.0f}".format(row.actual_cash|float) }}</td><td class="{{ 'danger-text' if row.difference|float != 0 else 'success-text' }}">{{ "{:,.0f}".format(row.difference|float) }}</td></tr>{% else %}<tr><td colspan="5"><div class="empty-state">لم يتم إقفال أي يوم بعد.</div></td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}
