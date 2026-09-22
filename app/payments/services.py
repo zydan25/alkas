@@ -40,6 +40,7 @@ def record_payment(invoice_id, amount, method, number, user_id=None):
     invoice.balance_due = Decimal(invoice.total or 0) - invoice.paid_amount
     invoice.status = "paid" if invoice.balance_due <= 0 else "partially_paid"
     db.session.add(payment)
+    db.session.flush()
 
     if invoice.booking_id:
         booking = db.session.get(Booking, invoice.booking_id)
@@ -48,46 +49,45 @@ def record_payment(invoice_id, amount, method, number, user_id=None):
             booking.payment_status = "paid" if invoice.balance_due <= 0 else "partially_paid"
             emit_booking_event("payment.received", booking)
 
-    db.session.flush()
     return payment
 
 
 def record_payment_with_accounting(invoice_id, amount, method, number, user_id=None):
     payment = record_payment(invoice_id, amount, method, number, user_id)
     invoice = db.session.get(Invoice, payment.invoice_id)
-
     cash_code = METHOD_ACCOUNT_CODES.get(method, "1100")
     cash = Account.query.filter_by(code=cash_code, is_active=True).first()
-    revenue = Account.query.filter_by(code="4100", is_active=True).first()
     receivable = Account.query.filter_by(code="1300", is_active=True).first()
-
-    if not cash:
-        raise ValueError("حساب طريقة الدفع غير مهيأ")
-    if not receivable:
-        # Cash sale may still be posted directly to revenue when receivable is absent.
-        receivable = revenue
-    if not revenue:
-        raise ValueError("حساب الإيرادات غير مهيأ")
-
-    lines = [
-        {"account_id": cash.id, "debit": payment.amount, "credit": 0, "party_type": "customer", "party_id": invoice.customer_id},
-    ]
-    if invoice.booking_id and invoice.status in ("paid", "partially_paid"):
-        lines.append({"account_id": revenue.id, "debit": 0, "credit": payment.amount, "party_type": "customer", "party_id": invoice.customer_id})
-    else:
-        lines.append({"account_id": receivable.id, "debit": 0, "credit": payment.amount, "party_type": "customer", "party_id": invoice.customer_id})
+    if not cash or not receivable:
+        raise ValueError("حساب النقدية أو الذمم غير مهيأ")
 
     post_entry(
         number=f"JV-PAY-{payment.id}",
         description_ar=f"تحصيل الفاتورة {invoice.number}",
-        lines=lines,
+        lines=[
+            {"account_id": cash.id, "debit": payment.amount, "credit": 0, "party_type": "customer", "party_id": invoice.customer_id},
+            {"account_id": receivable.id, "debit": 0, "credit": payment.amount, "party_type": "customer", "party_id": invoice.customer_id},
+        ],
         reference_type="payment",
         reference_id=payment.id,
         user_id=user_id,
     )
+
+    if invoice.customer_id:
+        customer = db.session.execute(
+            db.select(db.Model.metadata.tables["customers"]).where(db.Model.metadata.tables["customers"].c.id == invoice.customer_id)
+        ).first()
+    # Notification is intentionally resolved through Booking/Customer models when possible.
     if invoice.booking_id:
         booking = db.session.get(Booking, invoice.booking_id)
-        if booking:
-            booking.payment_status = "paid" if invoice.balance_due <= 0 else "partially_paid"
+        if booking and booking.customer and booking.customer.user_id:
+            notify_user(
+                booking.customer.user_id,
+                "تم استلام الدفعة",
+                f"تم تسجيل دفعة {payment.amount} للحجز {booking.booking_number}.",
+                "payment",
+                "high",
+            )
+
     db.session.commit()
     return payment
