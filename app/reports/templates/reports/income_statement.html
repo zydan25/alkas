@@ -1,0 +1,6 @@
+{% extends 'admin/layout.html' %}
+{% block content %}<div class='page-header compact'><div><div class='eyebrow'>Income Statement</div><h1>قائمة الدخل</h1><p>الإيرادات والمصروفات وصافي نتيجة الفترة.</p></div><button class='btn btn-soft' onclick='window.print()'>⎙ طباعة</button></div>
+<form class='panel report-filter' method='get'><div class='form-grid'><label>من<input type='date' name='start' value='{{ start }}'></label><label>إلى<input type='date' name='end' value='{{ end }}'></label></div><button class='btn btn-primary'>تطبيق</button></form>
+<div class='kpi-grid'><div class='kpi-card accent'><span>صافي الربح/الخسارة</span><strong>{{ '{:,.2f}'.format(data.net) }}</strong><small>الإيرادات ناقص المصروفات</small></div></div>
+{% for section in data.sections %}<section class='panel' style='margin-top:16px'><div class='panel-head'><h2>{{ section.label }}</h2><span class='mini-badge'>{{ '{:,.2f}'.format(section.total) }}</span></div><div class='table-wrap'><table class='data-table'><thead><tr><th>الحساب</th><th>القيمة</th></tr></thead><tbody>{% for item in section.items %}<tr><td>{{ item.code }} · {{ item.name_ar }}</td><td><b>{{ '{:,.2f}'.format(item.value) }}</b></td></tr>{% else %}<tr><td colspan='2' class='empty-state'>لا توجد حركة.</td></tr>{% endfor %}</tbody></table></div></section>{% endfor %}
+{% endblock %}
