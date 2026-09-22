@@ -29,7 +29,7 @@ class Account(db.Model):
 
     @property
     def is_postable(self):
-        return bool(self.is_active and not self.is_control and not self.children)
+        return bool(self.is_active and self.parent_id is not None and not self.is_control and not self.children)
 
     @property
     def is_parent(self):
