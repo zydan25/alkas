@@ -1,0 +1,5 @@
+{% extends 'admin/layout.html' %}
+{% block content %}
+<div class='page-header compact'><div><div class='eyebrow'>Cashier</div><h1>فتح وردية صندوق</h1><p>لا يمكن تسجيل قبض نقدي دون وردية مفتوحة مرتبطة بموظف.</p></div><a class='btn btn-soft' href='{{ url_for('cashier.ui') }}'>رجوع</a></div>
+<section class='panel form-panel'><form method='post' class='form-stack'><input type='hidden' name='csrf_token' value='{{ csrf_token() }}'>{% if error %}<div class='flash danger'>{{ error }}</div>{% endif %}<div class='form-grid'><label>الصندوق<select name='register_id' required>{% for r in registers %}<option value='{{ r.id }}'>{{ r.code }} · {{ r.name_ar }}{% if r.location_ar %} · {{ r.location_ar }}{% endif %}</option>{% endfor %}</select></label><label>الرصيد الافتتاحي<input type='number' name='opening_amount' min='0' step='0.01' value='0' required></label></div><button class='btn btn-primary'>فتح الوردية</button></form></section>
+{% endblock %}
