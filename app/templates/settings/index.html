@@ -52,5 +52,16 @@
     </label>
     <button class="btn btn-primary" type="submit">تطبيق المظهر</button>
   </form>
+
+  <section class="panel settings-cache-panel">
+    <div class="settings-cache-icon">↻</div>
+    <div>
+      <span class="eyebrow">التحديث والصيانة</span>
+      <h2>تحديث الواجهة</h2>
+      <p>يمسح كاش التطبيق المحلي والـService Worker ثم يعيد تحميل الصفحة بالنسخة الجديدة، دون حذف بيانات قاعدة البيانات.</p>
+    </div>
+    <button class="btn btn-soft cache-clear-btn" type="button" data-clear-app-cache>مسح الكاش وتحديث التطبيق</button>
+    <small class="cache-status" data-cache-status></small>
+  </section>
 </section>
 {% endblock %}
