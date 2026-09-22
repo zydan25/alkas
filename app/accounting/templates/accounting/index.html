@@ -1,0 +1,12 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact"><div><div class="eyebrow">دفتر مالي</div><h1>المحاسبة</h1><p>شجرة الحسابات، القيود، الفترات والمراكز المالية في واجهة واحدة.</p></div><div class="page-actions"><button class="btn btn-primary">＋ قيد جديد</button><button class="btn btn-soft">⬇ تصدير</button></div></div>
+<div class="finance-grid">
+  <section class="panel account-tree"><div class="panel-head"><div><span class="eyebrow">Chart of Accounts</span><h2>شجرة الحسابات</h2></div><button class="icon-btn">＋</button></div>
+    {% for root in roots %}<div class="account-node"><div class="account-main"><span class="account-code">{{ root.code }}</span><strong>{{ root.name_ar }}</strong><span class="badge badge-info">{{ root.account_type }}</span></div>{% for child in root.children|sort(attribute='code') %}<div class="account-child"><span class="account-code">{{ child.code }}</span><span>{{ child.name_ar }}</span></div>{% endfor %}</div>{% else %}<div class="empty-state">لا توجد حسابات.</div>{% endfor %}
+  </section>
+  <section class="panel"><div class="panel-head"><div><span class="eyebrow">Journal</span><h2>آخر القيود</h2></div><a href="/admin/accounting/api" class="text-link">API ↗</a></div>
+    <div class="mini-table">{% for entry in entries %}<div class="mini-row"><span><b>{{ entry.number }}</b><small>{{ entry.entry_date }} · {{ entry.description_ar }}</small></span><span class="badge badge-success">مرحّل</span></div>{% else %}<div class="empty-state">لا توجد قيود مرحلة.</div>{% endfor %}</div>
+  </section>
+</div>
+{% endblock %}
