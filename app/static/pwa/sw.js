@@ -1,17 +1,18 @@
-const CACHE = "alkas-shell-v1";
-const ASSETS = ["/", "/static/css/app.css", "/static/js/app.js", "/static/pwa/manifest.webmanifest"];
-
+// ALKAS PWA service worker is intentionally disabled.
+// Previous versions cached HTML/assets and could leave stale booking screens.
+// Keep this file as a self-cleaning worker so installations from old releases
+// remove themselves safely.
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy));
-      return response;
-    }).catch(() => caches.match("/")))
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+      .then(() => self.registration.unregister())
   );
 });
+
+// No fetch handler: requests always go directly to the network.
