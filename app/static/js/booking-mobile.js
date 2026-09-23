@@ -300,7 +300,7 @@
 
         const replace=document.createElement("button");
         replace.type="button";
-        replace.className="booking-cancel-edit";
+        replace.className="booking-replace-inline";
         replace.dataset.replaceBooking=String(index);
         replace.textContent="تغيير الملعب";
 
