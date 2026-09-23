@@ -407,6 +407,17 @@
   font-size:.7rem!important;
   font-weight:900;
 }
+.booking-replace-inline{
+  grid-column:1/-1;
+  width:100%;
+  min-height:39px;
+  border:1px solid var(--bk-line);
+  border-radius:11px;
+  background:var(--bk-bg);
+  color:var(--bk-primary);
+  font-size:.65rem;
+  font-weight:950;
+}
 .booking-edit-actions{
   grid-column:1/-1;
   display:grid;grid-template-columns:1fr 1fr;gap:6px;
