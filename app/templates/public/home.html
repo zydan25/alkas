@@ -349,6 +349,28 @@
   </section>
   {% endif %}
 
+  {% if membership_plans %}
+  <section class="home-section home-memberships-section">
+    <div class="home-section-head home-section-head-plain">
+      <h2>العضويات</h2>
+      <a href="{{ url_for('public.home') }}">عرض الكل</a>
+    </div>
+    <div class="home-membership-grid">
+      {% for plan in membership_plans[:4] %}
+      <a class="home-membership-card" href="{{ url_for('auth.login') if not current_user.is_authenticated else url_for('customer.profile') }}">
+        <div class="home-membership-top">
+          <span class="home-membership-badge">عضوية</span>
+          {% if plan.discount_percent %}<span class="home-membership-discount">خصم {{ plan.discount_percent|float|round(0)|int }}%</span>{% endif %}
+        </div>
+        <strong>{{ plan.name_ar }}</strong>
+        <div class="home-membership-price">{{ "{:,.0f}".format(plan.price|float) }} <small>ر.ي</small></div>
+        <div class="home-membership-meta"><span>{{ plan.duration_days }} يوم</span>{% if plan.priority_booking %}<span>حجز أولوية</span>{% endif %}</div>
+        <span class="home-membership-cta">عرض التفاصيل ‹</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
   <section class="home-info-row">
     <a class="home-training-panel" href="{{ url_for('public.tournaments') }}">
       <div class="home-training-art">
