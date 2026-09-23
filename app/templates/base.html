@@ -31,7 +31,7 @@
         <a href="{{ url_for('public.live') }}">البث</a>
         {% if current_user.is_authenticated %}
           {% if current_user.has_permission('booking.view') or current_user.username == 'admin' %}<a href="{{ url_for('admin.dashboard') }}">الإدارة</a>{% else %}<a href="{{ url_for('customer.dashboard') }}">حسابي</a>{% endif %}
-        {% else %}<a href="{{ url_for('auth.login') }}">دخول</a>{% endif %}
+        {% else %}<a href="{{ url_for('auth.login') }}">دخول</a><a class="nav-register" href="{{ url_for('auth.register') }}">حساب جديد</a>{% endif %}
     </nav>
 </header>
 
