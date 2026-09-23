@@ -24,3 +24,13 @@ body:has(.booking-detail-page) .mobile-nav{display:none}
 .resource-detail-copy{padding:12px 13px}.resource-detail-tags{display:flex;gap:5px;flex-wrap:wrap}.resource-detail-tags span{padding:4px 6px;border-radius:999px;background:#eef8f4;color:#048f70;font-size:.45rem;font-weight:900}.resource-detail-copy h2{margin:7px 0 3px;font-size:1rem}.resource-detail-copy p{margin:0 0 8px;color:#7b8c85;font-size:.55rem;line-height:1.7}.resource-detail-copy>strong{color:#00a27c;font-size:1rem}.resource-detail-copy>strong small{font-size:.48rem;color:#7d8d87;font-weight:800}
 .resource-slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.resource-slot{display:grid;gap:2px;padding:8px 5px;text-align:center;border-radius:11px;border:1px solid #e4ece9}.resource-slot span{font-size:.6rem;font-weight:950}.resource-slot small{font-size:.45rem}.resource-slot b{font-size:.47rem}.resource-slot.free{background:#effaf6;color:#008f6d;border-color:#d5efe5}.resource-slot.busy{background:#fff4e7;color:#9f6d1c;border-color:#f1dfc1}.booking-empty-state{padding:25px;text-align:center;border:1px dashed #d5e4df;border-radius:14px;color:#8a9994;font-size:.56rem}
 @media(max-width:390px){.resource-slot-grid{grid-template-columns:repeat(3,1fr)}.sport-detail-art{min-height:195px}}
+
+.customer-profile-mobile{max-width:760px;margin:0 auto;padding-bottom:110px}
+.profile-card-modern{border-radius:18px;padding:14px;margin-bottom:10px}
+.profile-actions-mobile{display:grid;gap:8px}
+.profile-actions-mobile>a{display:grid;grid-template-columns:38px 1fr 18px;align-items:center;gap:9px;padding:11px;border:1px solid #e2ece8;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(17,50,43,.04)}
+.profile-actions-mobile>a>span{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#eaf8f3;color:#00a27b;font-size:1rem}
+.profile-actions-mobile strong,.profile-actions-mobile small{display:block}.profile-actions-mobile strong{font-size:.62rem}.profile-actions-mobile small{margin-top:3px;color:#899791;font-size:.49rem;line-height:1.5}.profile-actions-mobile>b{color:#98a49f;font-size:.85rem}
+.profile-actions-mobile .profile-admin-action{border-color:#bfeadd;background:linear-gradient(180deg,#effaf6,#fff)}
+.profile-actions-mobile .profile-admin-action>span{background:#07aa83;color:#fff}
+@media(min-width:621px){.customer-profile-mobile{padding-top:15px}}
