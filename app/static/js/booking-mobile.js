@@ -217,7 +217,7 @@
     if(card.classList.contains("is-disabled")){setAlert("هذا الملعب غير متاح في الموعد المحدد.","error");return}
     const data=await checkResource(card,start,end);
     if(!data.available){setAlert("هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");await refreshAvailability();return}
-    const item={resource_id:Number(card.dataset.resourceId),resource_name:card.dataset.resourceName,sport_name:card.dataset.sportName,date:dateInput.value,start_time:selectedTime,duration:String(durationSelect.value||60),start,end,price:0};
+    const item={resource_id:Number(card.dataset.resourceId),resource_name:card.dataset.resourceName,sport_name:card.dataset.sportName,date:dateInput.value,start_time:selectedTime, duration:String(durationSelect.value||60),start,end,price:(Number(card.dataset.basePrice||0)*Number(durationSelect.value||60)/60)};
     if(cart.some(x=>cartKey(x)===cartKey(item))){setAlert("هذا الملعب موجود أصلًا بهذا الوقت في الجدول.","error");return}
     cart.push(item);
     card.classList.add("is-selected");
