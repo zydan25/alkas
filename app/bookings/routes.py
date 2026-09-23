@@ -202,6 +202,7 @@ def resource_detail(resource_id):
         selected_date = now.date()
 
     slots = []
+    current_available = False
     for hour in range(8, 24):
         start = datetime(selected_date.year, selected_date.month, selected_date.day, hour, tzinfo=ZoneInfo("Asia/Aden"))
         end = start + timedelta(hours=1)
@@ -224,6 +225,9 @@ def resource_detail(resource_id):
             and not conflict
             and not blocked
         )
+        if start <= now < end:
+            current_available = available
+
         slots.append({
             "start": start,
             "end": end,
@@ -239,6 +243,7 @@ def resource_detail(resource_id):
         selected_date=selected_date,
         booking_policy=BookingPolicy.query.filter_by(is_default=True,is_active=True).first(),
         payment_policy=PaymentPolicy.query.filter_by(is_default=True,is_active=True).first(),
+        current_available=current_available,
     )
 
 
