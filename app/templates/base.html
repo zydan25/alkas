@@ -13,10 +13,16 @@
     <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
     <link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">
     <link rel="stylesheet" href="/static/css/public-modern.css?v={{ site_settings.asset_version }}&ui=20260923c">
+    {% set customer_shell = request.endpoint in [
+      'public.home','public.matches','public.offers','public.tournaments','public.news','public.live','public.live_event',
+      'bookings.booking_page','bookings.resource_detail','bookings.sport_detail',
+      'customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile'
+    ] %}
+    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-shell.css?v={{ site_settings.asset_version }}&ui=20260923-shell">{% endif %}
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
-<body class="{{ 'home-public-page' if request.endpoint == 'public.home' else '' }}">
+<body class="{{ 'home-public-page' if request.endpoint == 'public.home' else '' }}{% if customer_shell %} customer-app-page{% endif %}">
 <header class="topbar">
     <a class="brand" href="{{ url_for('public.home') }}">
         {% if site_settings.logo_url %}<img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">{% else %}<span class="brand-mark">ك</span>{% endif %}
@@ -37,6 +43,15 @@
 
 <main class="page-shell">{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
 
+{% if customer_shell %}
+<nav class="customer-bottom-nav" aria-label="التنقل الرئيسي">
+  <a class="{{ 'is-active' if request.endpoint == 'public.home' else '' }}" href="{{ url_for('public.home') }}"><span>⌂</span><small>الرئيسية</small></a>
+  <a class="{{ 'is-active' if request.endpoint in ['public.matches','public.live','public.tournaments'] else '' }}" href="{{ url_for('public.matches') }}"><span>⚽</span><small>مباريات</small></a>
+  <a class="customer-book-fab" href="{{ url_for('bookings.booking_page') }}" aria-label="احجز الآن">＋</a>
+  <a class="{{ 'is-active' if request.endpoint in ['bookings.booking_page','bookings.resource_detail','bookings.sport_detail'] else '' }}" href="{{ url_for('bookings.booking_page') }}"><span>▣</span><small>احجز</small></a>
+  <a class="{{ 'is-active' if request.endpoint in ['customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>♙</span><small>حسابي</small></a>
+</nav>
+{% endif %}
 <nav class="mobile-nav">
     <a href="{{ url_for('public.home') }}">الرئيسية</a>
     <a href="{{ url_for('bookings.booking_page') }}">الحجز</a>
