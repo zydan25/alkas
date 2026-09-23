@@ -62,3 +62,24 @@
 @media(max-width:390px){
   .booking-resource-grid{grid-template-columns:1fr}
 }
+
+/* Final booking form sizing */
+.booking-mobile-page{width:min(100%,780px);font-size:1.02em}
+.booking-card,.booking-guest-card,.booking-cart-card,.booking-total-card,.booking-help-card{padding:15px}
+.booking-resource-grid{gap:9px}
+.booking-resource-option{min-height:118px}
+.booking-resource-title strong{font-size:.64rem}
+.booking-mini-add{min-height:31px}
+.booking-cart-table-wrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.booking-cart-table{min-width:690px}
+@media(max-width:620px){
+  .booking-mobile-page{padding-inline:3px}
+  .booking-card,.booking-guest-card,.booking-cart-card,.booking-total-card,.booking-help-card{padding:13px}
+  .booking-cart-table{min-width:690px}
+  .booking-cart-table th,.booking-cart-table td{white-space:nowrap}
+  .booking-cart-table .cart-resource-cell{white-space:normal;width:145px}
+}
+@media(max-width:390px){
+  .booking-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .booking-resource-option{min-height:112px}
+}
