@@ -298,6 +298,12 @@
         });
         durationField.append(durationLabel,select);
 
+        const replace=document.createElement("button");
+        replace.type="button";
+        replace.className="booking-cancel-edit";
+        replace.dataset.replaceBooking=String(index);
+        replace.textContent="تغيير الملعب";
+
         const actions=document.createElement("div");
         actions.className="booking-edit-actions";
         const cancel=document.createElement("button");
