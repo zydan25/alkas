@@ -46,10 +46,10 @@
 {% if customer_shell %}
 <nav class="customer-bottom-nav" aria-label="التنقل الرئيسي">
   <a class="{{ 'is-active' if request.endpoint == 'public.home' else '' }}" href="{{ url_for('public.home') }}"><span>⌂</span><small>الرئيسية</small></a>
-  <a class="{{ 'is-active' if request.endpoint in ['public.matches','public.live','public.tournaments'] else '' }}" href="{{ url_for('public.matches') }}"><span>⚽</span><small>مباريات</small></a>
+  <a class="{{ 'is-active' if request.endpoint in ['customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.bookings') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>▣</span><small>جواري</small></a>
   <a class="customer-book-fab" href="{{ url_for('bookings.booking_page') }}" aria-label="احجز الآن">＋</a>
-  <a class="{{ 'is-active' if request.endpoint in ['bookings.booking_page','bookings.resource_detail','bookings.sport_detail'] else '' }}" href="{{ url_for('bookings.booking_page') }}"><span>▣</span><small>احجز</small></a>
-  <a class="{{ 'is-active' if request.endpoint in ['customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>♙</span><small>حسابي</small></a>
+  <a class="{{ 'is-active' if request.endpoint in ['public.matches','public.live','public.tournaments'] else '' }}" href="{{ url_for('public.matches') }}"><span>⚽</span><small>مباريات</small></a>
+  <a class="{{ 'is-active' if request.endpoint in ['customer.profile'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>♙</span><small>حسابي</small></a>
 </nav>
 {% endif %}
 <nav class="mobile-nav">
