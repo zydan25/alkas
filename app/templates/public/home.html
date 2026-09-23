@@ -341,20 +341,6 @@
   </section>
   {% endif %}
 
-  <section class="home-services-section">
-    <div class="home-section-label">استكشف الكأس</div>
-    <div class="home-services-grid">
-      <a class="home-service-tile" href="{{ url_for('public.memberships') }}"><span>{{ icon("membership",22) }}</span><b>العضويات</b><small>اشتراك وتجديد</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.training') }}"><span>{{ icon("dumbbell",22) }}</span><b>التدريبات</b><small>برامج ومدربون</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.resources') }}"><span>{{ icon("grid",22) }}</span><b>تصفح الملاعب</b><small>الصور والأسعار</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.offers') }}"><span>{{ icon("tag",22) }}</span><b>العروض</b><small>عروض الكأس</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.news') }}"><span>{{ icon("news",22) }}</span><b>الأخبار</b><small>آخر المستجدات</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.announcements') }}"><span>{{ icon("megaphone",22) }}</span><b>الإعلانات</b><small>إعلانات المنشأة</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.discounts') }}"><span>{{ icon("percent",22) }}</span><b>الخصومات</b><small>وفّر أكثر</small></a>
-      <a class="home-service-tile" href="{{ url_for('public.live') }}"><span>{{ icon("radio",22) }}</span><b>البث المباشر</b><small>{% if live_now %}متاح الآن{% else %}عند توفره{% endif %}</small></a>
-    </div>
-  </section>
-
   <section class="home-info-row">
     <a class="home-training-panel" href="{{ url_for('public.tournaments') }}">
       <div class="home-training-art">
@@ -401,6 +387,21 @@
       {% endif %}
     </div>
   </section>
+
+  <section class="home-services-section">
+    <div class="home-section-label">استكشف الكأس</div>
+    <div class="home-services-grid">
+      <a class="home-service-tile" href="{{ url_for('public.memberships') }}"><span>{{ icon("membership",22) }}</span><b>العضويات</b><small>اشتراك وتجديد</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.training') }}"><span>{{ icon("dumbbell",22) }}</span><b>التدريبات</b><small>برامج ومدربون</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.resources') }}"><span>{{ icon("grid",22) }}</span><b>تصفح الملاعب</b><small>الصور والأسعار</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.offers') }}"><span>{{ icon("tag",22) }}</span><b>العروض</b><small>عروض الكأس</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.news') }}"><span>{{ icon("news",22) }}</span><b>الأخبار</b><small>آخر المستجدات</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.announcements') }}"><span>{{ icon("megaphone",22) }}</span><b>الإعلانات</b><small>إعلانات المنشأة</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.discounts') }}"><span>{{ icon("percent",22) }}</span><b>الخصومات</b><small>وفّر أكثر</small></a>
+      <a class="home-service-tile" href="{{ url_for('public.live') }}"><span>{{ icon("radio",22) }}</span><b>البث المباشر</b><small>{% if live_now %}متاح الآن{% else %}عند توفره{% endif %}</small></a>
+    </div>
+  </section>
+
 
   <div class="home-scroll-space"></div>
 
