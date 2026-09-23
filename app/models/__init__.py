@@ -15,7 +15,7 @@ from ..invoices.models import Invoice, InvoiceLine
 from ..inventory.models import Product, ProductCategory, StockMovement, Warehouse
 from ..live.models import LiveEvent, Stream, Viewer
 from ..maintenance.models import MaintenanceRequest, WorkOrder
-from ..memberships.models import Membership, MembershipPlan
+from ..memberships.models import Membership, MembershipPlan, MembershipRequest, MembershipMessage
 from ..news.models import NewsCategory, Post, PostTag
 from ..notifications.models import Notification, NotificationLog, NotificationPreference
 from ..offers.models import Coupon, Offer, OfferComment, OfferInquiry
