@@ -54,7 +54,7 @@
       <div class="booking-section-title"><div><small>3</small><h2>الملاعب المتاحة</h2></div><span data-available-count></span></div>
       <div class="booking-resource-grid" data-booking-resources>
         {% for resource in resources %}
-        <article class="booking-resource-option" data-resource-card data-resource-id="{{ resource.id }}" data-sport-id="{{ resource.sport_id }}" data-resource-name="{{ resource.name_ar }}" data-sport-name="{{ resource.sport.name_ar }}">
+        <article class="booking-resource-option" data-resource-card data-resource-id="{{ resource.id }}" data-sport-id="{{ resource.sport_id }}" data-resource-name="{{ resource.name_ar }}" data-sport-name="{{ resource.sport.name_ar }}" data-base-price="{{ resource.base_price }}">
           <div class="booking-resource-art">{% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">{% else %}<b>{{ resource.sport.icon or "●" }}</b>{% endif %}</div>
           <div class="booking-resource-main"><div class="booking-resource-title"><strong>{{ resource.name_ar }}</strong></div>
             <small>{{ resource.sport.name_ar }} · {{ resource.zone.name_ar if resource.zone else "المرفق الرياضي" }}</small>
