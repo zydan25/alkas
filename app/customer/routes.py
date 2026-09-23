@@ -100,6 +100,10 @@ def notifications():
 @login_required
 def profile():
     customer = _customer()
-    if not customer:
-        return render_template("customer/no_profile.html")
-    return render_template("customer/profile.html", customer=customer)
+    is_admin = current_user.username == "admin" or current_user.has_permission("booking.view")
+    # Staff/admin users may not have a Customer row; their account page must still open.
+    return render_template(
+        "customer/profile.html",
+        customer=customer,
+        is_admin=is_admin,
+    )
