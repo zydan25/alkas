@@ -7,8 +7,8 @@
     <form method="post" class="form-stack">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="next" value="{{ next_url }}">
-        <label>الهاتف أو اسم المستخدم
-            <input name="identifier" required autocomplete="username" inputmode="tel">
+        <label>اسم المستخدم أو رقم الهاتف
+            <input name="identifier" type="text" required autocomplete="username" inputmode="text" autocapitalize="none" spellcheck="false" placeholder="اسم المستخدم أو 77xxxxxxxx">
         </label>
         <label>كلمة المرور
             <input name="password" type="password" required autocomplete="current-password">
