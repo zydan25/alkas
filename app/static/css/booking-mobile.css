@@ -817,3 +817,14 @@
   .booking-picker-resource-body>small{font-size:.48rem}
   .booking-picker-resource-status{font-size:.5rem}
 }
+
+/* Performance guard on phones: keep compositing cheap and avoid full-screen blur. */
+@media(max-width:768px){
+  .booking-total-card{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .booking-picker-overlay{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .booking-input-box{box-shadow:none}
+  .booking-back{box-shadow:none}
+  .booking-slot-card,.booking-selected-card,.booking-guest-card,.booking-card,.booking-help-card,.booking-confirm{
+    box-shadow:0 4px 16px color-mix(in srgb,var(--bk-text) 5%,transparent);
+  }
+}
