@@ -196,7 +196,7 @@
 .home-featured-viewport{
   position:relative;
   width:100%;
-  aspect-ratio:3.86/1;
+  aspect-ratio:3.58/1;
   min-height:150px;
   overflow:hidden;
   border-radius:18px;
@@ -239,6 +239,7 @@
   object-fit:cover;
   display:block;
 }
+.home-featured-video{object-fit:contain!important;background:#0a211d}
 .home-featured-overlay{
   position:absolute;
   inset:0;
@@ -884,7 +885,7 @@
 @media(min-width:801px){
   .home-public-page .page-shell{padding-inline:28px}
   .customer-home-page{max-width:1040px;margin-inline:auto}
-  .home-featured-viewport{aspect-ratio:4.2/1;min-height:180px}
+  .home-featured-viewport{aspect-ratio:4.0/1;min-height:190px}
   .home-sport-tile{flex-basis:110px;height:112px}
   .home-resource-card{flex-basis:250px}
   .home-live-card{flex-basis:65%}
@@ -893,7 +894,7 @@
   .home-public-page .page-shell{padding-inline:16px;padding-top:12px;padding-bottom:112px}
   .customer-home-header{min-height:58px}
   .home-avatar{width:42px;height:42px;flex-basis:42px}
-  .home-featured-viewport{min-height:0;aspect-ratio:3.82/1}
+  .home-featured-viewport{min-height:0;aspect-ratio:3.58/1}
   .home-featured-copy{width:61%;left:13px;bottom:11px}
   .home-featured-copy h1{font-size:1rem}
   .home-fast-form{grid-template-columns:1fr 1fr}
