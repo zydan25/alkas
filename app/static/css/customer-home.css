@@ -946,3 +946,25 @@
   .home-match-scroller{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;gap:8px}
   .home-match-card{min-width:0}
 }
+
+/* Final 704px screenshot tuning */
+.home-sport-tile{flex-basis:105px;height:108px}
+.home-sport-art.has-image::before{
+  background:linear-gradient(180deg,rgba(4,23,19,.02) 25%,rgba(2,17,14,.74) 100%);
+}
+.home-sport-art:not(.has-image)::before{z-index:0}
+.home-sport-art.has-image img{z-index:0}
+.home-sport-art.has-image .home-sport-icon{display:none}
+@media(min-width:621px) and (max-width:820px){
+  .home-featured-viewport{aspect-ratio:3.80/1;min-height:172px}
+  .home-fast-booking{padding:12px 14px}
+  .home-fast-form{grid-template-columns:1.15fr .82fr .82fr 1.08fr;gap:7px}
+  .home-fast-form label,.home-fast-submit{min-height:53px}
+}
+@media(max-width:620px){
+  .home-fast-form{grid-template-columns:1.15fr .82fr .82fr 1.08fr;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .home-fast-form::-webkit-scrollbar{display:none}
+  .home-fast-form label{min-width:126px}
+  .home-fast-submit{min-width:156px}
+  .home-fast-booking{overflow:hidden}
+}
