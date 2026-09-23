@@ -24,8 +24,7 @@
   </section>
 
   <section class="booking-card">
-    <div class="booking-section-title"><div><small>حالة الآن</small><h2>هل الملعب متاح الآن؟</h2></div></div>
-    {% set nowslot = slots|selectattr("start","le",None)|list %}
+    <div class="booking-section-title"><div><small>حالة الآن</small><h2>{{ "الملعب فارغ ويمكن الحجز الآن" if current_available else "الملعب مشغول أو غير متاح الآن" }}</h2></div><span class="{{ 'detail-confirmed' if current_available else 'detail-cancelled' }}">{{ "متاح الآن" if current_available else "غير متاح الآن" }}</span></div>
     <p class="detail-muted">الأوقات الخضراء فارغة وقابلة للحجز، والأوقات البرتقالية/الحمراء مرتبطة بحجز نشط أو حظر. عند التأكيد سيعاد التحقق من التوفر قبل تثبيت الحجز.</p>
   </section>
 
