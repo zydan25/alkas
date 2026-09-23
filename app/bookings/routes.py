@@ -374,7 +374,7 @@ def availability_batch():
 
 @bp.get("/availability/next")
 def availability_next():
-    """Find the next period with enough free time for one court."""
+    """Find nearby free starts for one court, both before and after the requested slot."""
     resource_id = request.args.get("resource_id", type=int)
     start_raw = request.args.get("start")
     end_raw = request.args.get("end")
@@ -388,12 +388,13 @@ def availability_next():
         return jsonify({"error": "بيانات الوقت غير صحيحة"}), 400
 
     if requested_end <= requested_start:
-        return jsonify({"next_available_at": None, "error": "وقت غير صالح"}), 400
+        return jsonify({"next_available_at": None, "previous_available_at": None, "error": "وقت غير صالح"}), 400
 
     resource = Resource.query.get_or_404(resource_id)
     if not resource.is_active or resource.status != "available":
         return jsonify({
             "next_available_at": None,
+            "previous_available_at": None,
             "available": False,
             "reason": "الملعب غير متاح",
         })
@@ -401,22 +402,34 @@ def availability_next():
     now_utc = datetime.now(ZoneInfo("UTC"))
     duration = requested_end - requested_start
     tz = requested_start.tzinfo or ZoneInfo("Asia/Aden")
-    candidate = max(requested_start, now_utc.astimezone(tz))
-    candidate = candidate.replace(second=0, microsecond=0)
+    now_local = now_utc.astimezone(tz)
+    requested_local = requested_start.astimezone(tz)
 
-    # Booking UI permits starts from 08:00 through 23:30.
-    def normalize_start(value):
-        local = value.astimezone(tz)
+    def normalize_forward(value):
+        local = value.astimezone(tz).replace(second=0, microsecond=0)
         if local.hour < 8:
-            return local.replace(hour=8, minute=0, second=0, microsecond=0)
+            return local.replace(hour=8, minute=0)
         if local.hour > 23 or (local.hour == 23 and local.minute > 30):
-            return (local + timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
+            return (local + timedelta(days=1)).replace(hour=8, minute=0)
         return local
 
-    candidate = normalize_start(candidate)
+    def normalize_backward(value):
+        local = value.astimezone(tz).replace(second=0, microsecond=0)
+        if local.hour > 23 or (local.hour == 23 and local.minute > 30):
+            return local.replace(hour=23, minute=30)
+        if local.hour < 8:
+            return (local - timedelta(days=1)).replace(hour=23, minute=30)
+        return local
+
+    forward_start = normalize_forward(max(requested_start, now_utc.astimezone(tz)))
+    backward_start = normalize_backward(requested_start - duration)
+    search_floor = max(
+        now_utc.astimezone(tz),
+        backward_start - timedelta(days=1),
+    )
+    horizon = forward_start + timedelta(days=7)
 
     statuses = ["hold", "pending", "confirmed", "checked_in", "in_progress"]
-    horizon = candidate + timedelta(days=7)
     allocations = BookingAllocation.query.join(Booking).filter(
         Booking.status.in_(statuses),
         or_(
@@ -427,40 +440,65 @@ def availability_next():
         BookingAllocation.is_active.is_(True),
         BookingAllocation.resource_id == resource.id,
         BookingAllocation.start_at < horizon,
-        BookingAllocation.end_at > candidate,
+        BookingAllocation.end_at > search_floor,
     ).order_by(BookingAllocation.start_at.asc()).all()
     blocks = ResourceBlock.query.filter(
         ResourceBlock.resource_id == resource.id,
         ResourceBlock.status == "active",
         ResourceBlock.starts_at < horizon,
-        ResourceBlock.ends_at > candidate,
+        ResourceBlock.ends_at > search_floor,
     ).order_by(ResourceBlock.starts_at.asc()).all()
 
     intervals = [(x.start_at, x.end_at) for x in allocations]
     intervals += [(x.starts_at, x.ends_at) for x in blocks]
     intervals.sort(key=lambda pair: pair[0])
 
+    def is_free(candidate):
+        local = candidate.astimezone(tz)
+        if local < now_local:
+            return False
+        if local.hour < 8 or local.hour > 23 or (local.hour == 23 and local.minute > 30):
+            return False
+        candidate_end = candidate + duration
+        return not any(
+            interval_start < candidate_end and interval_end > candidate
+            for interval_start, interval_end in intervals
+        )
+
+    # Latest free start before the requested start. This is deliberately bounded
+    # so a card never suggests a distant or stale time.
+    previous_available_at = None
+    candidate = backward_start
+    lower_bound = search_floor.replace(second=0, microsecond=0)
+    while candidate >= lower_bound:
+        if is_free(candidate) and candidate < requested_start:
+            previous_available_at = candidate
+            break
+        candidate = candidate - timedelta(minutes=1)
+
+    # Earliest free start at or after the requested start.
+    next_available_at = None
+    candidate = forward_start
     while candidate + duration <= horizon:
-        conflict_end = None
-        for interval_start, interval_end in intervals:
-            if interval_end <= candidate:
-                continue
-            if interval_start >= candidate + duration:
-                break
-            if interval_start < candidate + duration and interval_end > candidate:
-                conflict_end = interval_end if conflict_end is None else max(conflict_end, interval_end)
-        if conflict_end is None:
-            return jsonify({
-                "available": True,
-                "next_available_at": candidate.isoformat(),
-                "reason": "متاح",
-            })
-        candidate = normalize_start(max(candidate + timedelta(minutes=1), conflict_end))
+        if is_free(candidate):
+            next_available_at = candidate
+            break
+        conflict_ends = [
+            interval_end for interval_start, interval_end in intervals
+            if interval_start < candidate + duration and interval_end > candidate
+        ]
+        candidate = normalize_forward(
+            max(
+                candidate + timedelta(minutes=1),
+                max(conflict_ends) if conflict_ends else candidate + timedelta(minutes=1),
+            )
+        )
 
     return jsonify({
         "available": False,
-        "next_available_at": None,
-        "reason": "لا توجد فترة متاحة خلال الأيام القادمة",
+        "previous_available_at": previous_available_at.isoformat() if previous_available_at else None,
+        "next_available_at": next_available_at.isoformat() if next_available_at else None,
+        "reason": "الملعب محجوز أو محجوب في الموعد المحدد",
     })
 
 
