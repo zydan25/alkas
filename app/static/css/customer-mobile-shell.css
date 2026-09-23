@@ -12,7 +12,7 @@
 
 
 /* System-wide customer app readability */
-.customer-app-page{font-size:16px}
+.customer-app-page{font-size:17px}
 .customer-app-page input,.customer-app-page select,.customer-app-page textarea,.customer-app-page button{font-size:inherit}
-.customer-bottom-nav>a:not(.customer-book-fab) small{font-size:.59rem;font-weight:900}
-@media(max-width:620px){.customer-bottom-nav>a:not(.customer-book-fab) small{font-size:.61rem}.customer-nav-icon svg{width:22px;height:22px}}
+.customer-bottom-nav>a:not(.customer-book-fab) small{font-size:.64rem;font-weight:900}
+@media(max-width:620px){.customer-bottom-nav>a:not(.customer-book-fab) small{font-size:.65rem}.customer-nav-icon svg{width:22px;height:22px}}
