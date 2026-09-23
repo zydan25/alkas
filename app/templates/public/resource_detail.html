@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block head %}<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui={{ site_settings.asset_version }}-resource">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking"><link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-resource">{% endblock %}
 {% block content %}
 <div class="booking-detail-page">
   <header class="booking-mobile-head"><a class="booking-back" href="{{ url_for('public.home') }}">‹</a><div><span>{{ resource.sport.name_ar }}</span><h1>{{ resource.name_ar }}</h1></div><a class="booking-head-link" href="{{ url_for('bookings.booking_page', resource_id=resource.id) }}">احجز</a></header>
@@ -13,7 +13,7 @@
   </section>
 
   <section class="booking-card">
-    <div class="booking-section-title"><div><small>التوفر</small><h2>أوقات الحجز — {{ selected_date }}</h2></div><a class="booking-inline-link" href="{{ url_for('bookings.resource_detail', resource_id=resource.id, date=(selected_date + timedelta(days=1)).isoformat()) if false else url_for('bookings.resource_detail', resource_id=resource.id) }}">تغيير اليوم</a></div>
+    <div class="booking-section-title"><div><small>التوفر</small><h2>أوقات الحجز — {{ selected_date }}</h2></div><a class="booking-inline-link" href="{{ url_for('bookings.booking_page', resource_id=resource.id, date=selected_date.isoformat()) }}">اختيار الموعد</a></div>
     <div class="resource-slot-grid">
       {% for slot in slots %}
       <a class="resource-slot {{ 'free' if slot.available else 'busy' }}" href="{{ url_for('bookings.booking_page', resource_id=resource.id, date=slot.start.date().isoformat(), time=slot.start.strftime('%H:%M')) }}">
