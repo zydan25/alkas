@@ -116,6 +116,42 @@ def membership_cancel(request_id):
     db.session.commit()
     return redirect(url_for("customer.memberships"))
 
+@bp.post("/memberships/<int:request_id>/renew")
+@login_required
+def membership_renew(request_id):
+    customer = _customer()
+    if not customer:
+        return jsonify({"error":"ملف العميل غير موجود"}),403
+    row = MembershipRequest.query.filter_by(id=request_id, customer_id=customer.id).first_or_404()
+    if row.status != "approved":
+        return jsonify({"error":"لا يمكن طلب التجديد قبل الموافقة على العضوية"}),400
+    active = Membership.query.filter_by(customer_id=customer.id, plan_id=row.plan_id, status="active").order_by(Membership.ends_on.desc(), Membership.id.desc()).first()
+    starts = (active.ends_on + __import__("datetime").timedelta(days=1)) if active and active.ends_on else (row.ends_on + __import__("datetime").timedelta(days=1) if row.ends_on else date.today())
+    ends = starts + __import__("datetime").timedelta(days=max(1,row.duration_days)-1)
+    duplicate = MembershipRequest.query.filter(
+        MembershipRequest.customer_id==customer.id,
+        MembershipRequest.plan_id==row.plan_id,
+        MembershipRequest.status=="pending",
+        MembershipRequest.starts_on==starts,
+    ).first()
+    if duplicate:
+        return redirect(url_for("customer.membership_detail", request_id=duplicate.id))
+    renewed = MembershipRequest(
+        customer_id=customer.id, plan_id=row.plan_id, title_ar=row.title_ar,
+        price=row.price, duration_days=row.duration_days, starts_on=starts,
+        ends_on=ends, auto_renew=row.auto_renew, status="pending"
+    )
+    db.session.add(renewed)
+    db.session.flush()
+    db.session.add(Notification(
+        user_id=current_user.id,
+        title_ar="تم استلام طلب تجديد العضوية",
+        body_ar=f"تم استلام طلب تجديد {row.title_ar} للفترة {starts} إلى {ends}.",
+        kind="membership", priority="high"
+    ))
+    db.session.commit()
+    return redirect(url_for("customer.membership_detail", request_id=renewed.id))
+
 @bp.post("/memberships/<int:request_id>/messages")
 @login_required
 def membership_message(request_id):
@@ -168,6 +204,20 @@ def update_password():
         return render_template("customer/profile.html", customer=customer, is_admin=_is_admin(), password_error="تأكيد كلمة المرور غير مطابق"), 400
     current_user.set_password(new)
     db.session.add(Notification(user_id=current_user.id, title_ar="تم تحديث كلمة المرور", body_ar="تم تغيير كلمة مرور حسابك بنجاح.", kind="security", priority="high"))
+    db.session.commit()
+    return redirect(url_for("customer.profile"))
+
+@bp.post("/notifications/preferences")
+@login_required
+def notification_preferences():
+    prefs = NotificationPreference.query.filter_by(user_id=current_user.id).first()
+    if not prefs:
+        prefs = NotificationPreference(user_id=current_user.id)
+        db.session.add(prefs)
+    prefs.push_enabled = request.form.get("push_enabled") == "1"
+    prefs.whatsapp_enabled = request.form.get("whatsapp_enabled") == "1"
+    prefs.sms_enabled = request.form.get("sms_enabled") == "1"
+    prefs.email_enabled = request.form.get("email_enabled") == "1"
     db.session.commit()
     return redirect(url_for("customer.profile"))
 
