@@ -171,7 +171,7 @@ def booking_resources():
     if query_text:
         like = f"%{query_text}%"
         query = query.filter(
-            db.or_(
+            or_(
                 Resource.name_ar.ilike(like),
                 Resource.key.ilike(like),
                 Sport.name_ar.ilike(like),
