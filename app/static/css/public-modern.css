@@ -130,3 +130,95 @@
   .guest-contact-title{gap:8px}
   .guest-contact-title small{font-size:.64rem}
 }
+
+
+/* Homepage hero banner carousel */
+.home-banner-section{margin-top:4px}
+.home-banner-head{margin-bottom:11px}
+.banner-live-status{padding:7px 11px;border-radius:999px;background:color-mix(in srgb,var(--success) 10%,var(--surface));color:var(--success);font-size:.68rem;font-weight:900}
+.home-banner-carousel{position:relative;overflow:hidden;border-radius:24px;background:var(--surface);border:1px solid color-mix(in srgb,var(--text) 8%,transparent);box-shadow:0 22px 55px rgba(15,23,42,.10)}
+.home-banner-viewport{position:relative;min-height:360px}
+.home-banner-slide{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(14px);transition:opacity .38s ease,transform .38s ease,visibility .38s}
+.home-banner-slide.is-active{opacity:1;visibility:visible;pointer-events:auto;transform:none;position:relative}
+.home-banner-link{height:100%;min-height:360px;display:grid;grid-template-columns:1.35fr .65fr;color:inherit}
+.home-banner-media{position:relative;min-height:360px;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--secondary))}
+.home-banner-media img,.home-banner-media video{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block}
+.home-banner-slide.is-active .home-banner-media img,.home-banner-slide.is-active .home-banner-media video{animation:banner-media-in .65s ease both}
+.home-banner-video{background:#0f172a}
+.home-banner-scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,23,42,.08),rgba(15,23,42,.50))}
+.home-banner-source,.home-banner-video-state{position:absolute;top:18px;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);color:var(--text);font-size:.66rem;font-weight:950}
+.home-banner-source{right:18px}
+.home-banner-video-state{left:18px;background:rgba(15,23,42,.55);color:#fff}
+.home-banner-placeholder{height:100%;display:grid;place-items:center;color:#fff;font-size:3rem;font-weight:950;opacity:.75}
+.home-banner-copy{padding:34px 31px;display:flex;flex-direction:column;justify-content:center;gap:7px;background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--secondary) 4%,var(--surface)))}
+.home-banner-copy h2{margin:5px 0 4px;font-size:clamp(1.6rem,3.3vw,2.7rem);line-height:1.2;letter-spacing:-.035em}
+.home-banner-copy p{margin:0;color:color-mix(in srgb,var(--text) 68%,transparent);line-height:1.9;font-size:.86rem;max-width:520px}
+.home-banner-cta{display:inline-flex;align-self:flex-start;margin-top:12px;padding:10px 13px;border-radius:12px;background:var(--secondary);color:#fff;font-weight:900;font-size:.7rem;box-shadow:0 8px 22px color-mix(in srgb,var(--secondary) 18%,transparent)}
+.home-banner-control{position:absolute;z-index:4;top:50%;width:40px;height:40px;transform:translateY(-50%);display:grid;place-items:center;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(15,23,42,.30);backdrop-filter:blur(12px);color:#fff;font-size:1.45rem;cursor:pointer;transition:background .18s,transform .18s}
+.home-banner-control:hover{background:rgba(15,23,42,.48);transform:translateY(-50%) scale(1.04)}
+.home-banner-prev{right:14px}
+.home-banner-next{left:14px}
+.home-banner-footer{display:grid;grid-template-columns:auto 1fr minmax(150px,.55fr);align-items:center;gap:14px;padding:11px 13px;border-top:1px solid color-mix(in srgb,var(--text) 7%,transparent);background:var(--surface)}
+.home-banner-pause{min-height:34px;padding:0 11px;border:1px solid color-mix(in srgb,var(--text) 10%,transparent);border-radius:10px;background:transparent;color:var(--text);font-size:.66rem;font-weight:900;cursor:pointer}
+.home-banner-dots{display:flex;justify-content:center;gap:6px}
+.home-banner-dot{width:7px;height:7px;padding:0;border:0;border-radius:999px;background:color-mix(in srgb,var(--text) 15%,transparent);cursor:pointer;transition:width .2s,background .2s}
+.home-banner-dot.is-active{width:24px;background:var(--secondary)}
+.home-banner-progress{height:4px;border-radius:999px;overflow:hidden;background:color-mix(in srgb,var(--text) 8%,transparent)}
+.home-banner-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--secondary),var(--accent))}
+@keyframes banner-media-in{from{transform:scale(1.025)}to{transform:scale(1)}}
+.auth-switch{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:17px;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--text) 8%,transparent);font-size:.72rem;color:color-mix(in srgb,var(--text) 60%,transparent)}
+.auth-switch a{color:var(--secondary);font-weight:950}
+.auth-card-register{margin-top:4vh}
+.form-hint{font-size:.65rem;line-height:1.6;color:color-mix(in srgb,var(--text) 52%,transparent);font-weight:600}
+.current-media-preview,.banner-editor-note{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--secondary) 5%,var(--surface));border:1px solid color-mix(in srgb,var(--secondary) 12%,transparent)}
+.current-media-preview strong,.banner-editor-note strong{display:block;margin-top:4px}
+.current-media-preview a{color:var(--secondary);font-size:.7rem;font-weight:900}
+.banner-editor-note{display:grid;justify-content:stretch;line-height:1.8}
+.banner-editor-note span{font-size:.7rem;color:color-mix(in srgb,var(--text) 64%,transparent)}
+.banner-admin-list{display:grid;gap:10px}
+.banner-admin-row{display:grid;grid-template-columns:74px 1fr auto;align-items:center;gap:11px;padding:10px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent);border-radius:15px}
+.banner-admin-thumb{width:74px;height:58px;display:grid;place-items:center;border-radius:11px;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;font-weight:950}
+.banner-admin-thumb img{width:100%;height:100%;object-fit:cover}
+.banner-admin-main{min-width:0}
+.banner-admin-main strong,.banner-admin-main small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.banner-admin-main strong{margin-top:3px;font-size:.78rem}
+.banner-admin-main small{margin-top:4px;font-size:.62rem;color:color-mix(in srgb,var(--text) 52%,transparent)}
+.banner-admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.btn-danger-soft{display:inline-flex;justify-content:center;align-items:center;min-height:43px;padding:0 14px;border:1px solid color-mix(in srgb,var(--danger) 20%,transparent);border-radius:13px;background:color-mix(in srgb,var(--danger) 8%,var(--surface));color:var(--danger);cursor:pointer;font-weight:900;font-size:.76rem}
+@media(max-width:800px){
+  .home-banner-link{grid-template-columns:1fr}
+  .home-banner-media{min-height:270px;max-height:310px}
+  .home-banner-copy{padding:22px}
+  .home-banner-copy h2{font-size:1.5rem}
+  .home-banner-footer{grid-template-columns:auto 1fr}
+  .home-banner-progress{grid-column:1/-1}
+  .banner-admin-row{grid-template-columns:60px 1fr}
+  .banner-admin-thumb{width:60px;height:52px}
+  .banner-admin-actions{grid-column:1/-1;justify-content:flex-start}
+}
+@media(max-width:600px){
+  .home-banner-carousel{border-radius:18px}
+  .home-banner-viewport{min-height:390px}
+  .home-banner-link{min-height:390px}
+  .home-banner-media{min-height:205px;max-height:205px}
+  .home-banner-copy{padding:16px}
+  .home-banner-copy h2{font-size:1.22rem}
+  .home-banner-copy p{font-size:.74rem;line-height:1.75}
+  .home-banner-source,.home-banner-video-state{top:12px;font-size:.58rem;padding:7px 9px}
+  .home-banner-source{right:12px}
+  .home-banner-video-state{left:12px}
+  .home-banner-control{width:34px;height:34px;font-size:1.2rem}
+  .home-banner-prev{right:10px}
+  .home-banner-next{left:10px}
+  .home-banner-footer{gap:9px;padding:9px}
+  .home-banner-pause{font-size:.58rem;padding:0 8px}
+  .auth-card{padding:20px}
+  .form-grid{grid-template-columns:1fr}
+  .banner-admin-actions .btn,.banner-admin-actions form{width:100%}
+  .banner-admin-actions form{display:block}
+  .banner-admin-actions .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-banner-slide,.home-banner-control,.home-banner-dot{transition:none}
+  .home-banner-slide.is-active .home-banner-media img,.home-banner-slide.is-active .home-banner-media video{animation:none}
+}
