@@ -3466,7 +3466,7 @@
     grid-auto-rows:44px!important;
     grid-template-columns:1fr!important;
     max-height:88px!important;
-    overflow:hidden!important;
+    overflow:visible!important;
   }
   .booking-cart-table tr{
     display:grid!important;
