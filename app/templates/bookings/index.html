@@ -184,35 +184,9 @@
     <div class="booking-picker-result-count" data-picker-result-count></div>
 
     <div class="booking-picker-resources" data-picker-resources>
-      {% for resource in resources %}
-      <article
-        class="booking-picker-resource"
-        data-picker-resource
-        data-resource-id="{{ resource.id }}"
-        data-sport-id="{{ resource.sport_id }}"
-        data-resource-name="{{ resource.name_ar }}"
-        data-sport-name="{{ resource.sport.name_ar }}"
-        data-zone-name="{{ resource.zone.name_ar if resource.zone else 'المرفق الرياضي' }}"
-        data-base-price="{{ resource.base_price }}"
-      >
-        <div class="booking-picker-resource-art">
-          {% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">{% else %}<b>{{ resource.sport.icon or "●" }}</b>{% endif %}
-        </div>
-        <div class="booking-picker-resource-body">
-          <div class="booking-picker-resource-title">
-            <strong>{{ resource.name_ar }}</strong>
-            <span data-picker-resource-price>{{ "{:,.0f}".format(resource.base_price|float) }} ر.ي/ساعة</span>
-          </div>
-          <small>{{ resource.sport.name_ar }} · {{ resource.zone.name_ar if resource.zone else "المرفق الرياضي" }}</small>
-          <div class="booking-picker-resource-status" data-picker-resource-status>بانتظار الوقت</div>
-          <div class="booking-picker-nearby" data-picker-resource-nearby hidden></div>
-        </div>
-        <button type="button" class="booking-picker-resource-action" data-picker-resource-action disabled>انتظر الوقت</button>
-      </article>
-      {% else %}
-      <div class="booking-empty">لا توجد ملاعب مضافة حاليًا.</div>
-      {% endfor %}
+      <div class="booking-picker-loading" data-picker-loading>جاري تجهيز الملاعب...</div>
     </div>
+div>
   </div>
 </div>
 {% endblock %}
