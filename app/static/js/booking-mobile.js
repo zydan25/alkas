@@ -237,11 +237,12 @@
       });
       const available=settled.filter(x=>x.data.available).length;
       const failed=settled.filter(x=>!x.data.available && String(x.data.reason||"").includes("تعذر التحقق")).length;
+      const unavailable=Math.max(0,visible.length-available);
       slotStatus.textContent=available
-        ?"اضغط على أي ملعب متاح لإضافته مباشرة إلى جدول الحجز."
-        :(failed
-          ?"تعذر التحقق من بعض الملاعب. اضغط على الوقت مرة أخرى لإعادة الفحص."
-          :"لا يوجد ملعب متاح بهذا الوقت.");
+        ? (available+" متاح من "+visible.length+" — "+unavailable+" محجوز/غير متاح. اضغط على المتاح لإضافته.")
+        : (failed
+          ?"تعذر التحقق من بعض الملاعب — أعد إدخال الوقت لإعادة الفحص."
+          :"لا يوجد ملعب متاح بهذا الوقت. اضغط على أي ملعب لمعرفة أقرب وقت متاح.");
       slotStatus.className="booking-slot-status "+(available?"ok":"warn");
     }
     updateSelectedVisuals();
