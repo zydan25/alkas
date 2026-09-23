@@ -1990,3 +1990,639 @@
     height:58px;
   }
 }
+
+
+/* =========================================================
+   Final mobile polish — booking form + all booking tables
+   Goal: readable at 360px without sideways scrolling.
+   ========================================================= */
+@media (max-width: 620px){
+  .customer-app-page .booking-mobile-page{
+    width:100%;
+    max-width:100%;
+    padding:4px 0 calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .customer-app-page .booking-mobile-head{
+    grid-template-columns:42px minmax(0,1fr) auto !important;
+    gap:8px !important;
+    margin-bottom:10px !important;
+    min-height:54px;
+  }
+
+  .customer-app-page .booking-mobile-head > div{
+    min-width:0;
+  }
+
+  .customer-app-page .booking-mobile-head > div > span{
+    font-size:.74rem !important;
+  }
+
+  .customer-app-page .booking-mobile-head h1{
+    font-size:1.38rem !important;
+    line-height:1.25;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .customer-app-page .booking-back{
+    width:42px !important;
+    height:42px !important;
+    min-width:42px !important;
+    min-height:42px !important;
+  }
+
+  .customer-app-page .booking-head-link{
+    min-height:42px !important;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding-inline:9px !important;
+    font-size:.78rem !important;
+    white-space:nowrap;
+  }
+
+  .customer-app-page .booking-card,
+  .customer-app-page .booking-guest-card,
+  .customer-app-page .booking-cart-card,
+  .customer-app-page .booking-total-card,
+  .customer-app-page .booking-help-card,
+  .customer-app-page .booking-policy-card{
+    margin-bottom:10px !important;
+    padding:12px !important;
+    border-radius:17px !important;
+  }
+
+  .customer-app-page .booking-step{
+    margin-bottom:9px !important;
+  }
+
+  .customer-app-page .booking-step > span{
+    width:32px !important;
+    height:32px !important;
+    flex-basis:32px !important;
+    border-radius:10px !important;
+    font-size:.9rem !important;
+  }
+
+  .customer-app-page .booking-step small{
+    font-size:.74rem !important;
+  }
+
+  .customer-app-page .booking-step strong{
+    font-size:.98rem !important;
+  }
+
+  /* Sport choices: one clean horizontal rail. */
+  .customer-app-page .booking-sport-scroller{
+    width:100%;
+    gap:7px !important;
+    overflow-x:auto;
+    padding:1px 1px 5px !important;
+    scroll-snap-type:x proximity;
+  }
+
+  .customer-app-page .booking-sport-chip{
+    min-height:44px !important;
+    height:44px;
+    flex:0 0 auto;
+    padding-inline:13px !important;
+    border-radius:12px !important;
+    font-size:.84rem !important;
+    scroll-snap-align:start;
+  }
+
+  .customer-app-page .booking-selection-hint{
+    margin-top:7px !important;
+    padding:8px 9px !important;
+    border-radius:11px !important;
+    font-size:.74rem !important;
+    line-height:1.65 !important;
+  }
+
+  /* Booking date/time: date on its own row, shortcuts below,
+     time + duration side-by-side. */
+  .customer-app-page .booking-date-time-card .booking-schedule-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:9px !important;
+    align-items:start;
+  }
+
+  .customer-app-page .booking-date-time-card .booking-date-field{
+    grid-column:1/-1 !important;
+  }
+
+  .customer-app-page .booking-control-label{
+    display:block;
+    margin-bottom:5px !important;
+    font-size:.78rem !important;
+    font-weight:900;
+  }
+
+  .customer-app-page .booking-control-box{
+    width:100%;
+    min-height:52px !important;
+    height:52px !important;
+    padding-inline:9px !important;
+    border-radius:13px !important;
+  }
+
+  .customer-app-page .booking-control-icon,
+  .customer-app-page .booking-control-icon svg{
+    width:21px !important;
+    height:21px !important;
+    flex:0 0 21px;
+  }
+
+  .customer-app-page .booking-control-box input,
+  .customer-app-page .booking-control-box select{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:48px !important;
+    height:48px !important;
+    font-size:16px !important;
+    line-height:1.2;
+  }
+
+  .customer-app-page .booking-duration-box{
+    padding-inline:8px !important;
+  }
+
+  .customer-app-page .booking-duration-box select{
+    padding-inline:4px !important;
+  }
+
+  .customer-app-page .booking-date-quick-row{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:7px !important;
+    margin-top:7px !important;
+  }
+
+  .customer-app-page .booking-date-quick{
+    width:100%;
+    min-height:46px !important;
+    height:46px;
+    padding:6px 9px !important;
+    border-radius:11px !important;
+  }
+
+  .customer-app-page .booking-date-quick span{
+    font-size:.72rem !important;
+  }
+
+  .customer-app-page .booking-date-quick b{
+    font-size:.76rem !important;
+    margin-top:3px !important;
+  }
+
+  .customer-app-page .booking-control-help{
+    display:block;
+    margin-top:5px;
+    font-size:.65rem !important;
+    line-height:1.35;
+  }
+
+  .customer-app-page .booking-slot-status{
+    min-height:46px !important;
+    margin-top:9px !important;
+    padding:9px 10px !important;
+    border-radius:11px !important;
+    font-size:.74rem !important;
+    line-height:1.55 !important;
+  }
+
+  /* Resource cards: one per row on the phone. */
+  .customer-app-page .booking-resource-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+  }
+
+  .customer-app-page .booking-resource-option{
+    width:100%;
+    min-width:0 !important;
+    min-height:112px !important;
+    display:grid !important;
+    grid-template-columns:76px minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "art main side"
+      "art tap  tap" !important;
+    gap:8px !important;
+    align-items:start !important;
+    padding:8px !important;
+    border-radius:15px !important;
+    overflow:hidden;
+  }
+
+  .customer-app-page .booking-resource-art{
+    grid-area:art !important;
+    width:76px !important;
+    height:92px !important;
+    min-height:92px !important;
+    border-radius:11px !important;
+  }
+
+  .customer-app-page .booking-resource-art b{
+    font-size:1.85rem !important;
+  }
+
+  .customer-app-page .booking-resource-main{
+    grid-area:main !important;
+    min-width:0;
+    padding-top:1px;
+  }
+
+  .customer-app-page .booking-resource-title{
+    min-width:0;
+  }
+
+  .customer-app-page .booking-resource-title strong{
+    display:block;
+    min-width:0;
+    max-width:100%;
+    font-size:.96rem !important;
+    line-height:1.35 !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .customer-app-page .booking-resource-main small{
+    display:block;
+    margin-top:4px !important;
+    font-size:.72rem !important;
+    line-height:1.45 !important;
+    white-space:normal !important;
+  }
+
+  .customer-app-page .booking-resource-main em{
+    display:inline-flex !important;
+    align-items:center;
+    min-height:28px;
+    margin-top:6px !important;
+    padding-inline:7px;
+    font-size:.68rem !important;
+    border-radius:8px;
+  }
+
+  .customer-app-page .booking-resource-side{
+    grid-area:side !important;
+    min-width:70px;
+    text-align:left !important;
+    padding-top:1px;
+  }
+
+  .customer-app-page .booking-resource-side b{
+    font-size:.9rem !important;
+    white-space:nowrap;
+  }
+
+  .customer-app-page .booking-resource-side small{
+    font-size:.62rem !important;
+    white-space:nowrap;
+  }
+
+  .customer-app-page .booking-resource-tap{
+    grid-area:tap !important;
+    position:static !important;
+    width:100% !important;
+    min-height:38px !important;
+    height:38px !important;
+    margin:0 !important;
+    padding:0 9px !important;
+    border-radius:10px !important;
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    font-size:.76rem !important;
+  }
+
+  /* Guest details: full-width inputs, one field at a time. */
+  .customer-app-page .booking-guest-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    margin-top:10px !important;
+  }
+
+  .customer-app-page .booking-guest-grid label,
+  .customer-app-page .booking-date-picker{
+    font-size:.78rem !important;
+  }
+
+  .customer-app-page .booking-guest-grid input{
+    width:100%;
+    min-height:50px !important;
+    height:50px !important;
+    font-size:16px !important;
+    border-radius:12px !important;
+  }
+
+  /* Cart: no horizontal scrolling; each line is a readable card. */
+  .customer-app-page .booking-cart-table-wrap{
+    width:100% !important;
+    max-width:100% !important;
+    overflow:visible !important;
+    border:0 !important;
+    border-radius:0 !important;
+  }
+
+  .customer-app-page .booking-cart-table{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    display:grid !important;
+    border-collapse:separate !important;
+    gap:9px !important;
+  }
+
+  .customer-app-page .booking-cart-table thead{
+    display:none !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody{
+    display:grid !important;
+    width:100% !important;
+    min-width:0 !important;
+    gap:9px !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody tr{
+    width:100% !important;
+    min-width:0 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:8px !important;
+    padding:11px !important;
+    margin:0 !important;
+    border:1px solid var(--mf-line) !important;
+    border-radius:15px !important;
+    background:#fff !important;
+    box-shadow:0 5px 16px rgba(17,57,48,.04);
+  }
+
+  .customer-app-page .booking-cart-table tbody td{
+    display:grid !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:46px !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    align-content:start !important;
+    justify-content:stretch !important;
+    background:transparent !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td::before{
+    content:attr(data-label) !important;
+    display:block !important;
+    margin-bottom:4px;
+    color:#82918b !important;
+    font-size:.66rem !important;
+    font-weight:850 !important;
+    line-height:1.2;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-resource-cell{
+    grid-column:1/-1 !important;
+    min-height:57px !important;
+    padding-bottom:2px !important;
+    border-bottom:1px solid #edf2f0 !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-resource-cell::before{
+    content:"الملعب" !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-resource-cell strong{
+    max-width:100% !important;
+    font-size:.94rem !important;
+    line-height:1.35 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-resource-cell small{
+    font-size:.7rem !important;
+    line-height:1.4 !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td[data-label="التاريخ"],
+  .customer-app-page .booking-cart-table tbody td[data-label="من"],
+  .customer-app-page .booking-cart-table tbody td[data-label="المدة"],
+  .customer-app-page .booking-cart-table tbody td[data-label="إلى"],
+  .customer-app-page .booking-cart-table tbody td[data-label="السعر"]{
+    grid-column:auto !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td :is(input,select){
+    width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    height:44px !important;
+    padding-inline:7px !important;
+    border:1px solid #dfe9e5 !important;
+    border-radius:10px !important;
+    background:#fff !important;
+    color:#2d4038 !important;
+    font-size:15px !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-end-time,
+  .customer-app-page .booking-cart-table tbody .cart-price{
+    min-height:44px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    padding:0 9px !important;
+    border-radius:10px !important;
+    font-size:.82rem !important;
+    font-weight:900 !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-end-time{
+    background:#f5faf8 !important;
+    color:#334940 !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody .cart-price{
+    background:#eaf9f3 !important;
+    color:#078560 !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td:last-child{
+    grid-column:1/-1 !important;
+    min-height:42px !important;
+    justify-content:stretch !important;
+    align-content:stretch !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td:last-child::before{
+    display:none !important;
+    content:none !important;
+  }
+
+  .customer-app-page .booking-cart-table .cart-remove{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:42px !important;
+    height:42px !important;
+    border-radius:10px !important;
+    font-size:.8rem !important;
+  }
+
+  .customer-app-page .booking-cart-total{
+    min-height:62px !important;
+    margin-top:9px !important;
+    padding:10px 11px !important;
+    border-radius:13px !important;
+  }
+
+  .customer-app-page .booking-cart-total span{
+    font-size:.78rem !important;
+  }
+
+  .customer-app-page .booking-cart-total strong{
+    font-size:1.22rem !important;
+  }
+
+  /* Sticky submit area remains visible above the bottom navigation. */
+  .customer-app-page .booking-total-card{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    padding:13px !important;
+    border-radius:17px !important;
+  }
+
+  .customer-app-page .booking-total-card > div > small{
+    font-size:.74rem !important;
+  }
+
+  .customer-app-page .booking-total-card > div > strong{
+    display:block;
+    margin-top:4px !important;
+    font-size:1.52rem !important;
+    line-height:1.15;
+  }
+
+  .customer-app-page .booking-total-card > div > span{
+    display:block;
+    max-width:none !important;
+    margin-top:5px !important;
+    font-size:.72rem !important;
+    line-height:1.55 !important;
+  }
+
+  .customer-app-page .booking-primary-button{
+    width:100% !important;
+    min-height:54px !important;
+    height:54px !important;
+    border-radius:13px !important;
+    font-size:.98rem !important;
+  }
+
+  .customer-app-page .booking-method-pills{
+    gap:6px !important;
+  }
+
+  .customer-app-page .booking-method-pills span{
+    min-height:36px !important;
+    padding-inline:10px !important;
+    font-size:.72rem !important;
+  }
+
+  .customer-app-page .booking-policy-card p,
+  .customer-app-page .booking-payment-line,
+  .customer-app-page .booking-steps-footer,
+  .customer-app-page .booking-help-card small{
+    font-size:.75rem !important;
+    line-height:1.75 !important;
+  }
+
+  .customer-app-page .booking-alert{
+    font-size:.78rem !important;
+    line-height:1.6 !important;
+  }
+
+  .customer-app-page .booking-confirm{
+    position:sticky !important;
+    bottom:calc(76px + env(safe-area-inset-bottom)) !important;
+    z-index:70 !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+    padding:11px !important;
+    border-radius:15px !important;
+  }
+
+  .customer-app-page .booking-confirm button{
+    width:100%;
+    min-height:48px !important;
+    font-size:.88rem !important;
+  }
+}
+
+@media (max-width:390px){
+  .customer-app-page .booking-mobile-page{
+    padding-inline:0;
+  }
+
+  .customer-app-page .booking-card,
+  .customer-app-page .booking-guest-card,
+  .customer-app-page .booking-cart-card,
+  .customer-app-page .booking-total-card,
+  .customer-app-page .booking-help-card,
+  .customer-app-page .booking-policy-card{
+    padding:11px !important;
+  }
+
+  .customer-app-page .booking-mobile-head h1{
+    font-size:1.28rem !important;
+  }
+
+  .customer-app-page .booking-resource-option{
+    grid-template-columns:70px minmax(0,1fr) auto !important;
+  }
+
+  .customer-app-page .booking-resource-art{
+    width:70px !important;
+    height:88px !important;
+    min-height:88px !important;
+  }
+
+  .customer-app-page .booking-resource-side{
+    min-width:64px;
+  }
+
+  .customer-app-page .booking-resource-title strong{
+    font-size:.9rem !important;
+  }
+
+  .customer-app-page .booking-resource-side b{
+    font-size:.84rem !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody tr{
+    padding:10px !important;
+    gap:7px !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td[data-label]::before{
+    font-size:.62rem !important;
+  }
+
+  .customer-app-page .booking-cart-table tbody td :is(input,select){
+    min-height:43px !important;
+    height:43px !important;
+    font-size:14px !important;
+  }
+}
