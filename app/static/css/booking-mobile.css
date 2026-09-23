@@ -169,8 +169,6 @@
 
 
 /* v6 — mobile readability */
-.booking-mobile-page,
-.booking-mobile-page *{font-size-adjust:0.52}
 @media(max-width:620px){
   .booking-mobile-page{padding-top:10px}
   .booking-mobile-head>div>span{font-size:.72rem!important}
