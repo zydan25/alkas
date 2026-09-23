@@ -8,12 +8,16 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="next" value="{{ next_url }}">
         <label>الهاتف أو اسم المستخدم
-            <input name="identifier" required autocomplete="username">
+            <input name="identifier" required autocomplete="username" inputmode="tel">
         </label>
         <label>كلمة المرور
             <input name="password" type="password" required autocomplete="current-password">
         </label>
         <button class="btn btn-primary" type="submit">دخول</button>
     </form>
+    <div class="auth-switch">
+        <span>ليس لديك حساب؟</span>
+        <a href="{{ url_for('auth.register', next=next_url) }}">إنشاء حساب جديد</a>
+    </div>
 </section>
 {% endblock %}
