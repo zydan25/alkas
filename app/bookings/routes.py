@@ -155,6 +155,47 @@ def resume_guest_booking():
     return redirect(url_for("bookings.booking_page", resumed="1"))
 
 
+@bp.get("/resources")
+def booking_resources():
+    """Return lightweight court data only when the customer opens the picker."""
+    query_text = (request.args.get("q") or "").strip()
+    sport_id = request.args.get("sport_id", type=int)
+
+    query = (
+        Resource.query
+        .options(selectinload(Resource.sport), selectinload(Resource.zone))
+        .filter(Resource.is_active.is_(True))
+    )
+    if sport_id:
+        query = query.filter(Resource.sport_id == sport_id)
+    if query_text:
+        like = f"%{query_text}%"
+        query = query.filter(
+            db.or_(
+                Resource.name_ar.ilike(like),
+                Resource.key.ilike(like),
+                Sport.name_ar.ilike(like),
+            )
+        ).join(Sport)
+
+    rows = query.order_by(Resource.sport_id, Resource.id).all()
+    return jsonify({
+        "items": [
+            {
+                "id": resource.id,
+                "name_ar": resource.name_ar,
+                "sport_id": resource.sport_id,
+                "sport_name": resource.sport.name_ar if resource.sport else "",
+                "sport_icon": resource.sport.icon if resource.sport else "●",
+                "zone_name": resource.zone.name_ar if resource.zone else "المرفق الرياضي",
+                "image_url": resource.image_url,
+                "base_price": str(resource.base_price),
+            }
+            for resource in rows
+        ]
+    })
+
+
 @bp.get("/availability")
 def availability():
     start_raw = request.args.get("start")
