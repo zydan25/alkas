@@ -1,127 +1,139 @@
 {% extends "base.html" %}
 {% block head %}
-<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v12">
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v20">
 {% endblock %}
-{% macro icon(name, size=18) -%}
-{% if name == "calendar" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><rect x="4" y="5.5" width="16" height="14" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-{% elif name == "plus" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-{% elif name == "check" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="m5 12 4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-{% elif name == "clock" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.6v4.8l3.1 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+{% macro icon(name, size=20) -%}
+{% if name == "calendar" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><rect x="4" y="5.5" width="16" height="14" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+{% elif name == "clock" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.7v4.7l3.1 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{% elif name == "plus" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+{% elif name == "search" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><circle cx="10.8" cy="10.8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+{% elif name == "edit" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="m5 16.8-.8 3 3-.8L18.9 7.3l-2.2-2.2L5 16.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m15.5 6.1 2.4 2.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+{% elif name == "trash" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="M5 7h14M9 7V4.8h6V7M7.4 7.7l.7 12h7.8l.7-12M10 11v5.5M14 11v5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{% elif name == "chevron" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 {% endif %}
 {%- endmacro %}
+
 {% block content %}
 <div class="booking-mobile-page">
-  <header class="booking-mobile-head">
+  <header class="booking-app-header">
     <a class="booking-back" href="{{ url_for('public.home') }}" aria-label="العودة">‹</a>
-    <div><span>الحجز</span><h1>احجز ملعبك</h1></div>
-    <a class="booking-head-link" href="{% if current_user.is_authenticated %}{{ url_for('customer.bookings') }}{% else %}{{ url_for('auth.login') }}{% endif %}">{% if current_user.is_authenticated %}حجوزاتي{% else %}دخول{% endif %}</a>
+    <div class="booking-header-copy">
+      <span>احجز الآن</span>
+      <h1>احجز ملعبك</h1>
+    </div>
+    <a class="booking-head-link" href="{% if current_user.is_authenticated %}{{ url_for('customer.bookings') }}{% else %}{{ url_for('auth.login') }}{% endif %}">
+      {% if current_user.is_authenticated %}حجوزاتي{% else %}دخول{% endif %}
+    </a>
   </header>
 
   {% if resume_error %}<div class="booking-alert booking-alert-danger">{{ resume_error }}</div>{% endif %}
 
-  <form data-booking-mobile-form data-authenticated="{{ '1' if current_user.is_authenticated else '0' }}" data-initial-sport="{{ initial_sport_id or '' }}" data-initial-resource="{{ initial_resource_id or '' }}" data-initial-date="{{ initial_date }}" data-initial-time="{{ initial_time }}">
-
-    <section class="booking-card">
-      <div class="booking-step"><span>1</span><div><small>الرياضة</small><strong>اختر لعبة أو أكثر</strong></div></div>
-      <div class="booking-sport-scroller">
-        <button type="button" class="booking-sport-chip is-active" data-sport-toggle="">الكل</button>
-        {% for sport in sports %}
-        <button type="button" class="booking-sport-chip" data-sport-toggle="{{ sport.id }}">{{ sport.icon or '●' }} {{ sport.name_ar }}</button>
-        {% endfor %}
+  <form
+    data-booking-mobile-form
+    data-authenticated="{{ '1' if current_user.is_authenticated else '0' }}"
+    data-initial-sport="{{ initial_sport_id or '' }}"
+    data-initial-resource="{{ initial_resource_id or '' }}"
+    data-initial-date="{{ initial_date }}"
+    data-initial-time="{{ initial_time }}"
+  >
+    <section class="booking-slot-card">
+      <div class="booking-slot-top">
+        <div>
+          <small>1 · موعد الحجز</small>
+          <h2>متى تريد أن تلعب؟</h2>
+        </div>
+        <span class="booking-slot-badge">وقت واحد لكل إضافة</span>
       </div>
-      <div class="booking-selection-hint">يمكنك اختيار أكثر من رياضة، ثم إضافة ملاعبها إلى نفس جدول الحجز.</div>
-    </section>
 
-    <section class="booking-card booking-date-time-card">
-      <div class="booking-step"><span>2</span><div><small>موعد الحجز</small><strong>التاريخ والوقت والمدة</strong></div></div>
-      <div class="booking-schedule-grid">
-        <label class="booking-control-field booking-date-field">
-          <span class="booking-control-label">التاريخ</span>
-          <span class="booking-control-box">
-            <span class="booking-control-icon">{{ icon("calendar",19) }}</span>
-            <input data-booking-date type="date" value="{{ initial_date }}">
-          </span>
-          <span class="booking-date-quick-row">
-            <button type="button" class="booking-date-quick is-active" data-date-offset="0"><span>اليوم</span><b>{{ initial_date }}</b></button>
-            <button type="button" class="booking-date-quick" data-date-offset="1"><span>غدًا</span><b></b></button>
-          </span>
-        </label>
-
-        <label class="booking-control-field">
-          <span class="booking-control-label">الوقت</span>
-          <span class="booking-control-box">
-            <span class="booking-control-icon">{{ icon("clock",19) }}</span>
-            <input data-booking-time type="time" value="{{ initial_time }}" min="08:00" max="23:30" step="60" inputmode="numeric">
-          </span>
-          <small class="booking-control-help">أدخل وقت البداية بالدقائق</small>
-        </label>
-
-        <label class="booking-control-field">
-          <span class="booking-control-label">المدة</span>
-          <span class="booking-control-box booking-duration-box">
-            <select data-booking-duration aria-label="مدة الحجز">
-              <option value="30">30 دقيقة</option>
-              <option value="60" selected>60 دقيقة</option>
-              <option value="90">90 دقيقة</option>
-              <option value="120">120 دقيقة</option>
-              <option value="150">150 دقيقة</option>
-              <option value="180">180 دقيقة</option>
-            </select>
-          </span>
-          <small class="booking-control-help">بالدقائق</small>
-        </label>
-      </div>
-      <div class="booking-slot-status" data-slot-status>اختر موعدًا مستقبليًا ليظهر توفر الملعب.</div>
-    </section>
-
-    <section class="booking-card">
-      <div class="booking-section-title"><div><small>3</small><h2>الملاعب المتاحة</h2></div><span data-available-count></span></div>
-      <div class="booking-resource-grid" data-booking-resources>
-        {% for resource in resources %}
-        <article class="booking-resource-option" data-resource-card data-resource-id="{{ resource.id }}" data-sport-id="{{ resource.sport_id }}" data-resource-name="{{ resource.name_ar }}" data-sport-name="{{ resource.sport.name_ar }}" data-base-price="{{ resource.base_price }}">
-          <div class="booking-resource-art">{% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">{% else %}<b>{{ resource.sport.icon or "●" }}</b>{% endif %}</div>
-          <div class="booking-resource-main"><div class="booking-resource-title"><strong>{{ resource.name_ar }}</strong></div>
-            <small>{{ resource.sport.name_ar }} · {{ resource.zone.name_ar if resource.zone else "المرفق الرياضي" }}</small>
-            <em data-resource-status>اختر الوقت</em>
+      <div class="booking-slot-controls">
+        <label class="booking-slot-control booking-date-control">
+          <span>التاريخ</span>
+          <div class="booking-input-box">
+            <span class="booking-input-icon">{{ icon("calendar",19) }}</span>
+            <input data-booking-date type="date" value="{{ initial_date }}" aria-label="تاريخ الحجز">
           </div>
-          <div class="booking-resource-side"><b>{{ "{:,.0f}".format(resource.base_price|float) }}</b><small>ر.ي/ساعة</small></div>
-          <div class="booking-resource-tap">{{ icon("plus",14) }} اضغط للإضافة</div>
-        </article>
-        {% else %}<div class="booking-empty">لا توجد ملاعب مضافة حاليًا.</div>{% endfor %}
+        </label>
+
+        <label class="booking-slot-control booking-time-control">
+          <span>وقت البداية</span>
+          <div class="booking-input-box booking-time-box">
+            <span class="booking-input-icon">{{ icon("clock",19) }}</span>
+            <input data-booking-time type="time" value="{{ initial_time }}" min="08:00" max="23:30" step="60" inputmode="numeric" aria-label="وقت بداية الحجز">
+          </div>
+        </label>
       </div>
+
+      <div class="booking-date-quick-row">
+        <button type="button" class="booking-date-quick is-active" data-date-offset="0"><b>اليوم</b><small>{{ initial_date }}</small></button>
+        <button type="button" class="booking-date-quick" data-date-offset="1"><b>غدًا</b><small></small></button>
+      </div>
+
+      <div class="booking-duration-head"><span>المدة</span><small>اخترها مرة واحدة ويمكن تعديلها لكل بطاقة لاحقًا</small></div>
+      <div class="booking-duration-options" data-duration-options>
+        <button type="button" data-duration-option="30">30 د</button>
+        <button type="button" data-duration-option="60" class="is-active">60 د</button>
+        <button type="button" data-duration-option="90">90 د</button>
+        <button type="button" data-duration-option="120">120 د</button>
+        <button type="button" data-duration-option="150">150 د</button>
+        <button type="button" data-duration-option="180">180 د</button>
+      </div>
+      <input data-booking-duration type="hidden" value="60">
+
+      <div class="booking-slot-status" data-slot-status>أدخل وقت البداية، وسأفحص الملاعب لهذا الموعد مباشرة.</div>
     </section>
 
-    <section class="booking-cart-card" data-booking-cart-card hidden>
-      <div class="booking-section-title"><div><small>4</small><h2>جدول الحجز</h2></div><span data-cart-count>0 عنصر</span></div>
-      <div class="booking-cart-table-wrap">
-        <table class="booking-cart-table">
-          <thead><tr><th>الرياضة / الملعب</th><th>التاريخ</th><th>من</th><th>المدة</th><th>إلى</th><th>السعر</th><th></th></tr></thead>
-          <tbody data-cart-body></tbody>
-        </table>
+    <section class="booking-selected-card">
+      <div class="booking-section-head">
+        <div>
+          <small>2 · حجوزاتك</small>
+          <h2>الملاعب التي اخترتها</h2>
+        </div>
+        <span data-cart-count>0 ملعب</span>
       </div>
-      <div class="booking-cart-total"><span>الإجمالي</span><strong data-booking-total>0 <em>ر.ي</em></strong></div>
+
+      <div class="booking-selected-empty" data-selected-empty>
+        <div class="booking-empty-icon">＋</div>
+        <strong>لم تضف ملعبًا بعد</strong>
+        <small>حدد الوقت أولًا، ثم اختر الملعب المناسب لك.</small>
+      </div>
+
+      <div class="booking-selected-list" data-selected-bookings></div>
+
+      <button type="button" class="booking-add-resource" data-open-resource-picker>
+        <span class="booking-add-resource-icon">{{ icon("plus",19) }}</span>
+        <span><b>إضافة ملعب</b><small>بحث أو اختر من الملاعب المتاحة</small></span>
+        <span class="booking-add-resource-arrow">←</span>
+      </button>
     </section>
 
-    {% if is_guest %}
-    <section class="booking-guest-card booking-guest-late">
-      <div class="booking-card-title"><span class="booking-round-icon">👤</span><div><strong>بياناتك لإكمال الحجز</strong><small>بعد تجهيز جدول الحجز أدخل اسمك ورقم هاتفك، ثم سيطلب منك تسجيل الدخول لإتمام العملية.</small></div></div>
+    <section class="booking-guest-card booking-guest-late" data-guest-card hidden>
+      <div class="booking-card-title">
+        <span class="booking-round-icon">👤</span>
+        <div><strong>بياناتك لإكمال الحجز</strong><small>أدخل بياناتك مرة واحدة لإرسال جميع البطاقات معًا.</small></div>
+      </div>
       <div class="booking-guest-grid">
         <label>الاسم<input data-guest-name autocomplete="name" placeholder="اسمك الكامل"></label>
         <label>الهاتف<input data-guest-phone inputmode="tel" autocomplete="tel" placeholder="77xxxxxxxx"></label>
         <label class="wide">البريد <em>اختياري</em><input data-guest-email type="email" autocomplete="email" placeholder="example@email.com"></label>
       </div>
     </section>
-    {% endif %}
 
     <section class="booking-total-card">
-      <div><small>إجمالي العناصر في جدول الحجز</small><strong data-booking-total-summary>0 <em>ر.ي</em></strong><span data-booking-breakdown>أضف ملعبًا واحدًا أو أكثر.</span></div>
+      <div class="booking-total-copy">
+        <small>الإجمالي</small>
+        <strong data-booking-total-summary>0 <em>ر.ي</em></strong>
+        <span data-booking-breakdown>أضف ملعبًا واحدًا أو أكثر.</span>
+      </div>
       <button type="submit" class="booking-primary-button" data-submit-booking>متابعة الحجز <span>←</span></button>
     </section>
 
     <div class="booking-alert" data-booking-result hidden></div>
 
     <section class="booking-card booking-policy-card">
-      <div class="booking-section-title"><div><small>الدفع</small><h2>بيانات الدفع والسياسة</h2></div></div>
+      <div class="booking-section-head">
+        <div><small>الدفع</small><h2>بيانات الدفع والسياسة</h2></div>
+      </div>
       <div class="booking-method-pills">
         {% if payment_policy and payment_policy.allow_transfer %}<span>تحويل بنكي</span>{% endif %}
         {% if payment_policy and payment_policy.allow_wallet %}<span>محفظة</span>{% endif %}
@@ -134,7 +146,7 @@
       <p class="policy-note">{{ site_settings.booking_policy_note }}</p>
     </section>
 
-    <div class="booking-steps-footer">يُمنع أي تعارض مع حجز مؤكد/نشط أو حظر صيانة، ويعاد التحقق من التوفر قبل إنشاء الحجز.</div>
+    <div class="booking-steps-footer">يُعاد التحقق من توفر كل بطاقة قبل إنشاء الحجز، ولا يسمح النظام بأي تعارض مع حجز نشط أو حظر صيانة.</div>
 
     <div class="booking-confirm" data-booking-confirm {% if not resume %}hidden{% endif %} {% if resume %}data-resume-booking-id="{{ resume.booking_id }}" data-resume-booking-number="{{ resume.booking_number }}" data-resume-expires="{{ resume.hold_expires_at }}"{% endif %}>
       <div><span class="eyebrow">حجز مؤقت</span><strong data-hold-number></strong><small>المهلة المتبقية <b data-hold-countdown>--:--</b></small></div>
@@ -142,9 +154,69 @@
     </div>
   </form>
 
-  <section class="booking-help-card"><div class="booking-card-title"><span class="booking-round-icon">✓</span><div><strong>طريقة الحجز</strong><small>حدد رياضة أو أكثر، اختر وقت البداية، ثم أضف الملاعب. بعد ذلك يمكنك تعديل وقت ومدة كل ملعب بشكل مستقل داخل الجدول قبل الإرسال.</small></div></div></section>
+  <section class="booking-help-card">
+    <div class="booking-card-title"><span class="booking-round-icon">✓</span><div><strong>كيف تعمل الشاشة؟</strong><small>أدخل التاريخ والوقت والمدة مرة واحدة، ثم اضغط «إضافة ملعب». ابحث عن الملعب، وسيظهر لك فورًا هل هو متاح. ويمكن فتح أي بطاقة وتعديل وقتها ومدتها أو استبدال الملعب قبل إرسال الحجز.</small></div></div>
+  </section>
+</div>
+
+<div class="booking-picker-overlay" data-resource-picker hidden>
+  <div class="booking-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="booking-picker-title">
+    <div class="booking-picker-handle"></div>
+    <header class="booking-picker-head">
+      <div><small data-picker-kicker>اختيار ملعب</small><h2 id="booking-picker-title">اختر الملعب</h2></div>
+      <button type="button" class="booking-picker-close" data-close-resource-picker aria-label="إغلاق">×</button>
+    </header>
+
+    <div class="booking-picker-context" data-picker-context>التوفر للفترة المحددة في أعلى الشاشة</div>
+
+    <label class="booking-resource-search">
+      <span>{{ icon("search",20) }}</span>
+      <input data-resource-search type="search" placeholder="ابحث باسم الملعب أو الرياضة أو المنطقة" autocomplete="off">
+    </label>
+
+    <div class="booking-picker-filters" data-picker-filters>
+      <button type="button" class="is-active" data-picker-sport="">الكل</button>
+      {% for sport in sports %}
+      <button type="button" data-picker-sport="{{ sport.id }}">{{ sport.icon or '●' }} {{ sport.name_ar }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="booking-picker-result-count" data-picker-result-count></div>
+
+    <div class="booking-picker-resources" data-picker-resources>
+      {% for resource in resources %}
+      <article
+        class="booking-picker-resource"
+        data-picker-resource
+        data-resource-id="{{ resource.id }}"
+        data-sport-id="{{ resource.sport_id }}"
+        data-resource-name="{{ resource.name_ar }}"
+        data-sport-name="{{ resource.sport.name_ar }}"
+        data-zone-name="{{ resource.zone.name_ar if resource.zone else 'المرفق الرياضي' }}"
+        data-base-price="{{ resource.base_price }}"
+      >
+        <div class="booking-picker-resource-art">
+          {% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">{% else %}<b>{{ resource.sport.icon or "●" }}</b>{% endif %}
+        </div>
+        <div class="booking-picker-resource-body">
+          <div class="booking-picker-resource-title">
+            <strong>{{ resource.name_ar }}</strong>
+            <span data-picker-resource-price>{{ "{:,.0f}".format(resource.base_price|float) }} ر.ي/ساعة</span>
+          </div>
+          <small>{{ resource.sport.name_ar }} · {{ resource.zone.name_ar if resource.zone else "المرفق الرياضي" }}</small>
+          <div class="booking-picker-resource-status" data-picker-resource-status>بانتظار الوقت</div>
+          <div class="booking-picker-nearby" data-picker-resource-nearby hidden></div>
+        </div>
+        <button type="button" class="booking-picker-resource-action" data-picker-resource-action disabled>انتظر الوقت</button>
+      </article>
+      {% else %}
+      <div class="booking-empty">لا توجد ملاعب مضافة حاليًا.</div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
-<script src="/static/js/booking-mobile.js?v={{ site_settings.asset_version }}&ui=20260923-booking-v12" defer></script>
+<script src="/static/js/booking-mobile.js?v={{ site_settings.asset_version }}&ui=20260923-booking-v20" defer></script>
 {% endblock %}
