@@ -89,3 +89,33 @@ class ResourceBlock(db.Model):
     reference_id=db.Column(db.Integer)
     status=db.Column(db.String(30),nullable=False,default="active")
     created_by_id=db.Column(db.Integer,db.ForeignKey("users.id",ondelete="SET NULL"))
+
+class BookingMessage(db.Model):
+    __tablename__="booking_messages"
+    id=db.Column(db.Integer,primary_key=True)
+    booking_id=db.Column(db.Integer,db.ForeignKey("bookings.id",ondelete="CASCADE"),nullable=False,index=True)
+    sender_user_id=db.Column(db.Integer,db.ForeignKey("users.id",ondelete="SET NULL"))
+    sender_role=db.Column(db.String(30),nullable=False,default="customer")
+    message_type=db.Column(db.String(30),nullable=False,default="message")
+    body_ar=db.Column(db.Text)
+    attachment_url=db.Column(db.String(800))
+    attachment_name=db.Column(db.String(240))
+    attachment_mime=db.Column(db.String(120))
+    created_at=db.Column(db.DateTime(timezone=True),nullable=False,default=lambda: datetime.now(timezone.utc))
+    booking=db.relationship("Booking",backref=db.backref("messages",lazy="dynamic",cascade="all, delete-orphan"))
+    sender=db.relationship("User",lazy="joined")
+
+
+class BookingPaymentReceipt(db.Model):
+    __tablename__="booking_payment_receipts"
+    id=db.Column(db.Integer,primary_key=True)
+    booking_id=db.Column(db.Integer,db.ForeignKey("bookings.id",ondelete="CASCADE"),nullable=False,index=True)
+    uploaded_by_id=db.Column(db.Integer,db.ForeignKey("users.id",ondelete="SET NULL"))
+    file_url=db.Column(db.String(800),nullable=False)
+    original_name=db.Column(db.String(240),nullable=False)
+    mime_type=db.Column(db.String(120))
+    status=db.Column(db.String(30),nullable=False,default="pending")
+    note_ar=db.Column(db.String(500))
+    created_at=db.Column(db.DateTime(timezone=True),nullable=False,default=lambda: datetime.now(timezone.utc))
+    booking=db.relationship("Booking",backref=db.backref("payment_receipts",lazy="dynamic",cascade="all, delete-orphan"))
+    uploaded_by=db.relationship("User",lazy="joined")
