@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
@@ -126,7 +127,7 @@ def membership_renew(request_id):
     if row.status != "approved":
         return jsonify({"error":"لا يمكن طلب التجديد قبل الموافقة على العضوية"}),400
     active = Membership.query.filter_by(customer_id=customer.id, plan_id=row.plan_id, status="active").order_by(Membership.ends_on.desc(), Membership.id.desc()).first()
-    starts = (active.ends_on + __import__("datetime").timedelta(days=1)) if active and active.ends_on else (row.ends_on + __import__("datetime").timedelta(days=1) if row.ends_on else date.today())
+    starts = (active.ends_on + timedelta(days=1)) if active and active.ends_on else (row.ends_on + __import__("datetime").timedelta(days=1) if row.ends_on else date.today())
     ends = starts + __import__("datetime").timedelta(days=max(1,row.duration_days)-1)
     duplicate = MembershipRequest.query.filter(
         MembershipRequest.customer_id==customer.id,
