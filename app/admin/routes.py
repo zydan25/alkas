@@ -13,6 +13,7 @@ from ..maintenance.models import MaintenanceRequest
 from ..models import Booking, BookingAllocation, Customer, Resource, Venue
 from ..bookings.services import cancel_booking, create_hold_booking
 from ..payments.models import Payment
+from ..bookings.models import BookingMessage, BookingPaymentReceipt
 from ..tournaments.models import Tournament
 
 bp = Blueprint("admin", __name__, url_prefix="/admin", template_folder="templates")
@@ -172,6 +173,28 @@ def resources():
     rows = Resource.query.options(joinedload(Resource.sport), joinedload(Resource.zone)).filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
     venues = Venue.query.filter_by(is_active=True).order_by(Venue.id).all()
     return render_template("admin/resources.html", rows=rows, venues=venues)
+
+
+@bp.get("/bookings/<int:booking_id>/chat")
+@login_required
+def booking_chat(booking_id):
+    if not _allowed():
+        return {"error":"forbidden"},403
+    booking = Booking.query.options(joinedload(Booking.customer), joinedload(Booking.allocations).joinedload(BookingAllocation.resource)).get_or_404(booking_id)
+    messages = BookingMessage.query.filter_by(booking_id=booking.id).order_by(BookingMessage.created_at.asc()).all()
+    receipts = BookingPaymentReceipt.query.filter_by(booking_id=booking.id).order_by(BookingPaymentReceipt.created_at.desc()).all()
+    return render_template("admin/booking_chat.html", booking=booking, messages=messages, receipts=receipts)
+
+
+@bp.post("/bookings/<int:booking_id>/receipt/<int:receipt_id>/<action>")
+@login_required
+def booking_receipt_action(booking_id, receipt_id, action):
+    if not _allowed() or action not in {"approve","reject"}:
+        return {"error":"forbidden"},403
+    receipt=BookingPaymentReceipt.query.filter_by(id=receipt_id, booking_id=booking_id).first_or_404()
+    receipt.status="approved" if action=="approve" else "rejected"
+    db.session.commit()
+    return redirect(url_for("admin.booking_chat", booking_id=booking_id))
 
 
 @bp.get("/bookings/new")
