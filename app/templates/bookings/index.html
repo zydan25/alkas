@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
-<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v4">
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v5">
 {% endblock %}
 {% macro icon(name, size=18) -%}
 {% if name == "calendar" %}<svg viewBox="0 0 24 24" width="{{size}}" height="{{size}}"><rect x="4" y="5.5" width="16" height="14" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
@@ -45,28 +45,26 @@
       </div>
       <div class="booking-duration-row">
         <span>المدة عند الإضافة</span>
-        <select data-booking-duration><option value="60">ساعة</option><option value="90">ساعة ونصف</option><option value="120">ساعتان</option><option value="180">3 ساعات</option></select>
+        <select data-booking-duration><option value="30">30 دقيقة</option><option value="60" selected>60 دقيقة</option><option value="90">90 دقيقة</option><option value="120">120 دقيقة</option><option value="150">150 دقيقة</option><option value="180">180 دقيقة</option></select>
       </div>
       <div class="booking-slot-status" data-slot-status>حدد الوقت ليظهر المتاح والمحجوز.</div>
     </section>
 
     <section class="booking-card">
-      <div class="booking-section-title"><div><small>3</small><h2>الملاعب المتاحة</h2></div><span data-selected-count>0 محدد</span></div>
+      <div class="booking-section-title"><div><small>3</small><h2>الملاعب المتاحة</h2></div><span data-available-count></span></div>
       <div class="booking-resource-grid" data-booking-resources>
         {% for resource in resources %}
         <article class="booking-resource-option" data-resource-card data-resource-id="{{ resource.id }}" data-sport-id="{{ resource.sport_id }}" data-resource-name="{{ resource.name_ar }}" data-sport-name="{{ resource.sport.name_ar }}">
           <div class="booking-resource-art">{% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">{% else %}<b>{{ resource.sport.icon or "●" }}</b>{% endif %}</div>
-          <div class="booking-resource-main">
-            <div class="booking-resource-title"><strong>{{ resource.name_ar }}</strong><span class="booking-check"><input type="checkbox" name="resource_select" value="{{ resource.id }}"><i>{{ icon("check",13) }}</i></span></div>
+          <div class="booking-resource-main"><div class="booking-resource-title"><strong>{{ resource.name_ar }}</strong></div>
             <small>{{ resource.sport.name_ar }} · {{ resource.zone.name_ar if resource.zone else "المرفق الرياضي" }}</small>
             <em data-resource-status>اختر الوقت</em>
           </div>
           <div class="booking-resource-side"><b>{{ "{:,.0f}".format(resource.base_price|float) }}</b><small>ر.ي/ساعة</small></div>
-          <button type="button" class="booking-mini-add" data-add-resource="{{ resource.id }}">{{ icon("plus",14) }} إضافة</button>
+          <div class="booking-resource-tap">{{ icon("plus",14) }} اضغط للإضافة</div>
         </article>
         {% else %}<div class="booking-empty">لا توجد ملاعب مضافة حاليًا.</div>{% endfor %}
       </div>
-      <button type="button" class="booking-add-button" data-add-to-cart>{{ icon("plus",16) }} إضافة كل المحدد إلى الجدول</button>
     </section>
 
     <section class="booking-cart-card" data-booking-cart-card hidden>
