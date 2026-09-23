@@ -145,7 +145,7 @@
     </div>
     <div class="home-sports-scroller">
       {% for sport in sports %}
-      <a class="home-sport-tile sport-tone-{{ loop.index0 % 6 }}" href="{{ url_for('bookings.booking_page', sport_id=sport.id) }}">
+      <a class="home-sport-tile sport-tone-{{ loop.index0 % 6 }}" href="{{ url_for('bookings.sport_detail', sport_id=sport.id) }}">
         <div class="home-sport-art">
           <span class="home-sport-icon">{{ sport.icon or '●' }}</span>
         </div>
@@ -203,7 +203,7 @@
     </div>
     <div class="home-resource-scroller">
       {% for resource in resources %}
-      <a class="home-resource-card" href="{{ url_for('bookings.booking_page', resource_id=resource.id) }}">
+      <a class="home-resource-card" href="{{ url_for('bookings.resource_detail', resource_id=resource.id) }}">
         <div class="home-resource-photo">
           <div class="home-resource-photo-fallback sport-tone-{{ loop.index0 % 6 }}">
             <span>{{ resource.sport.icon or '●' }}</span>
