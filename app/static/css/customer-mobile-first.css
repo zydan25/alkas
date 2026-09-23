@@ -4276,3 +4276,115 @@ body{
   .customer-app-page .booking-cart-table .cart-end-time,.customer-app-page .booking-cart-table .cart-price{font-size:.45rem!important}
 }
 
+/* =========================================================
+   v15 — booking table row layout + faster preflight
+   ========================================================= */
+@media(max-width:620px){
+  /* Keep every booking item as one horizontal table row. */
+  .customer-app-page .booking-cart-table-wrap{
+    overflow:hidden!important;
+  }
+  .customer-app-page .booking-cart-table{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+  .customer-app-page .booking-cart-table thead,
+  .customer-app-page .booking-cart-table tbody{
+    width:100%!important;
+  }
+  .customer-app-page .booking-cart-table tr{
+    width:100%!important;
+    height:52px!important;
+    min-height:52px!important;
+  }
+  .customer-app-page .booking-cart-table th,
+  .customer-app-page .booking-cart-table td{
+    height:52px!important;
+    min-height:52px!important;
+    padding:4px 2px!important;
+    white-space:nowrap!important;
+    word-break:keep-all!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    vertical-align:middle!important;
+  }
+  .customer-app-page .booking-cart-table th{
+    height:27px!important;
+    min-height:27px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .customer-app-page .booking-cart-table .cart-resource-cell{
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .customer-app-page .booking-cart-table .cart-resource-cell strong{
+    display:block!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.2!important;
+  }
+  .customer-app-page .booking-cart-table .cart-resource-cell small{
+    display:block!important;
+    max-width:100%!important;
+    margin-top:2px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.1!important;
+  }
+  .customer-app-page .booking-cart-table input,
+  .customer-app-page .booking-cart-table select{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    padding:0 2px!important;
+    border-radius:6px!important;
+    font-size:10px!important;
+    line-height:30px!important;
+    white-space:nowrap!important;
+  }
+  .customer-app-page .booking-cart-table .cart-end-time,
+  .customer-app-page .booking-cart-table .cart-price{
+    display:table-cell!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.1!important;
+    font-size:10px!important;
+  }
+  .customer-app-page .booking-cart-table .cart-price{
+    color:#078b6b!important;
+    font-weight:950!important;
+  }
+  .customer-app-page .booking-cart-table td:last-child{
+    overflow:visible!important;
+  }
+}
+@media(max-width:390px){
+  .customer-app-page .booking-cart-table tr,
+  .customer-app-page .booking-cart-table th,
+  .customer-app-page .booking-cart-table td{
+    height:49px!important;
+    min-height:49px!important;
+  }
+  .customer-app-page .booking-cart-table input,
+  .customer-app-page .booking-cart-table select{
+    height:28px!important;
+    min-height:28px!important;
+    line-height:28px!important;
+    font-size:9px!important;
+  }
+  .customer-app-page .booking-cart-table .cart-end-time,
+  .customer-app-page .booking-cart-table .cart-price{
+    font-size:9px!important;
+  }
+}
+
