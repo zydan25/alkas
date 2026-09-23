@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
-<link rel="stylesheet" href="/static/css/customer-home.css?v={{ site_settings.asset_version }}&ui=20260923-home-pixel-v4">
+<link rel="stylesheet" href="/static/css/customer-home.css?v={{ site_settings.asset_version }}&ui=20260923-home-pixel-v5">
 {% endblock %}
 
 {% macro icon(name, size=20) -%}
@@ -71,14 +71,6 @@
     </div>
   </header>
 
-  <div class="home-location-row">
-    <button type="button" class="home-location-pill">
-      <span>{{ icon("pin", 17) }}</span>
-      <strong>صنعاء</strong>
-      <span class="location-chevron">⌄</span>
-    </button>
-  </div>
-
   <form class="home-search" action="{{ url_for('bookings.booking_page') }}" method="get">
     <button type="submit" class="home-search-icon" aria-label="بحث">{{ icon("search", 21) }}</button>
     <input type="search" name="q" autocomplete="off" placeholder="ابحث عن ملعب أو مباراة..." aria-label="ابحث عن ملعب أو مباراة">
@@ -139,10 +131,7 @@
   {% endif %}
 
   <section class="home-section">
-    <div class="home-section-head">
-      <h2>اختر رياضتك</h2>
-      <a href="{{ url_for('bookings.booking_page') }}">عرض الكل</a>
-    </div>
+    <div class="home-section-label">اختر رياضتك</div>
     <div class="home-sports-scroller">
       {% for sport in sports %}
       <a class="home-sport-tile sport-tone-{{ loop.index0 % 6 }}" href="{{ url_for('bookings.sport_detail', sport_id=sport.id) }}">
@@ -205,10 +194,7 @@
   </section>
 
   <section class="home-section">
-    <div class="home-section-head">
-      <h2>المرافق المتاحة</h2>
-      <a href="{{ url_for('bookings.booking_page') }}">عرض الكل</a>
-    </div>
+    <div class="home-section-label">المرافق المتاحة</div>
     <div class="home-resource-scroller">
       {% for resource in resources %}
       <a class="home-resource-card" href="{{ url_for('bookings.resource_detail', resource_id=resource.id) }}">
@@ -327,28 +313,6 @@
   </section>
   {% endif %}
 
-  {% if offers or tournaments %}
-  <section class="home-section">
-    <div class="home-section-head">
-      <h2>العروض والباقات</h2>
-      <a href="{{ url_for('public.offers') }}">عرض الكل</a>
-    </div>
-    <div class="home-promo-grid">
-      <a class="home-promo-card" href="{{ url_for('public.offers') }}">
-        {% set offer = offers[0] if offers else None %}
-        {% if offer and offer.image_url %}<img src="{{ offer.image_url }}" alt="{{ offer.title_ar }}" loading="lazy">{% else %}<div class="home-promo-placeholder promo-offer"><span>خصم خاص</span>{% if offer and offer.discount_percent %}<b>{{ offer.discount_percent|int }}%</b>{% else %}<b>20%</b>{% endif %}</div>{% endif %}
-        <div class="home-promo-overlay"></div>
-        <div class="home-promo-copy"><span>عرض خاص</span><strong>{{ offer.title_ar if offer else "خصم على الحجوزات" }}</strong></div>
-      </a>
-      <a class="home-promo-card" href="{{ url_for('public.tournaments') }}">
-        {% set tournament = tournaments[0] if tournaments else None %}
-        <div class="home-promo-placeholder promo-cup"><strong>🏆</strong><span>{{ tournament.name_ar if tournament else "كأس الكأس" }}</span><b>{{ tournament.starts_on.year if tournament and tournament.starts_on else "" }}</b></div>
-        <div class="home-promo-copy"><span>بطولة</span><strong>تفاصيل البطولة</strong></div>
-      </a>
-    </div>
-  </section>
-  {% endif %}
-
   {% if membership_plans %}
   <section class="home-section home-memberships-section">
     <div class="home-section-head home-section-head-plain">
@@ -391,6 +355,32 @@
       </div>
       {{ icon("chevron", 19) }}
     </a>
+  </section>
+
+  <section class="home-section home-bottom-discover-section">
+    <div class="home-section-head">
+      <h2>آخر الأخبار والعروض</h2>
+      <a href="{{ url_for('public.offers') }}">عرض الكل</a>
+    </div>
+    <div class="home-bottom-discover-scroller">
+      {% for offer in offers[:4] %}
+      <a class="home-discover-card" href="{{ url_for('public.offers') }}">
+        {% if offer.image_url %}<img src="{{ offer.image_url }}" alt="{{ offer.title_ar }}" loading="lazy">{% else %}<div class="home-discover-fallback offer"><b>%</b></div>{% endif %}
+        <div class="home-discover-overlay"></div>
+        <div class="home-discover-copy"><small>عرض</small><strong>{{ offer.title_ar }}</strong>{% if offer.discount_percent %}<span>خصم {{ offer.discount_percent|int }}%</span>{% endif %}</div>
+      </a>
+      {% endfor %}
+      {% for post in news_posts[:4] %}
+      <a class="home-discover-card" href="{{ url_for('public.news') }}">
+        {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="{{ post.title_ar }}" loading="lazy">{% else %}<div class="home-discover-fallback news">✦</div>{% endif %}
+        <div class="home-discover-overlay"></div>
+        <div class="home-discover-copy"><small>خبر</small><strong>{{ post.title_ar }}</strong></div>
+      </a>
+      {% endfor %}
+      {% if not offers and not news_posts %}
+      <div class="home-empty-card">ستظهر الأخبار والعروض هنا.</div>
+      {% endif %}
+    </div>
   </section>
 
   <div class="home-scroll-space"></div>
