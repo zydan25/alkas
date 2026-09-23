@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
-from ..extensions import db
+from ..extensions import csrf, db
 from ..models import Booking, BookingAllocation, BookingMessage, BookingPaymentReceipt, Customer, Resource, ResourceBundle, ResourceBlock, Sport
 from ..policies.models import BookingPolicy, PaymentPolicy
 from ..settings.services import get_site_settings
@@ -269,6 +269,7 @@ def sport_detail(sport_id):
 
 
 @bp.post("/availability/batch")
+@csrf.exempt
 def availability_batch():
     """Fast pre-check of only the requested booking intervals."""
     data = request.get_json(silent=True) or {}
@@ -400,7 +401,7 @@ def availability_next():
     now_utc = datetime.now(ZoneInfo("UTC"))
     duration = requested_end - requested_start
     tz = requested_start.tzinfo or ZoneInfo("Asia/Aden")
-    candidate = max(requested_end, now_utc.astimezone(tz))
+    candidate = max(requested_start, now_utc.astimezone(tz))
     candidate = candidate.replace(second=0, microsecond=0)
 
     # Booking UI permits starts from 08:00 through 23:30.
