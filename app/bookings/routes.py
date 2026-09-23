@@ -445,20 +445,29 @@ def availability_batch():
                     for interval_start, interval_end in intervals
                     if interval_start < candidate_end and interval_end > candidate
                 ]
-                if (
+                within_hours = (
                     candidate.hour >= 8
                     and candidate.hour <= 23
                     and not (candidate.hour == 23 and candidate.minute > 30)
-                    and candidate >= now_local
-                    and not conflicts
-                ):
+                )
+                if candidate >= now_local and within_hours and not conflicts:
                     previous = candidate
                     break
-                if not conflicts:
-                    candidate -= timedelta(minutes=1)
-                else:
+
+                if conflicts:
                     candidate = min(interval_start for interval_start, interval_end in conflicts) - duration
                     candidate = candidate.replace(second=0, microsecond=0)
+                    continue
+
+                # Skip closed hours in one jump rather than checking every minute.
+                if candidate.hour > 23 or (candidate.hour == 23 and candidate.minute > 30):
+                    candidate = candidate.replace(hour=23, minute=30)
+                elif candidate.hour < 8:
+                    candidate = (candidate - timedelta(days=1)).replace(
+                        hour=23, minute=30, second=0, microsecond=0
+                    )
+                else:
+                    candidate -= timedelta(minutes=1)
 
             next_start = normalize_forward(max(start_at, now_utc.astimezone(tz)), tz)
             horizon = next_start + timedelta(days=7)
