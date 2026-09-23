@@ -1,10 +1,11 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle
+from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle, Sport
 from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
@@ -17,14 +18,20 @@ def booking_page():
         if current_user.is_authenticated else None
     )
     resume = session.pop("booking_resume", None)
+    now = datetime.now(ZoneInfo("Asia/Aden"))
     return render_template(
         "bookings/index.html",
         customer=customer,
+        sports=Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all(),
         resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
         bundles=ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all(),
         is_guest=not current_user.is_authenticated,
         resume=resume,
         resume_error=request.args.get("resume_error"),
+        initial_sport_id=request.args.get("sport_id", type=int),
+        initial_resource_id=request.args.get("resource_id", type=int),
+        initial_date=request.args.get("date") or now.date().isoformat(),
+        initial_time=request.args.get("time") or "18:00",
     )
 
 
@@ -156,6 +163,67 @@ def availability():
         "available": conflicts == 0 and resource.is_active and resource.status == "available" and end_at > start_at,
         "resource_id": resource.id, "start": start_at.isoformat(), "end": end_at.isoformat(),
     })
+
+
+@bp.get("/resource/<int:resource_id>")
+def resource_detail(resource_id):
+    from flask import abort
+    from datetime import timedelta
+    from ..policies.models import BookingPolicy, PaymentPolicy
+    from ..pricing.services import calculate_price
+
+    resource = Resource.query.options().get_or_404(resource_id)
+    if not resource.is_active:
+        abort(404)
+    now = datetime.now(ZoneInfo("Asia/Aden"))
+    day = request.args.get("date") or now.date().isoformat()
+    try:
+        selected_date = datetime.fromisoformat(day).date()
+    except ValueError:
+        selected_date = now.date()
+
+    start_hour, end_hour = 8, 24
+    slots = []
+    from ..models import ResourceBlock
+    for hour in range(start_hour, end_hour):
+        start = datetime(selected_date.year, selected_date.month, selected_date.day, hour, 0, tzinfo=ZoneInfo("Asia/Aden"))
+        end = start + timedelta(hours=1)
+        conflict = BookingAllocation.query.join(Booking).filter(
+            Booking.status.in_(["hold","pending","confirmed","checked_in","in_progress"]),
+            BookingAllocation.is_active.is_(True),
+            BookingAllocation.resource_id == resource.id,
+            BookingAllocation.start_at < end,
+            BookingAllocation.end_at > start,
+        ).first()
+        blocked = ResourceBlock.query.filter(
+            ResourceBlock.resource_id == resource.id,
+            ResourceBlock.status == "active",
+            ResourceBlock.starts_at < end,
+            ResourceBlock.ends_at > start,
+        ).first()
+        available = (
+            resource.status == "available"
+            and start.astimezone(ZoneInfo("UTC")) >= datetime.now(ZoneInfo("UTC"))
+            and not conflict
+            and not blocked
+        )
+        slots.append({
+            "start": start,
+            "end": end,
+            "available": available,
+            "reason": "محجوز" if conflict else "محجوب" if blocked else "متاح",
+            "price": calculate_price(resource, start, end),
+        })
+    booking_policy=BookingPolicy.query.filter_by(is_default=True,is_active=True).first()
+    payment_policy=PaymentPolicy.query.filter_by(is_default=True,is_active=True).first()
+    return render_template("public/resource_detail.html", resource=resource, slots=slots, selected_date=selected_date, booking_policy=booking_policy, payment_policy=payment_policy)
+
+
+@bp.get("/sport/<int:sport_id>")
+def sport_detail(sport_id):
+    sport=Sport.query.get_or_404(sport_id)
+    resources=Resource.query.filter_by(sport_id=sport.id,is_active=True).order_by(Resource.id).all()
+    return render_template("public/sport_detail.html", sport=sport, resources=resources)
 
 
 @bp.post("/availability/batch")
