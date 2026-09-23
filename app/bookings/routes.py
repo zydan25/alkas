@@ -429,44 +429,49 @@ def availability_batch():
             intervals = intervals_by_resource.get(resource_id, [])
             tz = start_at.tzinfo or ZoneInfo("Asia/Aden")
             now_local = now_utc.astimezone(tz)
+
+            # Jump from conflict boundaries instead of checking every minute.
+            # This keeps the nearest-time calculation bounded even with many bookings.
             previous = None
             candidate = (start_at - duration).replace(second=0, microsecond=0)
-            floor = max(now_local, start_at - timedelta(days=1))
+            floor = max(
+                now_local.replace(second=0, microsecond=0),
+                (start_at - timedelta(days=1)).replace(second=0, microsecond=0),
+            )
             while candidate >= floor:
                 candidate_end = candidate + duration
+                conflicts = [
+                    (interval_start, interval_end)
+                    for interval_start, interval_end in intervals
+                    if interval_start < candidate_end and interval_end > candidate
+                ]
                 if (
                     candidate.hour >= 8
                     and candidate.hour <= 23
                     and not (candidate.hour == 23 and candidate.minute > 30)
                     and candidate >= now_local
-                    and not any(
-                        interval_start < candidate_end and interval_end > candidate
-                        for interval_start, interval_end in intervals
-                    )
+                    and not conflicts
                 ):
                     previous = candidate
                     break
-                candidate -= timedelta(minutes=1)
+                if not conflicts:
+                    candidate -= timedelta(minutes=1)
+                else:
+                    candidate = min(interval_start for interval_start, interval_end in conflicts) - duration
+                    candidate = candidate.replace(second=0, microsecond=0)
 
             next_start = normalize_forward(max(start_at, now_utc.astimezone(tz)), tz)
             horizon = next_start + timedelta(days=7)
             while next_start + duration <= horizon:
-                conflict_ends = []
-                conflict = False
-                for interval_start, interval_end in intervals:
-                    if interval_end <= next_start:
-                        continue
-                    if interval_start >= next_start + duration:
-                        break
-                    conflict = True
-                    conflict_ends.append(interval_end)
-                if not conflict:
+                conflict_ends = [
+                    interval_end
+                    for interval_start, interval_end in intervals
+                    if interval_start < next_start + duration and interval_end > next_start
+                ]
+                if not conflict_ends:
                     return previous, next_start
                 next_start = normalize_forward(
-                    max(
-                        next_start + timedelta(minutes=1),
-                        max(conflict_ends),
-                    ),
+                    max(next_start + timedelta(minutes=1), max(conflict_ends)),
                     tz,
                 )
             return previous, None
