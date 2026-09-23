@@ -20,7 +20,11 @@
   const result=form.querySelector("[data-booking-result]");
 
   const picker=document.querySelector("[data-resource-picker]");
-  const pickerResources=[...document.querySelectorAll("[data-picker-resource]")];
+  let pickerResources=[];
+  const pickerResourcesHost=document.querySelector("[data-picker-resources]");
+  const pickerLoading=document.querySelector("[data-picker-loading]");
+  let resourcesLoaded=false;
+  let resourcesLoading=null;
   const pickerSearch=document.querySelector("[data-resource-search]");
   const pickerFilters=[...document.querySelectorAll("[data-picker-sport]")];
   const pickerResultCount=document.querySelector("[data-picker-result-count]");
@@ -57,7 +61,7 @@
   }
 
   function validTime(value){
-    if(!/^\\d{2}:\\d{2}$/.test(value))return false;
+    if(!/^\d{2}:\d{2}$/.test(value))return false;
     const parts=value.split(":").map(Number);
     const minutes=parts[0]*60+parts[1];
     return minutes>=8*60 && minutes<=23*60+30;
@@ -398,6 +402,110 @@
     }
   }
 
+  function renderPickerResources(items){
+    if(!pickerResourcesHost)return;
+    pickerResourcesHost.innerHTML="";
+    pickerResources=items.map(item=>{
+      const card=document.createElement("article");
+      card.className="booking-picker-resource";
+      card.dataset.pickerResource="";
+      card.dataset.resourceId=String(item.id);
+      card.dataset.sportId=String(item.sport_id||"");
+      card.dataset.resourceName=item.name_ar||"";
+      card.dataset.sportName=item.sport_name||"";
+      card.dataset.zoneName=item.zone_name||"";
+      card.dataset.basePrice=item.base_price||"0";
+
+      const art=document.createElement("div");
+      art.className="booking-picker-resource-art";
+      if(item.image_url){
+        const img=document.createElement("img");
+        img.src=item.image_url;
+        img.alt=item.name_ar||"";
+        img.loading="lazy";
+        art.appendChild(img);
+      }else{
+        const icon=document.createElement("b");
+        icon.textContent=item.sport_icon||"●";
+        art.appendChild(icon);
+      }
+
+      const body=document.createElement("div");
+      body.className="booking-picker-resource-body";
+
+      const title=document.createElement("div");
+      title.className="booking-picker-resource-title";
+      const name=document.createElement("strong");
+      name.textContent=item.name_ar||"الملعب";
+      const price=document.createElement("span");
+      price.textContent=(Number(item.base_price)||0).toLocaleString("en-US")+" ر.ي/ساعة";
+      title.append(name,price);
+
+      const meta=document.createElement("small");
+      meta.textContent=(item.sport_name||"")+(item.zone_name?" · "+item.zone_name:"");
+
+      const status=document.createElement("div");
+      status.className="booking-picker-resource-status";
+      status.dataset.pickerResourceStatus="";
+      status.textContent="بانتظار الوقت";
+
+      const nearby=document.createElement("div");
+      nearby.className="booking-picker-nearby";
+      nearby.dataset.pickerResourceNearby="";
+      nearby.hidden=true;
+
+      body.append(title,meta,status,nearby);
+
+      const action=document.createElement("button");
+      action.type="button";
+      action.className="booking-picker-resource-action";
+      action.dataset.pickerResourceAction="";
+      action.disabled=true;
+      action.textContent="انتظر الوقت";
+
+      card.append(art,body,action);
+      pickerResourcesHost.appendChild(card);
+      return card;
+    });
+
+    if(!pickerResources.length){
+      const empty=document.createElement("div");
+      empty.className="booking-empty";
+      empty.textContent="لا توجد ملاعب مطابقة للبحث.";
+      pickerResourcesHost.appendChild(empty);
+    }
+  }
+
+  async function loadPickerResources(){
+    if(resourcesLoaded)return pickerResources;
+    if(resourcesLoading)return resourcesLoading;
+
+    if(pickerLoading)pickerLoading.hidden=false;
+    resourcesLoading=(async()=>{
+      try{
+        const response=await fetch("/bookings/resources",{cache:"no-store",headers:{"Accept":"application/json"}});
+        if(!response.ok)throw new Error("resources "+response.status);
+        const data=await response.json();
+        renderPickerResources(data.items||[]);
+        resourcesLoaded=true;
+        return pickerResources;
+      }catch(_){
+        if(pickerResourcesHost){
+          pickerResourcesHost.innerHTML="";
+          const error=document.createElement("div");
+          error.className="booking-empty";
+          error.textContent="تعذر تحميل الملاعب. حاول فتح القائمة مرة أخرى.";
+          pickerResourcesHost.appendChild(error);
+        }
+        return [];
+      }finally{
+        if(pickerLoading)pickerLoading.hidden=true;
+        resourcesLoading=null;
+      }
+    })();
+    return resourcesLoading;
+  }
+
   function pickerCardsForCurrentFilter(){
     const query=(pickerSearch?.value||"").trim().toLocaleLowerCase("ar");
     const visible=[];
@@ -635,7 +743,7 @@
     }
   }
 
-  function openPicker(index=null){
+  async function openPicker(index=null){
     const ctx=index!==null&&cart[index]
       ? {date:cart[index].date,time:cart[index].start_time,duration:String(cart[index].duration)}
       : globalContext();
@@ -651,12 +759,13 @@
     if(pickerSearch)pickerSearch.value="";
     pickerFilters.forEach(btn=>btn.classList.toggle("is-active",!btn.dataset.pickerSport));
     renderPickerContext(ctx,index);
-    pickerCardsForCurrentFilter();
     if(picker){
       picker.hidden=false;
       document.body.style.overflow="hidden";
     }
-    refreshPickerAvailability(ctx);
+    await loadPickerResources();
+    pickerCardsForCurrentFilter();
+    await refreshPickerAvailability(ctx);
     window.setTimeout(()=>pickerSearch?.focus(),80);
   }
 
@@ -1102,8 +1211,8 @@
 
   if(form.dataset.initialResource && selectedTime){
     const targetId=String(form.dataset.initialResource);
-    window.setTimeout(()=>{
-      openPicker();
+    window.setTimeout(async()=>{
+      await openPicker();
       const card=pickerResources.find(item=>item.dataset.resourceId===targetId);
       card?.scrollIntoView({block:"center"});
     },180);
