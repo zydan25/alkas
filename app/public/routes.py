@@ -271,7 +271,13 @@ def news():
     return render_template("public/news.html", posts=posts)
 
 
-@bp.get("/offers")
+
+
+@bp.get("/news/<int:post_id>")
+def news_post(post_id):
+    post=Post.query.filter_by(id=post_id,status="published").first_or_404()
+    return render_template("public/news_detail.html",post=post)
+\n@bp.get("/offers")
 def offers():
     now = datetime.now(timezone.utc)
     rows = (
