@@ -18,7 +18,7 @@
       'bookings.booking_page','bookings.resource_detail','bookings.sport_detail',
       'customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile'
     ] %}
-    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-shell.css?v={{ site_settings.asset_version }}&ui=20260923-shell">{% endif %}
+    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-shell.css?v={{ site_settings.asset_version }}&ui=20260923-shell-v2-v2">{% endif %}
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
@@ -45,11 +45,23 @@
 
 {% if customer_shell %}
 <nav class="customer-bottom-nav" aria-label="التنقل الرئيسي">
-  <a class="{{ 'is-active' if request.endpoint == 'public.home' else '' }}" href="{{ url_for('public.home') }}"><span>⌂</span><small>الرئيسية</small></a>
-  <a class="{{ 'is-active' if request.endpoint in ['customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.bookings') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>▣</span><small>جواري</small></a>
-  <a class="customer-book-fab" href="{{ url_for('bookings.booking_page') }}" aria-label="احجز الآن">＋</a>
-  <a class="{{ 'is-active' if request.endpoint in ['public.matches','public.live','public.tournaments'] else '' }}" href="{{ url_for('public.matches') }}"><span>⚽</span><small>مباريات</small></a>
-  <a class="{{ 'is-active' if request.endpoint in ['customer.profile'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}"><span>♙</span><small>حسابي</small></a>
+  <a class="{{ 'is-active' if request.endpoint == 'public.home' else '' }}" href="{{ url_for('public.home') }}">
+    <span class="customer-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 10 8-6 8 6v9.1A1.9 1.9 0 0 1 18.1 21H5.9A1.9 1.9 0 0 1 4 19.1V10Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 21v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+    <small>الرئيسية</small>
+  </a>
+  <a class="{{ 'is-active' if request.endpoint in ['customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.bookings') }}{% else %}{{ url_for('auth.login') }}{% endif %}">
+    <span class="customer-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M4 9h16" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 13h3M8 17h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+    <small>حجوزاتي</small>
+  </a>
+  <a class="customer-book-fab" href="{{ url_for('bookings.booking_page') }}" aria-label="احجز الآن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg></a>
+  <a class="{{ 'is-active' if request.endpoint in ['public.matches','public.live','public.tournaments'] else '' }}" href="{{ url_for('public.matches') }}">
+    <span class="customer-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12 7.5 2 1.5-.8 2.5h-2.4L10 9zM7 15l2-1.4M15 13.8l2 1.2M11 18.5l1-2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <small>مباريات</small>
+  </a>
+  <a class="{{ 'is-active' if request.endpoint in ['customer.profile'] else '' }}" href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}">
+    <span class="customer-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <small>حسابي</small>
+  </a>
 </nav>
 {% endif %}
 <nav class="mobile-nav">
