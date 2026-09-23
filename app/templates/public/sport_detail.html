@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block head %}<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-sports">{% endblock %}
+{% block content %}
+<div class="booking-detail-page">
+  <header class="booking-mobile-head"><a class="booking-back" href="{{ url_for('public.home') }}">‹</a><div><span>الرياضة</span><h1>{{ sport.name_ar }}</h1></div><a class="booking-head-link" href="{{ url_for('bookings.booking_page', sport_id=sport.id) }}">احجز</a></header>
+  <section class="sport-detail-hero">
+    <div class="sport-detail-art">
+      {% if sport.image_url %}<img src="{{ sport.image_url }}" alt="{{ sport.name_ar }}">{% else %}<span>{{ sport.icon or "●" }}</span>{% endif %}
+      <div><small>رياضة</small><strong>{{ sport.name_ar }}</strong><p>{{ sport.description_ar or "اختر الملعب المناسب ثم حدد التاريخ والوقت." }}</p></div>
+    </div>
+  </section>
+  <section class="booking-card">
+    <div class="booking-section-title"><div><small>الملاعب</small><h2>المرافق التابعة لـ {{ sport.name_ar }}</h2></div><span>{{ resources|length }} ملعب</span></div>
+    <div class="sport-detail-resource-list">
+      {% for resource in resources %}
+      <a class="sport-detail-resource-card" href="{{ url_for('bookings.resource_detail', resource_id=resource.id) }}">
+        <div class="sport-detail-resource-image">{% if resource.image_url %}<img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}">{% else %}<span>{{ resource.sport.icon or "●" }}</span>{% endif %}</div>
+        <div><small>{{ resource.zone.name_ar if resource.zone else "المرفق" }}</small><strong>{{ resource.name_ar }}</strong><p>{{ resource.description_ar or "مرفق رياضي متاح للحجز" }}</p></div>
+        <span>›</span>
+      </a>
+      {% else %}<div class="booking-empty-state">لا توجد ملاعب مضافة لهذه الرياضة حتى الآن.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
