@@ -4603,3 +4603,40 @@ body{
   }
 }
 
+/* =========================================================
+   v17 — use global system theme on customer/home surfaces
+   ========================================================= */
+.customer-app-page{
+  --mf-primary:var(--primary,#08a982)!important;
+  --mf-primary-dark:var(--secondary,#08775f)!important;
+  --mf-surface:var(--surface,#fff)!important;
+  --mf-background:var(--background,#f4f8f6)!important;
+  --mf-text:var(--text,#172821)!important;
+  --mf-muted:color-mix(in srgb,var(--text,#172821) 52%,transparent)!important;
+  --mf-line:color-mix(in srgb,var(--text,#172821) 12%,transparent)!important;
+  --mf-soft:color-mix(in srgb,var(--primary,#08a982) 10%,var(--surface,#fff))!important;
+  --mf-danger:var(--danger,#d95353)!important;
+  --mf-warning:var(--accent,#a97818)!important;
+  --mf-radius:var(--radius,18px)!important;
+}
+
+.home-public-page{
+  --home-green:var(--primary,#009172)!important;
+  --home-green-2:var(--secondary,#03ad86)!important;
+  --home-mint:var(--background,#f3f8f6)!important;
+  --home-panel:var(--surface,#fff)!important;
+  --home-text:var(--text,#13221f)!important;
+  --home-muted:color-mix(in srgb,var(--text,#13221f) 48%,transparent)!important;
+  --home-line:color-mix(in srgb,var(--text,#13221f) 10%,transparent)!important;
+}
+
+/* Keep the main customer background and primary action colors driven by settings. */
+.home-public-page .home-fast-booking-link,
+.home-public-page .home-card-cta,
+.home-public-page .home-view-all{
+  border-color:color-mix(in srgb,var(--primary,#009172) 22%,transparent)!important;
+}
+.home-public-page .home-card-cta{
+  background:var(--primary,#009172)!important;
+}
+
