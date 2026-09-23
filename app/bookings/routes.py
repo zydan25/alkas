@@ -301,7 +301,13 @@ def quote():
             continue
         price = calculate_price(resource, start_at, end_at)
         total += price
-        lines.append({"resource_id": resource.id, "resource": resource.name_ar, "price": str(price)})
+        lines.append({
+            "resource_id": resource.id,
+            "resource": resource.name_ar,
+            "start_at": start_at.isoformat(),
+            "end_at": end_at.isoformat(),
+            "price": str(price),
+        })
     return jsonify({"total": str(total), "lines": lines})
 
 
