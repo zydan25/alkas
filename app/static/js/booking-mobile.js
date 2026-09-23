@@ -355,6 +355,23 @@
       if(typeof timeInput.showPicker==="function")timeInput.showPicker();
     }catch(_){ timeInput.focus(); }
   });
+  let availabilityDebounce=0;
+  const queueAvailabilityCheck=()=>{
+    clearTimeout(availabilityDebounce);
+    availabilityDebounce=setTimeout(()=>refreshAvailability(),120);
+  };
+
+  timeInput?.addEventListener("input",()=>{
+    const value=timeInput.value;
+    if(!/^\\d{2}:\\d{2}$/.test(value))return;
+    const [h,m]=value.split(":").map(Number);
+    const total=h*60+m;
+    if(total>=8*60 && total<=23*60+30 && total%30===0){
+      setTime(value);
+      queueAvailabilityCheck();
+    }
+  });
+
   timeInput?.addEventListener("change",()=>{
     const value=timeInput.value;
     if(!value){setTime(nearestHalfHourTime())}
