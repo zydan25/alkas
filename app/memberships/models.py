@@ -40,7 +40,7 @@ class MembershipRequest(db.Model):
     cancellation_reason = db.Column(db.String(700))
     admin_note = db.Column(db.String(700))
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc), onupdate=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc))
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     customer = db.relationship("Customer", lazy="joined")
     plan = db.relationship("MembershipPlan", lazy="joined")
 
@@ -52,5 +52,5 @@ class MembershipMessage(db.Model):
     sender_user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
     sender_role = db.Column(db.String(30), nullable=False, default="customer")
     body_ar = db.Column(db.Text)
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     request = db.relationship("MembershipRequest", backref=db.backref("messages", lazy="dynamic", cascade="all, delete-orphan"))
