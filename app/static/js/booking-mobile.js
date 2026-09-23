@@ -8,11 +8,11 @@
   const sportButtons=[...form.querySelectorAll("[data-sport-toggle]")];
   const timeButtons=[...form.querySelectorAll("[data-time]")];
   const cards=[...form.querySelectorAll("[data-resource-card]")];
-  const addButton=form.querySelector("[data-add-to-cart]");
+  const addButton=null;
   const cartCard=form.querySelector("[data-booking-cart-card]");
   const cartBody=form.querySelector("[data-cart-body]");
   const cartCount=form.querySelector("[data-cart-count]");
-  const selectedCount=form.querySelector("[data-selected-count]");
+  const availableCount=form.querySelector("[data-available-count]");
   const totalNode=form.querySelector("[data-booking-total]");
   const totalSummary=form.querySelector("[data-booking-total-summary]");
   const breakdown=form.querySelector("[data-booking-breakdown]");
@@ -30,7 +30,7 @@
     }
   }
   const durationOptions=[
-    ["60","ساعة"],["90","ساعة ونصف"],["120","ساعتان"],["150","ساعتان ونصف"],["180","3 ساعات"]
+    ["30","30 دقيقة"],["60","60 دقيقة"],["90","90 دقيقة"],["120","120 دقيقة"],["150","150 دقيقة"],["180","180 دقيقة"]
   ];
 
   function localDateValue(d){
@@ -67,16 +67,13 @@
     updateSelectedVisuals();
   }
   function updateSelectedVisuals(){
-    let count=0;
+    let available=0;
     cards.forEach(c=>{
-      const i=c.querySelector('input[name="resource_select"]');
-      const chosen=!!(i&&i.checked&&!i.disabled);
-      if(chosen)count++;
-      c.classList.toggle("is-selected",chosen);
+      const disabled=c.classList.contains("is-disabled")||c.dataset.available==="0";
+      if(!disabled && c.style.display!=="none") available++;
     });
-    selectedCount.textContent=count+" محدد";
-    addButton.disabled=count===0;
-    return count;
+    if(availableCount) availableCount.textContent=available+" متاح";
+    return available;
   }
   function cartKey(x){return x.resource_id+"|"+x.date+"|"+x.start_time+"|"+x.duration}
   function overlaps(a,b){
@@ -141,15 +138,14 @@
       const data=await Promise.all(visible.map(async c=>({card:c,data:await checkResource(c,start,end)})));
       if(serial!==requestSerial)return;
       data.forEach(({card,data})=>{
-        const input=card.querySelector('input[name="resource_select"]'),s=card.querySelector("[data-resource-status]");
-        input.disabled=!data.available;
-        if(!data.available)input.checked=false;
+        const s=card.querySelector("[data-resource-status]");
+        card.dataset.available=data.available?"1":"0";
         card.classList.toggle("is-disabled",!data.available);
         s.textContent=data.available?"متاح للحجز":(data.reason||"غير متاح");
         s.className=data.available?"available":"busy";
       });
       const available=data.filter(x=>x.data.available).length;
-      slotStatus.textContent=available?"الأخضر متاح ويمكن إضافته إلى الجدول.":"لا يوجد ملعب متاح بهذا الوقت.";
+      slotStatus.textContent=available?"اضغط على أي ملعب متاح لإضافته مباشرة إلى جدول الحجز.":"لا يوجد ملعب متاح بهذا الوقت.";
       slotStatus.className="booking-slot-status "+(available?"ok":"warn");
     }
     updateSelectedVisuals();
@@ -201,12 +197,12 @@
     try{
       const q=await quoteCart();
       cart.forEach(x=>{
-        const line=(q.lines||[]).find(l=>Number(l.resource_id)===Number(x.resource_id)&&String(l.start_at)===x.start.toISOString()&&String(l.end_at)===x.end.toISOString());
+        const line=(q.lines||[])[i];
         x.price=line?Number(line.price):0;
       });
     }catch(e){}
     await validateCart();
-    const total=cart.reduce((s,x)=>s+(Number(x.price)||0),0);
+    const total=Number(q?.total ?? cart.reduce((s,x)=>s+(Number(x.price)||0),0)) || 0;
     totalNode.innerHTML=total.toLocaleString("en-US")+" <em>ر.ي</em>";
     totalSummary.innerHTML=total.toLocaleString("en-US")+" <em>ر.ي</em>";
     breakdown.textContent=cart.map(x=>x.resource_name+" · "+fmtTime(x.start)+"–"+fmtTime(x.end)).join(" • ");
@@ -214,24 +210,24 @@
   }
 
   async function addResource(card){
-    const start=selectedStart(),end=selectedEnd(),i=card.querySelector('input[name="resource_select"]');
+    const start=selectedStart(),end=selectedEnd();
     if(!start||start<=new Date()){setAlert("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
+    if(card.classList.contains("is-disabled")){setAlert("هذا الملعب غير متاح في الموعد المحدد.","error");return}
     const data=await checkResource(card,start,end);
-    if(!data.available){setAlert("هذا الملعب غير متاح في الموعد المحدد.","error");await refreshAvailability();return}
+    if(!data.available){setAlert("هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");await refreshAvailability();return}
     const item={resource_id:Number(card.dataset.resourceId),resource_name:card.dataset.resourceName,sport_name:card.dataset.sportName,date:dateInput.value,start_time:selectedTime,duration:String(durationSelect.value||60),start,end,price:0};
     if(cart.some(x=>cartKey(x)===cartKey(item))){setAlert("هذا الملعب موجود أصلًا بهذا الوقت في الجدول.","error");return}
     cart.push(item);
-    if(i)i.checked=false;
-    updateSelectedVisuals();
+    card.classList.add("is-selected");
     await refreshCart();
     setAlert("تمت إضافة "+item.resource_name+" إلى جدول الحجز.");
   }
 
-  // Native checkbox change fixes the previous double-toggle bug.
   cards.forEach(card=>{
-    const input=card.querySelector('input[name="resource_select"]');
-    input?.addEventListener("change",()=>updateSelectedVisuals());
-    card.querySelector("[data-add-resource]")?.addEventListener("click",e=>{e.stopPropagation();addResource(card)});
+    card.addEventListener("click",e=>{
+      if(e.target.closest("a,input,select"))return;
+      addResource(card);
+    });
   });
 
   sportButtons.forEach(btn=>btn.addEventListener("click",()=>{
@@ -247,14 +243,6 @@
     const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+Number(btn.dataset.dateOffset||0));
     dateInput.value=localDateValue(d);updateQuickDates();refreshAvailability();
   }));
-
-  addButton?.addEventListener("click",async()=>{
-    const selected=cards.filter(c=>c.style.display!=="none"&&c.querySelector('input[name="resource_select"]')?.checked&&!c.querySelector('input[name="resource_select"]')?.disabled);
-    if(!selected.length){setAlert("حدد ملعبًا واحدًا أو استخدم زر إضافة داخل البطاقة.","error");return}
-    addButton.disabled=true;
-    for(const card of selected)await addResource(card);
-    addButton.disabled=false;
-  });
 
   cartBody?.addEventListener("change",async e=>{
     const tr=e.target.closest("tr"), idx=Number(tr?.querySelector("[data-remove-cart]")?.dataset.removeCart);
