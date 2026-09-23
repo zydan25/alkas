@@ -56,6 +56,20 @@
     return s ? new Date(s.getTime()+Number(durationSelect.value||60)*60000) : null;
   }
   function fmtTime(d){return d.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"})}
+  function fmtNextAvailability(value){
+    if(!value)return "";
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime()))return "";
+    const selected=dateInput?.value||"";
+    const dKey=localDateValue(d);
+    const today=localDateValue(new Date());
+    const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+    let prefix="";
+    if(dKey===selected||dKey===today)prefix="اليوم";
+    else if(dKey===localDateValue(tomorrow))prefix="غدًا";
+    else prefix=d.toLocaleDateString("ar-YE",{day:"numeric",month:"short"});
+    return prefix+" "+fmtTime(d);
+  }
   function setAlert(message,type="ok"){
     result.hidden=!message;result.textContent=message||"";
     result.className="booking-alert "+(type==="error"?"booking-alert-danger":"");
@@ -158,7 +172,12 @@
       });
       if(!r.ok)throw new Error("availability "+r.status);
       const data=await r.json();
-      return (data.items||[]).map(x=>({available:!!x.available,reason:x.reason||"غير متاح",resource_id:x.resource_id}));
+      return (data.items||[]).map(x=>({
+        available:!!x.available,
+        reason:x.reason||"غير متاح",
+        resource_id:x.resource_id,
+        next_available_at:x.next_available_at||null
+      }));
     }catch(e){
       const reason=e.name==="AbortError"?"تعذر التحقق سريعًا":"تعذر التحقق";
       return items.map(x=>({available:false,reason,resource_id:x.resource_id}));
@@ -200,6 +219,21 @@
         card.classList.toggle("is-disabled",!data.available);
         s.textContent=data.available?"متاح للحجز":(data.reason||"غير متاح");
         s.className=data.available?"available":"busy";
+        card.dataset.nextAvailable=data.next_available_at||"";
+        card.dataset.availabilityReason=data.reason||"";
+        const main=card.querySelector(".booking-resource-main");
+        let nextNode=card.querySelector(".booking-resource-next");
+        if(!nextNode&&main){
+          nextNode=document.createElement("small");
+          nextNode.className="booking-resource-next";
+          main.appendChild(nextNode);
+        }
+        if(nextNode){
+          nextNode.textContent=!data.available&&data.next_available_at
+            ? "المتاح: "+fmtNextAvailability(data.next_available_at)
+            : "";
+          nextNode.hidden=!( !data.available && data.next_available_at );
+        }
       });
       const available=settled.filter(x=>x.data.available).length;
       const failed=settled.filter(x=>!x.data.available && String(x.data.reason||"").includes("تعذر التحقق")).length;
@@ -278,10 +312,22 @@
   async function addResource(card){
     const start=selectedStart(),end=selectedEnd();
     if(!start||start<=new Date()){setAlert("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
-    if(card.classList.contains("is-disabled")){setAlert("هذا الملعب غير متاح في الموعد المحدد.","error");return}
+    if(card.classList.contains("is-disabled")){
+      const reason=card.dataset.availabilityReason||"هذا الملعب غير متاح في الموعد المحدد.";
+      const next=fmtNextAvailability(card.dataset.nextAvailable);
+      setAlert(next?reason+" — أقرب وقت متاح: "+next:reason,"error");
+      return;
+    }
     setAlert("جاري التحقق من توفر الملعب...");
     const data=await checkResource(card,start,end);
-    if(!data.available){setAlert(data.reason||"هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");await refreshAvailability();return}
+    if(!data.available){
+      const next=fmtNextAvailability(data.next_available_at);
+      setAlert(next
+        ? (data.reason||"الملعب غير متاح")+" — أقرب وقت متاح: "+next
+        : (data.reason||"هذا الملعب لم يعد متاحًا في الموعد المحدد."),"error");
+      await refreshAvailability();
+      return
+    }
     const item={resource_id:Number(card.dataset.resourceId),resource_name:card.dataset.resourceName,sport_name:card.dataset.sportName,date:dateInput.value,start_time:selectedTime, duration:String(durationSelect.value||60),start,end,price:(Number(card.dataset.basePrice||0)*Number(durationSelect.value||60)/60)};
     if(cart.some(x=>cartKey(x)===cartKey(item))){setAlert("هذا الملعب موجود أصلًا بهذا الوقت في الجدول.","error");return}
     cart.push(item);
