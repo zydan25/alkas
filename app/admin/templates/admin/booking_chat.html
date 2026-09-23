@@ -1,0 +1,42 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">الحجز</div><h1>محادثة {{ booking.booking_number }}</h1><p>{{ booking.customer.name if booking.customer else "العميل" }} · {{ booking.start_at.strftime("%Y-%m-%d %H:%M") }}</p></div>
+  <a class="btn btn-soft" href="{{ url_for('admin.bookings') }}">العودة للحجوزات</a>
+</div>
+
+<section class="panel admin-chat-panel">
+  <div class="admin-chat-messages">
+    {% for m in messages %}
+    <div class="admin-chat-bubble {{ 'staff' if m.sender_role == 'staff' else 'customer' }}">
+      <strong>{{ "الموظف" if m.sender_role == "staff" else "العميل" }}</strong>
+      <p>{{ m.body_ar or "مرفق" }}</p>
+      {% if m.attachment_url %}<a href="{{ m.attachment_url }}" target="_blank" rel="noopener">📎 {{ m.attachment_name or "مرفق" }}</a>{% endif %}
+      <small>{{ m.created_at.strftime("%Y-%m-%d %H:%M") }}</small>
+    </div>
+    {% else %}<div class="empty-state">لا توجد رسائل حتى الآن.</div>{% endfor %}
+  </div>
+  <form class="admin-chat-compose" method="post" enctype="multipart/form-data" action="{{ url_for('bookings.send_message', booking_id=booking.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input name="body_ar" placeholder="اكتب ردًا للعميل...">
+    <input type="file" name="attachment" accept="image/*,.pdf">
+    <button class="btn btn-primary">إرسال</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><span class="eyebrow">إشعارات الدفع</span><h2>الإيصالات المرفوعة</h2></div></div>
+  <div class="mini-table">
+  {% for r in receipts %}
+    <div class="mini-row">
+      <span><b>{{ r.original_name }}</b><small>{{ r.created_at.strftime("%Y-%m-%d %H:%M") }} · {{ {"pending":"قيد المراجعة","approved":"مقبول","rejected":"مرفوض"}.get(r.status,r.status) }}</small></span>
+      <span>
+        <a class="btn btn-soft" href="{{ r.file_url }}" target="_blank" rel="noopener">عرض</a>
+        {% if r.status != "approved" %}<form method="post" action="{{ url_for('admin.booking_receipt_action', booking_id=booking.id, receipt_id=r.id, action='approve') }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-soft">قبول</button></form>{% endif %}
+        {% if r.status != "rejected" %}<form method="post" action="{{ url_for('admin.booking_receipt_action', booking_id=booking.id, receipt_id=r.id, action='reject') }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-danger-soft">رفض</button></form>{% endif %}
+      </span>
+    </div>
+  {% else %}<div class="empty-state">لا توجد إيصالات دفع مرفوعة.</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}
