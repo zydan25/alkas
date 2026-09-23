@@ -60,12 +60,11 @@
     if(!value)return "";
     const d=new Date(value);
     if(Number.isNaN(d.getTime()))return "";
-    const selected=dateInput?.value||"";
     const dKey=localDateValue(d);
-    const today=localDateValue(new Date());
-    const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+    const today=new Date();today.setHours(0,0,0,0);
+    const tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
     let prefix="";
-    if(dKey===selected||dKey===today)prefix="اليوم";
+    if(dKey===localDateValue(today))prefix="اليوم";
     else if(dKey===localDateValue(tomorrow))prefix="غدًا";
     else prefix=d.toLocaleDateString("ar-YE",{day:"numeric",month:"short"});
     return prefix+" "+fmtTime(d);
