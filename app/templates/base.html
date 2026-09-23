@@ -8,18 +8,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
-    <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
-    <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-    {% if request.path.startswith('/admin') %}<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">{% endif %}
-    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">{% endif %}
-    <link rel="stylesheet" href="/static/css/public-modern.css?v={{ site_settings.asset_version }}&ui=20260923c">
+    {% set is_booking_page = request.endpoint == 'bookings.booking_page' %}
     {% set customer_shell = request.endpoint in [
       'public.home','public.matches','public.offers','public.tournaments','public.news','public.live','public.live_event','public.memberships','public.membership_detail','public.news_post','public.resources','public.announcements','public.announcement_detail','public.ads','public.ad_detail','public.discounts','public.training','public.about','public.contact',
       'bookings.booking_page','bookings.resource_detail','bookings.sport_detail',
       'customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile','customer.memberships','customer.membership_detail'
     ] %}
+    <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
+    <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
+    {% if request.path.startswith('/admin') %}<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">{% endif %}
+    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">{% endif %}
+    {% if not is_booking_page %}<link rel="stylesheet" href="/static/css/public-modern.css?v={{ site_settings.asset_version }}&ui=20260923c">{% endif %}
     {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-shell.css?v={{ site_settings.asset_version }}&ui=20260923-shell-v2-v3">{% endif %}
-    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-first.css?v={{ site_settings.asset_version }}&ui=mobile-first-20260923-v13">{% endif %}
+    {% if customer_shell and not is_booking_page %}<link rel="stylesheet" href="/static/css/customer-mobile-first.css?v={{ site_settings.asset_version }}&ui=mobile-first-20260923-v13">{% endif %}
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
@@ -72,8 +73,8 @@
     {% if current_user.is_authenticated and (current_user.has_permission('booking.view') or current_user.username == 'admin') %}<a href="{{ url_for('admin.dashboard') }}">الإدارة</a>{% elif current_user.is_authenticated %}<a href="{{ url_for('customer.dashboard') }}">حسابي</a>{% else %}<a href="{{ url_for('auth.login') }}">حسابي</a>{% endif %}
 </nav>
 
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-<script src="/static/js/app.js?v={{ site_settings.asset_version }}&ui=20260922f" defer></script>
+{% if not is_booking_page %}<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>{% endif %}
+{% if not is_booking_page %}<script src="/static/js/app.js?v={{ site_settings.asset_version }}&ui=20260922f" defer></script>{% endif %}
 <script src="/static/js/cache-control.js?v={{ site_settings.asset_version }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
