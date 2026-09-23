@@ -27,3 +27,37 @@
 .service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.service-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:78px;border:1px solid #e1ece8;background:#fff;border-radius:13px;font-size:.48rem;font-weight:900;color:#53655e;text-align:center}.service-tile .icon-tile{width:32px;height:32px;flex-basis:32px}
 @media(max-width:500px){.hub-grid{grid-template-columns:1fr 1fr}.account-stat-grid{grid-template-columns:1fr 1fr}.account-stat:last-child{grid-column:1/-1}.service-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:380px){.hub-card-media{height:92px}.hub-card-body{padding:8px}.service-tile{min-height:72px}}
+
+
+/* v3 — larger app typography and advertisement detail */
+.customer-hub{font-size:16px}
+.customer-hub-head h1{font-size:1.7rem}
+.customer-hub-head p{font-size:.72rem;line-height:1.8}
+.hub-card-body h2{font-size:.88rem}.hub-card-body p{font-size:.66rem}.hub-price{font-size:1.08rem}
+.hub-pill{font-size:.52rem}.hub-primary,.hub-soft{font-size:.66rem}
+.account-section-title h2{font-size:.9rem}.account-row-main strong{font-size:.72rem}.account-row-main small{font-size:.56rem}
+.account-stat small{font-size:.54rem}.account-stat strong{font-size:1rem}
+.service-tile{font-size:.56rem}.service-tile .icon-tile{font-size:.8rem}
+.hub-detail h2{font-size:1.05rem}.hub-detail p{font-size:.68rem}
+.hub-form label{font-size:.64rem}.hub-form input,.hub-form select,.hub-form textarea{font-size:.68rem;min-height:43px}
+.account-editor{display:block}
+.account-editor summary{list-style:none;cursor:pointer;width:max-content;min-width:145px}
+.account-editor summary::-webkit-details-marker{display:none}
+.account-editor summary:after{content:"＋";margin-inline-start:8px;font-size:.8rem}
+.account-editor[open] summary:after{content:"−"}
+.account-editor form{margin-top:8px}
+.hub-ad-detail{display:grid;gap:10px}
+.hub-ad-media{width:100%;min-height:220px;border-radius:18px;overflow:hidden;background:#102e27;display:grid;place-items:center}
+.hub-ad-media img,.hub-ad-media video{display:block;width:100%;height:100%;max-height:430px;object-fit:contain;background:#102e27}
+.hub-ad-fallback{color:#fff;font-size:1.4rem;font-weight:950;padding:80px 20px}
+@media(max-width:620px){
+  .customer-hub{padding-inline:1px}
+  .customer-hub-head h1{font-size:1.58rem}
+  .customer-hub-head p{font-size:.67rem}
+  .hub-card-body h2{font-size:.82rem}.hub-card-body p{font-size:.62rem}.hub-price{font-size:1rem}
+  .hub-primary,.hub-soft{font-size:.62rem}
+  .hub-detail h2{font-size:1rem}.hub-detail p{font-size:.64rem}
+  .account-section-title h2{font-size:.84rem}.account-row-main strong{font-size:.68rem}.account-row-main small{font-size:.54rem}
+  .service-tile{font-size:.53rem}
+  .hub-ad-media{min-height:200px}
+}
