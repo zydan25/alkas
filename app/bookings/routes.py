@@ -6,6 +6,8 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle, Sport
+from ..policies.models import BookingPolicy, PaymentPolicy
+from ..settings.services import get_site_settings
 from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
@@ -32,6 +34,9 @@ def booking_page():
         initial_resource_id=request.args.get("resource_id", type=int),
         initial_date=request.args.get("date") or now.date().isoformat(),
         initial_time=request.args.get("time") or "18:00",
+        booking_policy=BookingPolicy.query.filter_by(is_default=True, is_active=True).first(),
+        payment_policy=PaymentPolicy.query.filter_by(is_default=True, is_active=True).first(),
+        site_settings=get_site_settings(),
     )
 
 
