@@ -207,3 +207,208 @@
   .booking-primary-button{font-size:.68rem!important}
   .booking-alert,.booking-policy-card p,.booking-steps-footer{font-size:.62rem!important}
 }
+
+
+/* v7 — compact appointment controls + SHEIN-size mobile typography */
+.booking-mobile-page{
+  width:min(100%,800px);
+  font-size:17px;
+}
+.booking-mobile-page .booking-card,
+.booking-mobile-page .booking-guest-card,
+.booking-mobile-page .booking-cart-card,
+.booking-mobile-page .booking-total-card,
+.booking-mobile-page .booking-help-card{
+  padding:18px;
+  border-radius:20px;
+}
+.booking-mobile-head{gap:12px;margin-bottom:15px}
+.booking-mobile-head>div>span{font-size:.78rem!important}
+.booking-mobile-head h1{font-size:1.52rem!important}
+.booking-head-link{font-size:.78rem!important}
+
+.booking-step{gap:10px;margin-bottom:13px}
+.booking-step>span{width:29px;height:29px;border-radius:9px;font-size:.72rem}
+.booking-step small{font-size:.72rem!important}
+.booking-step strong{font-size:1rem!important}
+
+.booking-date-time-card{padding-bottom:15px!important}
+.booking-schedule-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,.95fr);
+  gap:9px;
+  align-items:start;
+}
+.booking-control-field{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  color:#52655d;
+}
+.booking-control-label{
+  font-size:.76rem;
+  font-weight:950;
+  color:#6f817a;
+}
+.booking-control-box{
+  min-width:0;
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 10px;
+  border:1px solid #d9e8e3;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 3px 10px rgba(17,57,48,.03);
+}
+.booking-control-icon{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  color:#00a57d;
+}
+.booking-control-box input{
+  width:100%;
+  min-width:0;
+  height:48px;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#243a31;
+  font-size:.92rem!important;
+  font-weight:900;
+}
+.booking-control-box input[type="date"],
+.booking-control-box input[type="time"]{
+  color-scheme:light;
+}
+.booking-duration-box{padding-inline:7px}
+.booking-duration-box select{
+  width:100%;
+  height:46px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#243a31;
+  font-size:.88rem!important;
+  font-weight:950;
+}
+.booking-control-help{
+  color:#9aa7a2;
+  font-size:.57rem;
+  font-weight:800;
+  text-align:center;
+}
+.booking-date-quick-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+.booking-date-quick{
+  min-height:42px;
+  border:1px solid #dbe9e5;
+  background:#fbfdfc;
+  border-radius:11px;
+  text-align:center;
+  padding:5px 6px;
+}
+.booking-date-quick span,
+.booking-date-quick b{display:block}
+.booking-date-quick span{font-size:.65rem!important;color:#879690}
+.booking-date-quick b{margin-top:2px;font-size:.68rem!important;color:#40564d}
+.booking-date-quick.is-active{
+  border-color:#08aa83;
+  background:#eefaf6;
+}
+.booking-date-quick.is-active span,
+.booking-date-quick.is-active b{color:#008e6d}
+.booking-slot-status{
+  margin-top:10px;
+  padding:9px 11px;
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  font-size:.70rem!important;
+  line-height:1.55;
+  border-radius:12px;
+}
+
+.booking-sport-chip{
+  padding:9px 12px!important;
+  font-size:.80rem!important;
+}
+.booking-selection-hint{font-size:.68rem!important;line-height:1.7}
+.booking-section-title{margin-bottom:11px}
+.booking-section-title small{font-size:.66rem!important}
+.booking-section-title h2{font-size:1.02rem!important}
+.booking-section-title>span{font-size:.70rem!important}
+
+.booking-resource-option{
+  min-height:138px!important;
+  padding:9px!important;
+  border-radius:15px;
+}
+.booking-resource-art{width:48px;height:44px}
+.booking-resource-main strong{font-size:.76rem!important}
+.booking-resource-main small{font-size:.63rem!important}
+.booking-resource-main em{font-size:.60rem!important}
+.booking-resource-side b{font-size:.71rem!important}
+.booking-resource-side small{font-size:.53rem!important}
+.booking-resource-tap{min-height:32px;font-size:.65rem!important}
+
+.booking-cart-table th{font-size:.76rem!important}
+.booking-cart-table td{font-size:.84rem!important}
+.booking-cart-table .cart-resource-cell strong{font-size:.82rem!important}
+.booking-cart-table .cart-resource-cell small,.booking-cart-table .cart-invalid-reason{font-size:.66rem!important}
+.booking-cart-table input,.booking-cart-table select{font-size:.74rem!important}
+.booking-total-card small{font-size:.66rem!important}
+.booking-total-card span{font-size:.64rem!important}
+.booking-primary-button{font-size:.78rem!important;min-height:48px}
+
+.booking-alert,.booking-policy-card p,.booking-steps-footer{font-size:.70rem!important;line-height:1.65}
+.booking-method-pills span{font-size:.62rem!important}
+.booking-help-card .booking-card-title strong{font-size:.80rem!important}
+.booking-help-card .booking-card-title small{font-size:.67rem!important;line-height:1.7}
+
+@media(max-width:700px){
+  .booking-mobile-page{padding-inline:2px}
+  .booking-schedule-grid{
+    grid-template-columns:minmax(0,1.22fr) minmax(0,1fr) minmax(0,.94fr);
+    gap:7px;
+  }
+}
+@media(max-width:520px){
+  .booking-mobile-page{font-size:17px}
+  .booking-mobile-page .booking-card,
+  .booking-mobile-page .booking-guest-card,
+  .booking-mobile-page .booking-cart-card,
+  .booking-mobile-page .booking-total-card,
+  .booking-mobile-page .booking-help-card{padding:14px!important}
+  .booking-schedule-grid{grid-template-columns:minmax(0,1.22fr) minmax(0,1fr) minmax(0,.9fr)}
+  .booking-control-box{min-height:48px;padding-inline:8px;gap:5px}
+  .booking-control-box input{height:46px;font-size:.82rem!important}
+  .booking-duration-box select{height:44px;font-size:.78rem!important}
+  .booking-control-label{font-size:.69rem}
+  .booking-control-help{font-size:.52rem}
+  .booking-date-quick{min-height:39px;padding-inline:3px}
+  .booking-date-quick span{font-size:.59rem!important}
+  .booking-date-quick b{font-size:.61rem!important}
+  .booking-resource-option{min-height:134px!important;padding:8px!important}
+  .booking-resource-art{width:42px;height:40px}
+}
+@media(max-width:390px){
+  .booking-schedule-grid{
+    grid-template-columns:minmax(0,1.18fr) minmax(0,.96fr) minmax(0,.86fr);
+    gap:6px;
+  }
+  .booking-control-box{padding-inline:6px}
+  .booking-control-icon svg{width:17px;height:17px}
+  .booking-control-box input{font-size:.76rem!important}
+  .booking-duration-box select{font-size:.72rem!important}
+  .booking-date-quick span{font-size:.55rem!important}
+  .booking-date-quick b{font-size:.57rem!important}
+  .booking-control-help{font-size:.48rem}
+}
