@@ -83,3 +83,54 @@
   .booking-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .booking-resource-option{min-height:112px}
 }
+
+/* v4 — mobile booking layout lock: never stack cart rows; two resources per row */
+.booking-resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:stretch}
+.booking-resource-option{min-width:0;min-height:126px;overflow:hidden}
+.booking-mini-add{border:1px solid #dcebe6;background:#edf9f5;color:#008e6d;border-radius:9px;padding:0 9px;font-size:.48rem;font-weight:950;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.booking-mini-add:hover{background:#e4f7f0}
+.booking-cart-table-wrap{width:100%;max-width:100%;overflow-x:auto!important;overflow-y:hidden!important;direction:rtl;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.booking-cart-table{border-collapse:separate;border-spacing:0;direction:rtl}
+.booking-cart-table th,.booking-cart-table td{vertical-align:middle}
+
+@media(max-width:800px){
+  .booking-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:620px){
+  /* Keep every booking item as one physical row; the table scrolls horizontally instead of stacking cards. */
+  .booking-cart-table{display:block!important;width:max-content!important;min-width:720px!important;table-layout:fixed!important}
+  .booking-cart-table thead{display:grid!important;grid-template-columns:170px 112px 88px 92px 88px 82px 42px!important;width:674px!important;min-width:674px!important}
+  .booking-cart-table tbody{display:grid!important;width:674px!important;min-width:674px!important}
+  .booking-cart-table tr{display:grid!important;grid-template-columns:170px 112px 88px 92px 88px 82px 42px!important;align-items:center;min-width:674px!important;width:674px!important;padding:0!important;margin:0!important;position:static!important}
+  .booking-cart-table th,.booking-cart-table td{display:flex!important;align-items:center!important;justify-content:flex-start!important;min-width:0!important;width:auto!important;height:48px!important;padding:5px 6px!important;margin:0!important;border-bottom:1px solid #e8efed!important;white-space:nowrap!important;overflow:hidden!important;position:static!important;transform:none!important}
+  .booking-cart-table th{height:34px!important;font-size:.43rem!important;color:#84918c!important;background:#f8fbfa}
+  .booking-cart-table td{font-size:.48rem!important;background:#fff}
+  .booking-cart-table th[data-label]::before,.booking-cart-table td[data-label]::before,
+  .booking-cart-table td::before,.booking-cart-table th::before{content:none!important;display:none!important}
+  .booking-cart-table .cart-resource-cell{width:auto!important;white-space:nowrap!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:2px!important}
+  .booking-cart-table .cart-resource-cell strong{max-width:158px;font-size:.51rem!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+  .booking-cart-table .cart-resource-cell small,.booking-cart-table .cart-invalid-reason{max-width:158px;font-size:.41rem!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+  .booking-cart-table input,.booking-cart-table select{display:block!important;width:100%!important;min-width:0!important;height:30px!important;margin:0!important;padding:0 6px!important;border:1px solid #dfe9e5!important;border-radius:8px!important;background:#fff!important;color:#31443c!important;font-size:.44rem!important;outline:none!important}
+  .booking-cart-table .cart-end-time,.booking-cart-table .cart-price{font-weight:900!important;color:#3b5149!important}
+  .booking-cart-table .cart-price{color:#009a76!important}
+  .booking-cart-table td:last-child{display:flex!important;justify-content:center!important;width:auto!important}
+  .booking-cart-table .cart-remove{width:28px!important;height:28px!important;border:1px solid #f0dddd!important;border-radius:8px!important;background:#fff4f4!important;color:#c96767!important;font-weight:950!important;line-height:1!important;cursor:pointer}
+  .booking-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .booking-resource-option{display:grid!important;grid-template-columns:38px minmax(0,1fr) auto!important;grid-template-areas:"art main side" "art main side"!important;gap:7px!important;min-height:122px!important;padding:8px 8px 42px!important;align-items:start!important}
+  .booking-resource-art{grid-area:art!important;width:38px!important;height:38px!important;border-radius:9px!important}
+  .booking-resource-main{grid-area:main!important;min-width:0!important}
+  .booking-resource-side{grid-area:side!important;text-align:left!important;min-width:0!important}
+  .booking-resource-side b{font-size:.52rem!important;white-space:nowrap}
+  .booking-resource-side small{font-size:.38rem!important;white-space:nowrap}
+  .booking-resource-title{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;min-width:0}
+  .booking-resource-title strong{font-size:.55rem!important;line-height:1.35;min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .booking-check{width:18px!important;height:18px!important;flex:0 0 18px!important;border-radius:5px!important}
+  .booking-mini-add{position:absolute!important;inset-inline:8px!important;bottom:7px!important;width:auto!important;min-height:29px!important;height:29px!important}
+}
+
+@media(max-width:390px){
+  .booking-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .booking-resource-option{min-height:118px!important;padding-bottom:40px!important}
+  .booking-cart-table{min-width:720px!important}
+}
