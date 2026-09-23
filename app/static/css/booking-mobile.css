@@ -828,3 +828,13 @@
     box-shadow:0 4px 16px color-mix(in srgb,var(--bk-text) 5%,transparent);
   }
 }
+
+.booking-picker-loading{
+  grid-column:1/-1;
+  min-height:92px;
+  display:grid;
+  place-items:center;
+  color:var(--bk-muted);
+  font-size:.66rem;
+  font-weight:850;
+}
