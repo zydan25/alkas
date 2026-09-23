@@ -360,7 +360,7 @@
       <a class="home-membership-card" href="{{ url_for('auth.login') if not current_user.is_authenticated else url_for('customer.profile') }}">
         <div class="home-membership-top">
           <span class="home-membership-badge">عضوية</span>
-          {% if plan.discount_percent %}<span class="home-membership-discount">خصم {{ plan.discount_percent|float|round(0)|int }}%</span>{% endif %}
+          {% if plan.discount_percent is defined and plan.discount_percent and plan.discount_percent|float > 0 %}<span class="home-membership-discount">خصم {{ plan.discount_percent|float|round(0)|int }}%</span>{% endif %}
         </div>
         <strong>{{ plan.name_ar }}</strong>
         <div class="home-membership-price">{{ "{:,.0f}".format(plan.price|float) }} <small>ر.ي</small></div>
