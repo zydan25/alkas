@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from ..extensions import db
 
 
@@ -39,7 +39,7 @@ class MembershipRequest(db.Model):
     status = db.Column(db.String(30), nullable=False, default="pending", index=True)
     cancellation_reason = db.Column(db.String(700))
     admin_note = db.Column(db.String(700))
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc), onupdate=lambda: __import__("datetime").datetime.now(__import__("datetime").timezone.utc))
     customer = db.relationship("Customer", lazy="joined")
     plan = db.relationship("MembershipPlan", lazy="joined")
