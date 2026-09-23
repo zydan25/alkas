@@ -21,6 +21,19 @@ def booking_page():
     )
     resume = session.pop("booking_resume", None)
     now = datetime.now(ZoneInfo("Asia/Aden"))
+    rounded_minute = 30 if now.minute > 0 else 0
+    if now.minute > 30:
+        rounded_hour = now.hour + 1
+        rounded_minute = 0
+    else:
+        rounded_hour = now.hour
+    initial_date = now.date()
+    if rounded_hour >= 24:
+        rounded_hour = 8
+        rounded_minute = 0
+        initial_date = now.date().replace(day=now.day)
+    initial_time = f"{rounded_hour:02d}:{rounded_minute:02d}"
+    time_options = [f"{h:02d}:{m:02d}" for h in range(8,24) for m in (0,30)]
     return render_template(
         "bookings/index.html",
         customer=customer,
@@ -32,8 +45,9 @@ def booking_page():
         resume_error=request.args.get("resume_error"),
         initial_sport_id=request.args.get("sport_id", type=int),
         initial_resource_id=request.args.get("resource_id", type=int),
-        initial_date=request.args.get("date") or now.date().isoformat(),
-        initial_time=request.args.get("time") or "18:00",
+        initial_date=request.args.get("date") or initial_date.isoformat(),
+        initial_time=request.args.get("time") or initial_time,
+        time_options=time_options,
         booking_policy=BookingPolicy.query.filter_by(is_default=True, is_active=True).first(),
         payment_policy=PaymentPolicy.query.filter_by(is_default=True, is_active=True).first(),
         site_settings=get_site_settings(),
