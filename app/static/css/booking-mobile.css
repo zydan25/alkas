@@ -31,3 +31,35 @@
 @media(min-width:801px){.booking-mobile-page{padding-top:20px}.booking-mobile-page form{max-width:760px;margin-inline:auto}.booking-card,.booking-guest-card,.booking-total-card,.booking-help-card,.booking-confirm{border-radius:20px}.booking-resource-list{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.booking-mobile-page{padding-inline:2px}.booking-date-row{grid-template-columns:1fr 1fr 1fr}.booking-primary-button{padding-inline:11px}}
 @media(max-width:390px){.booking-guest-grid{grid-template-columns:1fr}.booking-guest-grid label.wide{grid-column:auto}.booking-date-row{grid-template-columns:1fr}.booking-date-picker{min-height:40px}.booking-total-card{align-items:stretch;flex-direction:column}.booking-primary-button{width:100%}}
+
+/* v2 cart interaction */
+.booking-selection-hint{margin-top:8px;padding:7px 9px;border-radius:10px;background:#f6faf8;color:#80908a;font-size:.49rem;line-height:1.7}
+.booking-sport-chip.is-active{box-shadow:0 5px 12px rgba(8,170,131,.16)}
+.booking-resource-option{user-select:none}
+.booking-resource-option.is-disabled{pointer-events:none}
+.booking-add-button{display:flex;align-items:center;justify-content:center;gap:5px}
+.booking-cart-card{padding-bottom:10px}
+.booking-cart-table-wrap{width:100%;overflow:auto;border:1px solid #e5eeeb;border-radius:12px}
+.booking-cart-table{width:100%;border-collapse:collapse}
+.booking-cart-table th,.booking-cart-table td{vertical-align:middle}
+.booking-cart-table th{text-align:right}
+.booking-cart-total{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed #e0ebe7}
+@media(max-width:620px){
+  .booking-cart-table thead{display:none}
+  .booking-cart-table,.booking-cart-table tbody,.booking-cart-table tr,.booking-cart-table td{display:block;width:100%}
+  .booking-cart-table tr{position:relative;padding:8px 36px 8px 7px;border-bottom:1px solid #edf2f0}
+  .booking-cart-table tr:last-child{border-bottom:0}
+  .booking-cart-table td{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 0;border:0;font-size:.53rem}
+  .booking-cart-table td:first-child{display:block}
+  .booking-cart-table td[data-label]::before{content:attr(data-label);color:#98a59f;font-size:.44rem;min-width:35px}
+  .booking-cart-table td:first-child::before{display:none}
+  .booking-cart-table .cart-price{justify-content:flex-start;color:#00a17a}
+  .booking-cart-table td:last-child{position:absolute;right:7px;top:8px;width:24px}
+  .booking-cart-table td:last-child::before{display:none}
+  .booking-cart-table td:last-child .cart-remove{width:22px}
+}
+@media(min-width:621px) and (max-width:820px){
+  .booking-mobile-page{max-width:660px}
+  .booking-card,.booking-cart-card,.booking-total-card,.booking-guest-card{border-radius:16px}
+  .booking-resource-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
