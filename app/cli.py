@@ -379,11 +379,19 @@ def register_commands(app):
         demo_cards = [
             dict(card_type="temporary", title_ar="عرض الافتتاح", body_ar="عرض تجريبي مؤقت يمكن تحديد موعد انتهائه من لوحة الإدارة.", accent_label_ar="لفترة محدودة", priority=30),
             dict(card_type="image", title_ar="بطولة الأسبوع", body_ar="بطاقة بصورة أو إعلان بصري، ويمكن ربطها بصفحة البطولة.", image_url="/static/img/icon-512.svg", target_url="/admin/tournaments", button_text_ar="شاهد البطولة", accent_label_ar="رياضة", priority=20),
-            dict(card_type="video", title_ar="شاهد الأجواء", body_ar="بطاقة فيديو يمكن أن تحمل رابط YouTube أو مصدر بث خارجي.", video_url="https://www.youtube.com/", button_text_ar="مشاهدة", accent_label_ar="فيديو", priority=10),
         ]
         for data in demo_cards:
-            if not AnnouncementCard.query.filter_by(title_ar=data["title_ar"]).first():
+            existing = AnnouncementCard.query.filter_by(title_ar=data["title_ar"]).first()
+            if not existing:
                 db.session.add(AnnouncementCard(**data, status="published"))
+
+        legacy_demo_video = AnnouncementCard.query.filter_by(title_ar="شاهد الأجواء").first()
+        if legacy_demo_video and (legacy_demo_video.video_url or "").startswith("https://www.youtube.com/"):
+            legacy_demo_video.card_type = "text"
+            legacy_demo_video.video_url = None
+            legacy_demo_video.body_ar = "فيديوهات البانرات تُرفع من لوحة الإدارة كملفات مباشرة لضمان التشغيل التلقائي."
+            legacy_demo_video.button_text_ar = None
+            legacy_demo_video.accent_label_ar = "فيديو";
 
         account_specs = [
             ("1000", "الأصول", "asset", None),
