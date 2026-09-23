@@ -1,5 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+
+from sqlalchemy import or_
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
@@ -262,8 +264,7 @@ def sport_detail(sport_id):
 
 @bp.post("/availability/batch")
 def availability_batch():
-    """Fast pre-check for many courts/time intervals in one request."""
-    # Expired holds already deactivate their allocations; avoid a write scan on every pre-check.
+    """Fast availability map for the selected date/time, with the next free slot."""
     data = request.get_json(silent=True) or {}
     raw_items = data.get("items") or []
     if not raw_items:
@@ -291,23 +292,63 @@ def availability_batch():
     resources = {r.id: r for r in Resource.query.filter(Resource.id.in_(resource_ids)).all()}
     min_start = min(item["start"] for item in valid)
     max_end = max(item["end"] for item in valid)
+    now_utc = datetime.now(ZoneInfo("UTC"))
     statuses = ["hold", "pending", "confirmed", "checked_in", "in_progress"]
 
     allocations = BookingAllocation.query.join(Booking).filter(
         Booking.status.in_(statuses),
+        or_(
+            Booking.status != "hold",
+            Booking.hold_expires_at.is_(None),
+            Booking.hold_expires_at > now_utc,
+        ),
         BookingAllocation.is_active.is_(True),
         BookingAllocation.resource_id.in_(resource_ids),
-        BookingAllocation.start_at < max_end,
+        BookingAllocation.start_at < max_end + timedelta(days=3),
         BookingAllocation.end_at > min_start,
     ).all()
     blocks = ResourceBlock.query.filter(
         ResourceBlock.resource_id.in_(resource_ids),
         ResourceBlock.status == "active",
-        ResourceBlock.starts_at < max_end,
+        ResourceBlock.starts_at < max_end + timedelta(days=3),
         ResourceBlock.ends_at > min_start,
     ).all()
 
-    now_utc = datetime.now(ZoneInfo("UTC"))
+    def next_free_start(resource_id, requested_start, requested_end):
+        duration = requested_end - requested_start
+        local_now = now_utc.astimezone(requested_start.tzinfo or ZoneInfo("Asia/Aden"))
+        candidate = max(requested_end, local_now)
+        candidate = candidate.replace(second=0, microsecond=0)
+        if candidate.minute % 30:
+            candidate += timedelta(minutes=30 - (candidate.minute % 30))
+
+        intervals = [
+            (x.start_at, x.end_at)
+            for x in allocations if x.resource_id == resource_id
+        ]
+        intervals += [
+            (x.starts_at, x.ends_at)
+            for x in blocks if x.resource_id == resource_id
+        ]
+        intervals.sort(key=lambda pair: pair[0])
+
+        search_limit = candidate + timedelta(days=3)
+        while candidate + duration <= search_limit:
+            conflict_end = None
+            for interval_start, interval_end in intervals:
+                if interval_end <= candidate:
+                    continue
+                if interval_start >= candidate + duration:
+                    break
+                if interval_start < candidate + duration and interval_end > candidate:
+                    conflict_end = interval_end if conflict_end is None else max(conflict_end, interval_end)
+            if conflict_end is None:
+                return candidate
+            candidate = conflict_end.replace(second=0, microsecond=0)
+            if candidate.minute % 30:
+                candidate += timedelta(minutes=30 - (candidate.minute % 30))
+        return None
+
     for item in valid:
         resource = resources.get(item["resource_id"])
         conflict = any(
@@ -323,13 +364,10 @@ def availability_batch():
             for x in blocks
         )
         available = bool(
-            resource
-            and resource.is_active
-            and resource.status == "available"
+            resource and resource.is_active and resource.status == "available"
             and item["end"] > item["start"]
             and item["start"].astimezone(ZoneInfo("UTC")) >= now_utc
-            and not conflict
-            and not blocked
+            and not conflict and not blocked
         )
         item["available"] = available
         item["reason"] = (
@@ -339,11 +377,18 @@ def availability_batch():
             "الملعب غير متاح" if not resource or not resource.is_active or resource.status != "available" else
             "متاح"
         )
+        item["next_available_at"] = (
+            next_free_start(item["resource_id"], item["start"], item["end"]).isoformat()
+            if not available and resource and resource.is_active
+            else None
+        )
         item.pop("start", None)
         item.pop("end", None)
 
-    return jsonify({"available": all(item.get("available", False) for item in parsed), "items": parsed})
-
+    return jsonify({
+        "available": all(item.get("available", False) for item in parsed),
+        "items": parsed,
+    })
 
 @bp.post("/quote")
 def quote():
