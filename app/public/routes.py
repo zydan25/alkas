@@ -161,12 +161,16 @@ def home():
     local_now = now.astimezone()
     banners = _active_banner_rows(now)
 
-    membership_plans = (
-        MembershipPlan.query.filter_by(is_active=True)
-        .order_by(MembershipPlan.id.desc())
-        .limit(6)
-        .all()
-    )
+    try:
+        membership_plans = (
+            MembershipPlan.query.filter_by(is_active=True)
+            .order_by(MembershipPlan.id.desc())
+            .limit(6)
+            .all()
+        )
+    except Exception:
+        # Memberships are optional on the public homepage; an older DB must not break the homepage.
+        membership_plans = []
 
     sports = (
         Sport.query.filter_by(is_active=True)
