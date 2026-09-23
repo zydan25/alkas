@@ -4,6 +4,7 @@
 
   const csrf=document.querySelector('meta[name="csrf-token"]')?.content||"";
   const dateInput=form.querySelector("[data-booking-date]");
+  const timeInput=form.querySelector("[data-booking-time]");
   const durationSelect=form.querySelector("[data-booking-duration]");
   const sportButtons=[...form.querySelectorAll("[data-sport-toggle]")];
   const timeButtons=[...form.querySelectorAll("[data-time]")];
@@ -18,7 +19,16 @@
   const slotStatus=form.querySelector("[data-slot-status]");
   const result=form.querySelector("[data-booking-result]");
 
-  let selectedTime=form.dataset.initialTime||"18:00";
+  function nearestHalfHourTime(){
+    const now=new Date();
+    let minutes=now.getHours()*60+now.getMinutes();
+    minutes=Math.ceil(minutes/30)*30;
+    if(minutes<8*60)minutes=8*60;
+    if(minutes>23*60+30)minutes=24*60;
+    const h=Math.floor(minutes/60),m=minutes%60;
+    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+  }
+  let selectedTime=form.dataset.initialTime||nearestHalfHourTime();
   let selectedSports=new Set();
   let cart=[];
   let requestSerial=0;
@@ -44,7 +54,9 @@
     result.className="booking-alert "+(type==="error"?"booking-alert-danger":"");
   }
   function setTime(value){
+    if(!value)return;
     selectedTime=value;
+    if(timeInput)timeInput.value=value;
     timeButtons.forEach(b=>b.classList.toggle("is-active",b.dataset.time===value));
   }
   function updateQuickDates(){
@@ -253,6 +265,21 @@
   }));
 
   timeButtons.forEach(btn=>btn.addEventListener("click",()=>{setTime(btn.dataset.time);refreshAvailability()}));
+  timeInput?.addEventListener("change",()=>{
+    const value=timeInput.value;
+    if(!value){setTime(nearestHalfHourTime())}
+    else{
+      const [h,m]=value.split(":").map(Number);
+      const total=h*60+m;
+      if(total<8*60 || total>23*60+30 || total%30!==0){
+        setAlert("اختر الوقت على نصف الساعة: 08:00، 08:30، 09:00...","error");
+        setTime(nearestHalfHourTime());
+        return;
+      }
+      setTime(value);
+    }
+    refreshAvailability();
+  });
   durationSelect?.addEventListener("change",refreshAvailability);
   dateInput?.addEventListener("change",()=>{updateQuickDates();refreshAvailability()});
   form.querySelectorAll("[data-date-offset]").forEach(btn=>btn.addEventListener("click",()=>{
@@ -280,7 +307,11 @@
   });
 
   if(form.dataset.initialSport)selectedSports.add(form.dataset.initialSport);
-  if(form.dataset.initialDate)dateInput.value=form.dataset.initialDate;
+  const todayValue=localDateValue(new Date());
+  if(dateInput){
+    dateInput.min=todayValue;
+    if(!dateInput.value)dateInput.value=todayValue;
+  }
   setTime(selectedTime);
   updateQuickDates();updateSports();updateSelectedVisuals();refreshAvailability();
 
