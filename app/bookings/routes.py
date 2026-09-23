@@ -1,10 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle
+from ..models import Booking, BookingAllocation, BookingMessage, BookingPaymentReceipt, Customer, Resource, ResourceBundle, ResourceBlock, Sport
+from ..policies.models import BookingPolicy, PaymentPolicy
+from ..settings.services import get_site_settings
 from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
 
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
@@ -17,14 +20,37 @@ def booking_page():
         if current_user.is_authenticated else None
     )
     resume = session.pop("booking_resume", None)
+    now = datetime.now(ZoneInfo("Asia/Aden"))
+    initial_date = now.date()
+    if now.hour < 8:
+        rounded_hour, rounded_minute = 8, 0
+    else:
+        rounded_hour = now.hour
+        rounded_minute = 0 if now.minute == 0 else (30 if now.minute <= 30 else 0)
+        if now.minute > 30:
+            rounded_hour += 1
+        if rounded_hour >= 24:
+            rounded_hour, rounded_minute = 8, 0
+            initial_date = now.date() + timedelta(days=1)
+    initial_time = f"{rounded_hour:02d}:{rounded_minute:02d}"
+    time_options = [f"{h:02d}:{m:02d}" for h in range(8,24) for m in (0,30)]
     return render_template(
         "bookings/index.html",
         customer=customer,
+        sports=Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all(),
         resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
         bundles=ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all(),
         is_guest=not current_user.is_authenticated,
         resume=resume,
         resume_error=request.args.get("resume_error"),
+        initial_sport_id=request.args.get("sport_id", type=int),
+        initial_resource_id=request.args.get("resource_id", type=int),
+        initial_date=request.args.get("date") or initial_date.isoformat(),
+        initial_time=request.args.get("time") or initial_time,
+        time_options=time_options,
+        booking_policy=BookingPolicy.query.filter_by(is_default=True, is_active=True).first(),
+        payment_policy=PaymentPolicy.query.filter_by(is_default=True, is_active=True).first(),
+        site_settings=get_site_settings(),
     )
 
 
@@ -152,10 +178,94 @@ def availability():
         ).count()
     )
     resource = Resource.query.get_or_404(resource_id)
+    blocked = ResourceBlock.query.filter(
+        ResourceBlock.resource_id == resource.id,
+        ResourceBlock.status == "active",
+        ResourceBlock.starts_at < end_at,
+        ResourceBlock.ends_at > start_at,
+    ).first()
+    available = (
+        conflicts == 0
+        and resource.is_active
+        and resource.status == "available"
+        and end_at > start_at
+        and start_at.astimezone(ZoneInfo("UTC")) >= datetime.now(ZoneInfo("UTC"))
+        and not blocked
+    )
     return jsonify({
-        "available": conflicts == 0 and resource.is_active and resource.status == "available" and end_at > start_at,
+        "available": available,
         "resource_id": resource.id, "start": start_at.isoformat(), "end": end_at.isoformat(),
+        "reason": "محجوز" if conflicts else "محجوب" if blocked else "متاح",
     })
+
+
+@bp.get("/resource/<int:resource_id>")
+def resource_detail(resource_id):
+    from flask import abort
+    from datetime import timedelta
+    from ..pricing.services import calculate_price
+
+    resource = Resource.query.get_or_404(resource_id)
+    if not resource.is_active:
+        abort(404)
+
+    now = datetime.now(ZoneInfo("Asia/Aden"))
+    try:
+        selected_date = datetime.fromisoformat(request.args.get("date") or now.date().isoformat()).date()
+    except ValueError:
+        selected_date = now.date()
+
+    slots = []
+    current_available = False
+    for hour in range(8, 24):
+        start = datetime(selected_date.year, selected_date.month, selected_date.day, hour, tzinfo=ZoneInfo("Asia/Aden"))
+        end = start + timedelta(hours=1)
+        conflict = BookingAllocation.query.join(Booking).filter(
+            Booking.status.in_(["hold","pending","confirmed","checked_in","in_progress"]),
+            BookingAllocation.is_active.is_(True),
+            BookingAllocation.resource_id == resource.id,
+            BookingAllocation.start_at < end,
+            BookingAllocation.end_at > start,
+        ).first()
+        blocked = ResourceBlock.query.filter(
+            ResourceBlock.resource_id == resource.id,
+            ResourceBlock.status == "active",
+            ResourceBlock.starts_at < end,
+            ResourceBlock.ends_at > start,
+        ).first()
+        available = (
+            resource.status == "available"
+            and start >= now
+            and not conflict
+            and not blocked
+        )
+        if start <= now < end:
+            current_available = available
+
+        slots.append({
+            "start": start,
+            "end": end,
+            "available": available,
+            "reason": "محجوز" if conflict else "محجوب" if blocked else ("متاح" if resource.status == "available" else "غير متاح"),
+            "price": calculate_price(resource, start, end),
+        })
+
+    return render_template(
+        "public/resource_detail.html",
+        resource=resource,
+        slots=slots,
+        selected_date=selected_date,
+        booking_policy=BookingPolicy.query.filter_by(is_default=True,is_active=True).first(),
+        payment_policy=PaymentPolicy.query.filter_by(is_default=True,is_active=True).first(),
+        current_available=current_available,
+    )
+
+
+@bp.get("/sport/<int:sport_id>")
+def sport_detail(sport_id):
+    sport=Sport.query.get_or_404(sport_id)
+    resources=Resource.query.filter_by(sport_id=sport.id,is_active=True).order_by(Resource.id).all()
+    return render_template("public/sport_detail.html", sport=sport, resources=resources)
 
 
 @bp.post("/availability/batch")
@@ -205,7 +315,13 @@ def quote():
             continue
         price = calculate_price(resource, start_at, end_at)
         total += price
-        lines.append({"resource_id": resource.id, "resource": resource.name_ar, "price": str(price)})
+        lines.append({
+            "resource_id": resource.id,
+            "resource": resource.name_ar,
+            "start_at": start_at.isoformat(),
+            "end_at": end_at.isoformat(),
+            "price": str(price),
+        })
     return jsonify({"total": str(total), "lines": lines})
 
 
@@ -288,6 +404,106 @@ def cancel(booking_id):
         "status": booking.status,
         "requested_refund": str(refund),
     })
+
+
+@bp.get("/<int:booking_id>/messages")
+@login_required
+def messages(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    staff = current_user.username == "admin" or current_user.has_permission("booking.view")
+    if not staff and (not customer or booking.customer_id != customer.id):
+        return jsonify({"error":"غير مصرح"}),403
+    rows = booking.messages.order_by(BookingMessage.created_at.asc()).all()
+    return jsonify([{
+        "id": row.id, "sender_role": row.sender_role, "message_type": row.message_type,
+        "body_ar": row.body_ar, "attachment_url": row.attachment_url,
+        "attachment_name": row.attachment_name, "created_at": row.created_at.isoformat(),
+    } for row in rows])
+
+
+@bp.post("/<int:booking_id>/messages")
+@login_required
+def send_message(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    staff = current_user.username == "admin" or current_user.has_permission("booking.view")
+    if not staff and (not customer or booking.customer_id != customer.id):
+        return jsonify({"error":"غير مصرح"}),403
+
+    body = (request.form.get("body_ar") or "").strip()
+    attachment = request.files.get("attachment")
+    if not body and not (attachment and attachment.filename):
+        return jsonify({"error":"اكتب رسالة أو أرفق ملفًا"}),400
+
+    saved = None
+    if attachment and attachment.filename:
+        try:
+            if request.content_length and request.content_length > 12 * 1024 * 1024:
+                raise ValueError("حجم المرفق يتجاوز 12 ميجابايت")
+            from ..utils.media import save_uploaded_attachment
+            saved = save_uploaded_attachment(attachment, f"booking-{booking.id}")
+        except ValueError as exc:
+            return jsonify({"error":str(exc)}),400
+
+    row = BookingMessage(
+        booking_id=booking.id,
+        sender_user_id=current_user.id,
+        sender_role="staff" if staff else "customer",
+        message_type="message",
+        body_ar=body or None,
+        attachment_url=saved["url"] if saved else None,
+        attachment_name=saved["name"] if saved else None,
+        attachment_mime=saved["mime"] if saved else None,
+    )
+    db.session.add(row)
+    db.session.commit()
+    return jsonify({
+        "id":row.id, "sender_role":row.sender_role, "body_ar":row.body_ar,
+        "attachment_url":row.attachment_url, "attachment_name":row.attachment_name,
+        "created_at":row.created_at.isoformat(),
+    }),201
+
+
+@bp.post("/<int:booking_id>/payment-receipt")
+@login_required
+def payment_receipt(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer or booking.customer_id != customer.id:
+        return jsonify({"error":"غير مصرح"}),403
+    attachment = request.files.get("receipt")
+    if not attachment or not attachment.filename:
+        return jsonify({"error":"اختر صورة أو ملف PDF لإشعار الدفع"}),400
+    try:
+        if request.content_length and request.content_length > 12 * 1024 * 1024:
+            raise ValueError("حجم الإشعار يتجاوز 12 ميجابايت")
+        from ..utils.media import save_uploaded_attachment
+        saved = save_uploaded_attachment(attachment, f"booking-{booking.id}-receipts")
+    except ValueError as exc:
+        return jsonify({"error":str(exc)}),400
+
+    receipt = BookingPaymentReceipt(
+        booking_id=booking.id,
+        uploaded_by_id=current_user.id,
+        file_url=saved["url"],
+        original_name=saved["name"],
+        mime_type=saved["mime"],
+        status="pending",
+    )
+    db.session.add(receipt)
+    db.session.add(BookingMessage(
+        booking_id=booking.id,
+        sender_user_id=current_user.id,
+        sender_role="customer",
+        message_type="payment_receipt",
+        body_ar="تم رفع إشعار الدفع للمراجعة.",
+        attachment_url=saved["url"],
+        attachment_name=saved["name"],
+        attachment_mime=saved["mime"],
+    ))
+    db.session.commit()
+    return jsonify({"id":receipt.id,"status":receipt.status,"file_url":receipt.file_url,"message":"تم رفع إشعار الدفع، وحالته الآن قيد المراجعة."}),201
 
 
 @bp.post("/waitlist")

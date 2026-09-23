@@ -1,5 +1,26 @@
 {% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking">
+<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-detail">
+{% endblock %}
 {% block content %}
-<div class="public-header"><div><div class="eyebrow">حسابي</div><h1>حجوزاتي</h1><p>مواعيدك وحالات الدفع والحجوزات السابقة.</p></div><a class="btn btn-primary" href="{{ url_for('bookings.booking_page') }}">＋ حجز جديد</a></div>
-<section class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>الحجز</th><th>الموعد</th><th>الحالة</th><th>الدفع</th><th>المبلغ</th><th></th></tr></thead><tbody>{% for b in bookings %}<tr><td><b>{{ b.booking_number }}</b></td><td>{{ b.start_at.strftime("%Y-%m-%d %H:%M") }} → {{ b.end_at.strftime("%H:%M") }}</td><td><span class="badge badge-info">{{ b.status }}</span></td><td><span class="badge badge-{{ 'success' if b.payment_status == 'paid' else 'warning' }}">{{ b.payment_status }}</span></td><td>{{ "{:,.0f}".format(b.total|float) }}</td><td>{% if b.status in ['hold','pending','confirmed'] %}<button class="btn btn-soft btn-cancel-booking" data-booking-id="{{ b.id }}">إلغاء</button>{% endif %}</td></tr>{% else %}<tr><td colspan="6"><div class="empty-state">لا توجد حجوزات.</div></td></tr>{% endfor %}</tbody></table></div></section>
+<div class="booking-detail-page">
+  <header class="booking-mobile-head">
+    <a class="booking-back" href="{{ url_for('public.home') }}">‹</a>
+    <div><span>حساب العميل</span><h1>حجوزاتي</h1></div>
+    <a class="booking-head-link" href="{{ url_for('bookings.booking_page') }}">＋ حجز</a>
+  </header>
+  <div class="customer-booking-list-modern">
+    {% for b in bookings %}
+    <a class="customer-booking-card" href="{{ url_for('customer.booking_detail', booking_id=b.id) }}">
+      <div class="customer-booking-card-top"><strong>{{ b.booking_number }}</strong><span class="detail-status detail-{{ b.status }}">{{ {"hold":"مؤقت","pending":"مراجعة","confirmed":"مؤكد","cancelled":"ملغى","expired":"منتهي","completed":"مكتمل"}.get(b.status,b.status) }}</span></div>
+      <div class="customer-booking-card-date"><span>{{ b.start_at.strftime("%Y-%m-%d") }}</span><b>{{ b.start_at.strftime("%H:%M") }} — {{ b.end_at.strftime("%H:%M") }}</b></div>
+      <div class="customer-booking-card-resources">{% for a in b.allocations[:4] %}<span>{{ a.resource.sport.icon if a.resource and a.resource.sport else "●" }} {{ a.resource.name_ar if a.resource else "ملعب" }}</span>{% endfor %}</div>
+      <div class="customer-booking-card-bottom"><strong>{{ "{:,.0f}".format(b.total|float) }} ر.ي</strong><span>الدفع: {{ b.payment_status }}</span><b>التفاصيل ›</b></div>
+    </a>
+    {% else %}
+      <div class="booking-card booking-empty-state">لا توجد حجوزات بعد. ابدأ بحجز ملعبك الأول.</div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}

@@ -11,6 +11,14 @@ DEFAULTS = {
     "hero_title": "كل ملاعبك في مكان واحد",
     "hero_subtitle": "احجز، العب، تابع البطولات، واكتشف العروض بسهولة.",
     "booking_hold_minutes": "10",
+    "payment_intro": "بعد تأكيد الحجز اتبع بيانات الدفع التالية، ثم ارفع إشعار التحويل من صفحة الحجز.",
+    "payment_bank_name": "",
+    "payment_account_name": "",
+    "payment_account_number": "",
+    "payment_wallet_name": "",
+    "payment_wallet_number": "",
+    "payment_cash_note": "الدفع النقدي متاح لدى الاستقبال حسب سياسة المنشأة.",
+    "booking_policy_note": "لا يعتبر الحجز نهائيًا إلا بعد تأكيده. المواعيد المتعارضة تُرفض تلقائيًا.",
     "asset_version": "1",
 }
 

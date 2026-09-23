@@ -33,6 +33,8 @@ class Sport(db.Model):
     key=db.Column(db.String(60),unique=True,nullable=False)
     name_ar=db.Column(db.String(120),nullable=False)
     icon=db.Column(db.String(80))
+    image_url=db.Column(db.String(500))
+    description_ar=db.Column(db.Text)
     sort_order=db.Column(db.Integer,nullable=False,default=0)
     is_active=db.Column(db.Boolean,nullable=False,default=True)
 
@@ -44,6 +46,7 @@ class Resource(db.Model):
     key=db.Column(db.String(80),unique=True,nullable=False)
     name_ar=db.Column(db.String(160),nullable=False)
     description_ar=db.Column(db.Text)
+    image_url=db.Column(db.String(500))
     capacity=db.Column(db.Integer)
     status=db.Column(db.String(30),nullable=False,default="available")
     base_price=db.Column(db.Numeric(14,2),nullable=False,default=0)

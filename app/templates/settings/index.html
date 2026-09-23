@@ -53,6 +53,25 @@
     <button class="btn btn-primary" type="submit">تطبيق المظهر</button>
   </form>
 
+  <form class="panel form-stack settings-payment-panel" method="post" action="{{ url_for('settings.save_site') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>بيانات الدفع التي تظهر للعميل</h2>
+    <p class="form-hint">اترك أي وسيلة فارغة إذا لم تكن تستخدمها. ستظهر البيانات مرتبة داخل صفحة الحجز وتفاصيل الحجز.</p>
+    <label>مقدمة الدفع<textarea name="payment_intro" rows="3">{{ settings.payment_intro }}</textarea></label>
+    <div class="form-grid">
+      <label>اسم البنك<input name="payment_bank_name" value="{{ settings.payment_bank_name }}"></label>
+      <label>اسم صاحب الحساب<input name="payment_account_name" value="{{ settings.payment_account_name }}"></label>
+    </div>
+    <label>رقم الحساب / IBAN<input name="payment_account_number" value="{{ settings.payment_account_number }}"></label>
+    <div class="form-grid">
+      <label>اسم المحفظة<input name="payment_wallet_name" value="{{ settings.payment_wallet_name }}"></label>
+      <label>رقم المحفظة<input name="payment_wallet_number" value="{{ settings.payment_wallet_number }}"></label>
+    </div>
+    <label>ملاحظة الدفع النقدي<textarea name="payment_cash_note" rows="2">{{ settings.payment_cash_note }}</textarea></label>
+    <label>سياسة الحجز المختصرة<textarea name="booking_policy_note" rows="2">{{ settings.booking_policy_note }}</textarea></label>
+    <button class="btn btn-primary" type="submit">حفظ بيانات الدفع والسياسة</button>
+  </form>
+
   <section class="panel settings-cache-panel">
     <div class="settings-cache-icon">↻</div>
     <div>

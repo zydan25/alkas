@@ -42,12 +42,20 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
             item_end = _as_aware(datetime.fromisoformat(item["end_at"])) if isinstance(item["end_at"], str) else _as_aware(item["end_at"])
         except (KeyError, ValueError, TypeError) as exc:
             raise ValueError("بيانات إحدى فترات الحجز غير صحيحة") from exc
+        now_utc = datetime.now(timezone.utc)
         if item_end <= item_start:
             raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
+        if item_start <= now_utc:
+            raise ValueError("لا يمكن الحجز في وقت مضى")
         normalized.append({"resource_id": resource_id, "start_at": item_start, "end_at": item_end})
 
     if not normalized:
         raise ValueError("أضف فترة حجز واحدة على الأقل")
+
+    for i, left in enumerate(normalized):
+        for right in normalized[i + 1:]:
+            if left["resource_id"] == right["resource_id"] and left["start_at"] < right["end_at"] and right["start_at"] < left["end_at"]:
+                raise ValueError("يوجد تداخل بين فترتين لنفس الملعب في هذا الحجز")
 
     resource_ids = list(dict.fromkeys(item["resource_id"] for item in normalized))
     for item in normalized:

@@ -1,5 +1,151 @@
 {% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-account-v7">
+<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-account-detail-v7">
+<link rel="stylesheet" href="/static/css/customer-hubs.css?v={{ site_settings.asset_version }}&ui=20260923-account-hub-v7">
+{% endblock %}
 {% block content %}
-<div class="public-header"><div><div class="eyebrow">بيانات العميل</div><h1>ملفي</h1></div></div>
-<section class="panel profile-card"><div class="profile-big"><span class="avatar">{{ customer.name[:1] }}</span><div><h2>{{ customer.name }}</h2><span>{{ customer.customer_code }}</span></div></div><div class="profile-fields"><div><small>الهاتف</small><b>{{ customer.phone or '—' }}</b></div><div><small>البريد</small><b>{{ customer.email or '—' }}</b></div><div><small>الرصيد الدائن</small><b>{{ "{:,.0f}".format(customer.credit_balance|float) }}</b></div></div></section>
+<div class="customer-account-page customer-hub">
+  <header class="account-page-head">
+    <a class="account-back" href="{{ url_for('public.home') }}" aria-label="العودة">‹</a>
+    <div><small>الكأس</small><h1>حسابي</h1></div>
+    <a class="account-notification-button" href="{{ url_for('customer.notifications') }}" aria-label="الإشعارات"><span>♧</span>{% if unread %}<i>{{ unread if unread < 100 else '99+' }}</i>{% endif %}</a>
+  </header>
+
+  {% if error %}<div class="account-alert danger">{{ error }}</div>{% endif %}
+  {% if password_error %}<div class="account-alert danger">{{ password_error }}</div>{% endif %}
+
+  <section class="account-profile-hero">
+    <div class="account-avatar-large">{{ (customer.name if customer else current_user.display_name)[:1] }}</div>
+    <div class="account-profile-copy">
+      <span>مرحبًا بك 👋</span>
+      <h2>{{ customer.name if customer else current_user.display_name }}</h2>
+      <small>{{ customer.phone if customer and customer.phone else (current_user.phone or 'أضف رقم هاتفك') }}</small>
+    </div>
+    <a class="account-mini-edit" href="#account-data">تحديث</a>
+  </section>
+
+  <section class="account-summary-grid">
+    <a href="{{ url_for('customer.bookings') }}"><strong>{{ recent_bookings|length }}</strong><small>حجوزاتي</small></a>
+    <a href="{{ url_for('customer.memberships') }}"><strong>{{ memberships|length }}</strong><small>عضوياتي</small></a>
+    <a href="{{ url_for('customer.notifications') }}"><strong>{{ unread }}</strong><small>الإشعارات</small></a>
+  </section>
+
+  <section class="account-section account-quick-section">
+    <div class="account-section-title"><h2>الوصول السريع</h2></div>
+    <div class="service-grid">
+      <a class="service-tile service-tile-primary" href="{{ url_for('bookings.booking_page') }}"><span class="icon-tile">＋</span><b>حجز جديد</b><small>احجز ملعبك</small></a>
+      <a class="service-tile" href="{{ url_for('customer.bookings') }}"><span class="icon-tile">▣</span><b>حجوزاتي</b><small>المواعيد والحالات</small></a>
+      <a class="service-tile" href="{{ url_for('customer.memberships') }}"><span class="icon-tile">◇</span><b>عضوياتي</b><small>الاشتراكات والتجديد</small></a>
+      <a class="service-tile" href="{{ url_for('customer.notifications') }}"><span class="icon-tile">♧</span><b>الإشعارات</b><small>كل التنبيهات</small></a>
+    </div>
+  </section>
+
+  <section class="account-section" id="account-data">
+    <div class="account-section-title"><h2>بيانات الحساب</h2></div>
+    <details class="account-editor account-editor-card">
+      <summary><span>تعديل بياناتي</span><small>الاسم، الهاتف والبريد</small><b>›</b></summary>
+      <form class="hub-form" method="post" action="{{ url_for('customer.update_profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>الاسم<input name="name" value="{{ customer.name if customer else current_user.display_name }}" required></label>
+        <label>رقم الهاتف<input name="phone" value="{{ customer.phone if customer else (current_user.phone or '') }}"></label>
+        <label>البريد الإلكتروني<input type="email" name="email" value="{{ customer.email if customer else '' }}"></label>
+        <button class="hub-primary" type="submit">حفظ التعديلات</button>
+      </form>
+    </details>
+    <details class="account-editor account-editor-card">
+      <summary><span>تغيير كلمة المرور</span><small>تحديث كلمة مرور الحساب</small><b>›</b></summary>
+      <form class="hub-form" method="post" action="{{ url_for('customer.update_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>كلمة المرور السابقة<input type="password" name="current_password" required></label>
+        <label>كلمة المرور الجديدة<input type="password" name="new_password" minlength="8" required></label>
+        <label>تأكيد كلمة المرور<input type="password" name="confirm_password" minlength="8" required></label>
+        <button class="hub-primary" type="submit">تحديث كلمة المرور</button>
+      </form>
+    </details>
+  </section>
+
+  <section class="account-section">
+    <div class="account-section-title"><h2>حجوزاتي الأخيرة</h2><a class="hub-soft" href="{{ url_for('customer.bookings') }}">عرض الكل</a></div>
+    <div class="account-list">
+      {% for b in recent_bookings %}
+      <a class="account-row account-row-rich" href="{{ url_for('customer.booking_detail',booking_id=b.id) }}">
+        <span class="account-row-icon">▣</span>
+        <div class="account-row-main"><strong>{{ b.booking_number }}</strong><small>{{ b.start_at.strftime('%Y-%m-%d · %H:%M') }} · {{ "{:,.0f}".format(b.total|float) }} ر.ي</small></div>
+        <span class="hub-status {{ b.status }}">{{ {'hold':'مؤقت','pending':'مراجعة','confirmed':'مؤكد','cancelled':'ملغى','completed':'مكتمل','expired':'منتهي'}.get(b.status,b.status) }}</span>
+      </a>
+      {% else %}<div class="hub-detail">لا توجد حجوزات بعد.</div>{% endfor %}
+    </div>
+  </section>
+
+  <section class="account-section">
+    <div class="account-section-title"><h2>عضوياتي واشتراكاتي</h2><a class="hub-soft" href="{{ url_for('customer.memberships') }}">عرض الكل</a></div>
+    <div class="account-list">
+      {% for m in memberships %}
+      <div class="account-row account-row-rich"><span class="account-row-icon membership">◇</span><div class="account-row-main"><strong>عضوية #{{ m.id }}</strong><small>{{ m.starts_on }} → {{ m.ends_on }} · {{ 'تجديد تلقائي' if m.auto_renew else 'تجديد يدوي' }}</small></div><span class="hub-status {{ m.status }}">فعالة</span></div>
+      {% else %}
+      <a class="account-empty-action" href="{{ url_for('public.memberships') }}"><span>◇</span><div><strong>ليس لديك عضوية بعد</strong><small>تصفح الباقات والأسعار وابدأ الاشتراك</small></div><b>‹</b></a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="account-section">
+    <div class="account-section-title"><h2>خدمات الكأس</h2></div>
+    <div class="service-grid account-all-services">
+      <a class="service-tile" href="{{ url_for('public.resources') }}"><span class="icon-tile">⌂</span><b>تصفح الملاعب</b></a>
+      <a class="service-tile" href="{{ url_for('public.offers') }}"><span class="icon-tile">%</span><b>العروض</b></a>
+      <a class="service-tile" href="{{ url_for('public.discounts') }}"><span class="icon-tile">٪</span><b>الخصومات</b></a>
+      <a class="service-tile" href="{{ url_for('public.news') }}"><span class="icon-tile">N</span><b>الأخبار</b></a>
+      <a class="service-tile" href="{{ url_for('public.announcements') }}"><span class="icon-tile">!</span><b>الإعلانات</b></a>
+      <a class="service-tile" href="{{ url_for('public.training') }}"><span class="icon-tile">✦</span><b>التدريبات</b></a>
+      <a class="service-tile" href="{{ url_for('public.live') }}"><span class="icon-tile">●</span><b>البث المباشر</b></a>
+      <a class="service-tile" href="{{ url_for('public.contact') }}"><span class="icon-tile">☎</span><b>تواصل معنا</b></a>
+      <a class="service-tile" href="{{ url_for('public.about') }}"><span class="icon-tile">i</span><b>عن الكأس</b></a>
+      {% if is_admin %}<a class="service-tile service-admin-tile" href="{{ url_for('admin.dashboard') }}"><span class="icon-tile">⚙</span><b>لوحة الإدارة</b></a>{% endif %}
+    </div>
+  </section>
+
+  <section class="account-section">
+    <div class="account-section-title"><h2>تفضيلات الإشعارات</h2></div>
+    {% if preferences %}
+    <form class="notification-preferences-card" method="post" action="{{ url_for('customer.notification_preferences') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label><span><b>إشعارات التطبيق</b><small>تحديثات الحجوزات والعضويات</small></span><input type="checkbox" name="push_enabled" value="1" {{ 'checked' if preferences.push_enabled else '' }}></label>
+      <label><span><b>واتساب</b><small>تنبيهات الرسائل والخدمات</small></span><input type="checkbox" name="whatsapp_enabled" value="1" {{ 'checked' if preferences.whatsapp_enabled else '' }}></label>
+      <label><span><b>البريد الإلكتروني</b><small>الإشعارات المهمة</small></span><input type="checkbox" name="email_enabled" value="1" {{ 'checked' if preferences.email_enabled else '' }}></label>
+      <button class="hub-soft" type="submit">حفظ التفضيلات</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="account-logout-section">
+    <form id="account-logout-form" method="post" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="button" class="account-logout-button" data-account-logout>تسجيل الخروج</button>
+    </form>
+    <small>يمكنك تسجيل الدخول مرة أخرى في أي وقت.</small>
+  </section>
+</div>
+
+<div class="account-logout-modal" data-logout-modal hidden>
+  <div class="account-logout-backdrop" data-logout-close></div>
+  <div class="account-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+    <span class="account-logout-icon">↪</span>
+    <h2 id="logout-title">تسجيل الخروج؟</h2>
+    <p>هل تريد تسجيل الخروج من حسابك الآن؟</p>
+    <div><button type="button" class="hub-soft" data-logout-close>إلغاء</button><button type="button" class="hub-primary" data-logout-confirm>تسجيل الخروج</button></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  const modal=document.querySelector("[data-logout-modal]");
+  const form=document.querySelector("#account-logout-form");
+  document.querySelector("[data-account-logout]")?.addEventListener("click",()=>{modal.hidden=false;document.body.classList.add("logout-modal-open")});
+  modal?.querySelectorAll("[data-logout-close]").forEach(b=>b.addEventListener("click",()=>{modal.hidden=true;document.body.classList.remove("logout-modal-open")}));
+  modal?.querySelector("[data-logout-confirm]")?.addEventListener("click",()=>form?.submit());
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal&&!modal.hidden){modal.hidden=true;document.body.classList.remove("logout-modal-open")}});
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block head %}<link rel="stylesheet" href="/static/css/customer-hubs.css?v={{ site_settings.asset_version }}&ui=ad-detail-v2">{% endblock %}
+{% block content %}<div class="customer-hub">
+<div class="customer-hub-head"><div><div class="eyebrow">إعلان</div><h1>{{ ad.title_ar or 'إعلان' }}</h1><p>{{ campaign.advertiser_ar if campaign and campaign.advertiser_ar else 'إعلان من رعاة الكأس' }}</p></div><a class="hub-soft" href="{{ url_for('public.ads') }}">كل الإعلانات</a></div>
+<section class="hub-ad-detail">
+  <div class="hub-ad-media">
+    {% if ad.video_url %}<video controls playsinline preload="metadata" {% if ad.image_url %}poster="{{ ad.image_url }}"{% endif %}><source src="{{ ad.video_url }}"></video>
+    {% elif ad.image_url %}<img src="{{ ad.image_url }}" alt="{{ ad.title_ar or 'إعلان' }}">
+    {% else %}<div class="hub-ad-fallback">إعلان الكأس</div>{% endif %}
+  </div>
+  <div class="hub-detail"><span class="hub-pill">إعلان</span><h2>{{ ad.title_ar or 'إعلان' }}</h2>{% if campaign and campaign.advertiser_ar %}<p><b>المعلن:</b> {{ campaign.advertiser_ar }}</p>{% endif %}<p>تابع تفاصيل هذا الإعلان والخدمة المرتبطة به.</p>{% if ad.target_url %}<div class="hub-actions"><a class="hub-primary" href="{{ ad.target_url }}" {% if ad.target_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>زيارة الإعلان</a></div>{% endif %}</div>
+</section></div>{% endblock %}

@@ -1,7 +1,7 @@
 from ..users.models import Permission, Role, User
 from ..customers.models import Customer
 from ..resources.models import Resource, ResourceBundle, Sport, Venue, VenueZone
-from ..bookings.models import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry
+from ..bookings.models import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry, BookingMessage, BookingPaymentReceipt
 from ..settings.models import SiteSetting, SiteTheme
 from ..announcements.models import AnnouncementCard
 
@@ -15,7 +15,7 @@ from ..invoices.models import Invoice, InvoiceLine
 from ..inventory.models import Product, ProductCategory, StockMovement, Warehouse
 from ..live.models import LiveEvent, Stream, Viewer
 from ..maintenance.models import MaintenanceRequest, WorkOrder
-from ..memberships.models import Membership, MembershipPlan
+from ..memberships.models import Membership, MembershipPlan, MembershipRequest, MembershipMessage
 from ..news.models import NewsCategory, Post, PostTag
 from ..notifications.models import Notification, NotificationLog, NotificationPreference
 from ..offers.models import Coupon, Offer, OfferComment, OfferInquiry

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block head %}<link rel="stylesheet" href="/static/css/customer-hubs.css?v={{ site_settings.asset_version }}&ui=announcement-detail-v2">{% endblock %}
+{% block content %}<div class="customer-hub">
+<div class="customer-hub-head"><div><div class="eyebrow">{{ announcement.accent_label_ar or 'إعلان' }}</div><h1>{{ announcement.title_ar }}</h1><p>{{ announcement.created_at.strftime('%Y-%m-%d') if announcement.created_at else '' }}</p></div><a class="hub-soft" href="{{ url_for('public.announcements') }}">كل الإعلانات</a></div>
+<section class="hub-ad-detail">
+  <div class="hub-ad-media">
+    {% if announcement.video_url %}<video controls playsinline preload="metadata" {% if announcement.image_url %}poster="{{ announcement.image_url }}"{% endif %}><source src="{{ announcement.video_url }}"></video>
+    {% elif announcement.image_url %}<img src="{{ announcement.image_url }}" alt="{{ announcement.title_ar }}">
+    {% else %}<div class="hub-ad-fallback">إعلان الكأس</div>{% endif %}
+  </div>
+  <article class="hub-detail"><span class="hub-pill">{{ announcement.accent_label_ar or 'إعلان' }}</span><h2>{{ announcement.title_ar }}</h2><p style="white-space:pre-line">{{ announcement.body_ar or '' }}</p>{% if announcement.target_url %}<div class="hub-actions"><a class="hub-primary" href="{{ announcement.target_url }}" {% if announcement.target_url.startswith('http') %}target="_blank" rel="noopener"{% endif %}>{{ announcement.button_text_ar or 'عرض التفاصيل' }}</a></div>{% endif %}</article>
+</section></div>{% endblock %}

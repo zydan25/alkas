@@ -34,3 +34,41 @@ def save_uploaded_media(file_storage, folder, kind):
     file_storage.save(destination)
 
     return f"/static/uploads/{folder}/{filename}"
+
+
+ATTACHMENT_EXTENSIONS = {
+    "pdf", "jpg", "jpeg", "png", "webp", "gif", "heic"
+}
+
+def save_uploaded_attachment(file_storage, folder="booking"):
+    """Save a customer attachment such as a payment receipt."""
+    if not file_storage or not getattr(file_storage, "filename", ""):
+        return None
+
+    original = secure_filename(file_storage.filename or "")
+    extension = Path(original).suffix.lower().lstrip(".")
+    if not extension or extension not in ATTACHMENT_EXTENSIONS:
+        raise ValueError("المرفق غير مدعوم. استخدم PDF أو صورة JPG/PNG/WebP.")
+
+    mimetype = (getattr(file_storage, "mimetype", "") or "").lower()
+    allowed_mimes = {
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/heic",
+    }
+    if mimetype and mimetype not in allowed_mimes:
+        raise ValueError("نوع المرفق غير مسموح.")
+
+    upload_dir = Path(current_app.static_folder) / "uploads" / folder
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid4().hex}.{extension}"
+    destination = upload_dir / filename
+    file_storage.save(destination)
+    return {
+        "url": f"/static/uploads/{folder}/{filename}",
+        "name": original[:240],
+        "mime": mimetype or "application/octet-stream",
+    }

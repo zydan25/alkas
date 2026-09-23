@@ -2,6 +2,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import Resource, Sport, Venue, VenueZone, ResourceBundle
+from ..utils.media import save_uploaded_media
 
 bp=Blueprint("resources",__name__,url_prefix="/admin/resources",template_folder="templates")
 
@@ -102,7 +103,21 @@ def create():
     except (KeyError,ValueError,TypeError): return render_template("resources/form.html",sports=Sport.query.filter_by(is_active=True).all(),zones=VenueZone.query.filter_by(is_active=True).all(),error="البيانات غير صحيحة"),400
     if not key or not name: return render_template("resources/form.html",sports=Sport.query.filter_by(is_active=True).all(),zones=VenueZone.query.filter_by(is_active=True).all(),error="الاسم والمفتاح مطلوبان"),400
     if Resource.query.filter_by(key=key).first(): return render_template("resources/form.html",sports=Sport.query.filter_by(is_active=True).all(),zones=VenueZone.query.filter_by(is_active=True).all(),error="المفتاح مستخدم"),400
-    db.session.add(Resource(zone_id=zone_id,sport_id=sport_id,key=key,name_ar=name,base_price=price,capacity=request.form.get("capacity") or None))
+    image = request.files.get("image")
+    try:
+        image_url = save_uploaded_media(image, "resources", "image") if image and image.filename else None
+    except ValueError as exc:
+        return render_template("resources/form.html",sports=Sport.query.filter_by(is_active=True).all(),zones=VenueZone.query.filter_by(is_active=True).all(),error=str(exc)),400
+    db.session.add(Resource(
+        zone_id=zone_id,
+        sport_id=sport_id,
+        key=key,
+        name_ar=name,
+        description_ar=(request.form.get("description_ar") or "").strip() or None,
+        image_url=image_url,
+        base_price=price,
+        capacity=request.form.get("capacity") or None,
+    ))
     db.session.commit()
     return redirect(url_for("admin.resources"))
 
