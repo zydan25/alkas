@@ -12,7 +12,11 @@
   const cartCount=form.querySelector("[data-cart-count]");
   const selectedEmpty=form.querySelector("[data-selected-empty]");
   const selectedList=form.querySelector("[data-selected-bookings]");
-  const addResourceButton=form.querySelector("[data-open-resource-picker]");
+  const addResourceButtons=[...form.querySelectorAll("[data-open-resource-picker]")];
+  const addResourceButton=addResourceButtons[0]||null;
+  if(addResourceButtons.length>1){
+    addResourceButtons.slice(1).forEach(button=>button.remove());
+  }
   const guestCard=form.querySelector("[data-guest-card]");
   const totalSummary=form.querySelector("[data-booking-total-summary]");
   const breakdown=form.querySelector("[data-booking-breakdown]");
@@ -1023,7 +1027,11 @@
     if(picker&&!picker.hidden)refreshPickerAvailability(globalContext());
   });
 
-  addResourceButton?.addEventListener("click",()=>openPicker());
+  addResourceButton?.addEventListener("click",event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    openPicker();
+  });
 
   closePickerButton?.addEventListener("click",closePicker);
   picker?.addEventListener("click",event=>{
