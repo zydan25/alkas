@@ -33,12 +33,6 @@
   let selectedSports=new Set();
   let cart=[];
   let requestSerial=0;
-  const timeOptions=[];
-  for(let h=8;h<24;h++){
-    for(const m of [0,30]){
-      timeOptions.push(String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"));
-    }
-  }
   const durationOptions=[
     ["30","30 دقيقة"],["60","60 دقيقة"],["90","90 دقيقة"],["120","120 دقيقة"],["150","150 دقيقة"],["180","180 دقيقة"]
   ];
@@ -131,7 +125,7 @@
       tr.className=x.invalid?"cart-invalid":"";
       tr.innerHTML='<td data-label="الملعب" class="cart-resource-cell"><strong></strong><small></small></td>'+
         '<td data-label="التاريخ"><input class="cart-date-input" type="date"></td>'+
-        '<td data-label="من"><select class="cart-time-input"></select></td>'+
+        '<td data-label="من"><input class="cart-time-input" type="time" min="08:00" max="23:30" step="60"></td>'+
         '<td data-label="المدة"><select class="cart-duration-input"></select></td>'+
         '<td data-label="إلى" class="cart-end-time"></td>'+
         '<td data-label="السعر" class="cart-price"></td>'+
@@ -140,7 +134,7 @@
       tr.querySelector(".cart-resource-cell small").textContent=x.sport_name;
       const dateSel=tr.querySelector(".cart-date-input");
       dateSel.value=x.date;
-      populateSelect(tr.querySelector(".cart-time-input"),timeOptions.map(v=>[v,v]),x.start_time);
+      tr.querySelector(".cart-time-input").value=x.start_time;
       populateSelect(tr.querySelector(".cart-duration-input"),durationOptions,x.duration);
       tr.querySelector(".cart-end-time").textContent=fmtTime(end);
       tr.querySelector(".cart-price").textContent=(Number(x.price)||0).toLocaleString("en-US")+" ر.ي";
@@ -154,6 +148,22 @@
   async function checkResource(card,start,end){
     const results=await checkResourcesBatch([{resource_id:Number(card.dataset.resourceId),start_at:start.toISOString(),end_at:end.toISOString()}]);
     return results[0]||{available:false,reason:"تعذر التحقق"};
+  }
+
+  async function findNextAvailability(resourceId,start,end){
+    try{
+      const url="/bookings/availability/next?resource_id="+encodeURIComponent(resourceId)+
+        "&start="+encodeURIComponent(start.toISOString())+
+        "&end="+encodeURIComponent(end.toISOString());
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),2200);
+      const r=await fetch(url,{cache:"no-store",headers:{"Accept":"application/json"},signal:controller.signal});
+      clearTimeout(timer);
+      if(!r.ok)throw new Error("next availability "+r.status);
+      return await r.json();
+    }catch(_){
+      return {available:false,next_available_at:null,reason:"تعذر تحديد أقرب وقت متاح"};
+    }
   }
 
   async function checkResourcesBatch(items){
@@ -175,7 +185,7 @@
         available:!!x.available,
         reason:x.reason||"غير متاح",
         resource_id:x.resource_id,
-        next_available_at:x.next_available_at||null
+        next_available_at:null
       }));
     }catch(e){
       const reason=e.name==="AbortError"?"تعذر التحقق سريعًا":"تعذر التحقق";
@@ -314,17 +324,25 @@
     if(!start||start<=new Date()){setAlert("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
     if(card.classList.contains("is-disabled")){
       const reason=card.dataset.availabilityReason||"هذا الملعب غير متاح في الموعد المحدد.";
-      const next=fmtNextAvailability(card.dataset.nextAvailable);
-      setAlert(next?reason+" — أقرب وقت متاح: "+next:reason,"error");
+      setAlert("جاري معرفة أقرب وقت متاح...");
+      const next=await findNextAvailability(Number(card.dataset.resourceId),start,end);
+      const nextText=fmtNextAvailability(next.next_available_at);
+      setAlert(nextText
+        ? reason+" — أقرب وقت متاح: "+nextText
+        : (next.reason||reason),"error");
       return;
     }
-    setAlert("جاري التحقق من توفر الملعب...");
-    const data=await checkResource(card,start,end);
+    const signature=dateInput.value+"|"+selectedTime+"|"+String(durationSelect.value||60);
+    const checkedAt=Number(card.dataset.availabilityChecked||0);
+    let data;
+    if(card.dataset.availabilitySignature===signature && Date.now()-checkedAt<10000){
+      data={available:card.dataset.available==="1",reason:card.dataset.availabilityReason||""};
+    }else{
+      setAlert("جاري التحقق من توفر الملعب...");
+      data=await checkResource(card,start,end);
+    }
     if(!data.available){
-      const next=fmtNextAvailability(data.next_available_at);
-      setAlert(next
-        ? (data.reason||"الملعب غير متاح")+" — أقرب وقت متاح: "+next
-        : (data.reason||"هذا الملعب لم يعد متاحًا في الموعد المحدد."),"error");
+      setAlert(data.reason||"هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");
       await refreshAvailability();
       return
     }
@@ -366,7 +384,7 @@
     if(!/^\\d{2}:\\d{2}$/.test(value))return;
     const [h,m]=value.split(":").map(Number);
     const total=h*60+m;
-    if(total>=8*60 && total<=23*60+30 && total%30===0){
+    if(total>=8*60 && total<=23*60+30){
       setTime(value);
       queueAvailabilityCheck();
     }
@@ -378,8 +396,8 @@
     else{
       const [h,m]=value.split(":").map(Number);
       const total=h*60+m;
-      if(total<8*60 || total>23*60+30 || total%30!==0){
-        setAlert("اختر الوقت على نصف الساعة: 08:00، 08:30، 09:00...","error");
+      if(total<8*60 || total>23*60+30){
+        setAlert("اختر وقتًا بين 08:00 و23:30.","error");
         setTime(nearestHalfHourTime());
         return;
       }
