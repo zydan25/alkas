@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-account">
+<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-account">
+{% endblock %}
 {% block content %}
 <div class="customer-profile-mobile">
   <header class="booking-mobile-head">
@@ -8,20 +12,36 @@
   </header>
 
   <section class="panel profile-card profile-card-modern">
-    <div class="profile-big"><span class="avatar">{{ customer.name[:1] }}</span><div><h2>{{ customer.name }}</h2><span>{{ customer.customer_code }}</span></div></div>
+    <div class="profile-big">
+      <span class="avatar">{{ (customer.name if customer else current_user.display_name)[:1] }}</span>
+      <div>
+        <h2>{{ customer.name if customer else current_user.display_name }}</h2>
+        <span>{% if customer %}{{ customer.customer_code }}{% else %}{{ current_user.username }} · حساب إداري{% endif %}</span>
+      </div>
+    </div>
     <div class="profile-fields">
-      <div><small>الهاتف</small><b>{{ customer.phone or '—' }}</b></div>
-      <div><small>البريد</small><b>{{ customer.email or '—' }}</b></div>
-      <div><small>الرصيد الدائن</small><b>{{ "{:,.0f}".format(customer.credit_balance|float) }} ر.ي</b></div>
+      <div><small>الهاتف</small><b>{{ customer.phone if customer else (current_user.phone or '—') }}</b></div>
+      <div><small>البريد</small><b>{{ customer.email if customer else '—' }}</b></div>
+      {% if customer %}
+      <div><small>الرصيد</small><b>{{ "{:,.0f}".format(customer.credit_balance|float) }} ر.ي</b></div>
+      {% else %}
+      <div><small>نوع الحساب</small><b>إدارة النظام</b></div>
+      {% endif %}
     </div>
   </section>
 
   <div class="profile-actions-mobile">
     <a href="{{ url_for('customer.bookings') }}"><span>▣</span><div><strong>حجوزاتي</strong><small>عرض الحجوزات والحالات والتفاصيل</small></div><b>‹</b></a>
-    <a href="{{ url_for('customer.notifications') }}"><span>♧</span><div><strong>الإشعارات</strong><small>تابع تحديثات الحجز والدفع</small></div><b>‹</b></a>
-    {% if current_user.username == 'admin' or current_user.has_permission('booking.view') %}
-    <a class="profile-admin-action" href="{{ url_for('admin.dashboard') }}"><span>⚙</span><div><strong>لوحة الإدارة</strong><small>إدارة الحجوزات والملاعب والحسابات وجميع تطبيقات الكأس</small></div><b>‹</b></a>
+    <a href="{{ url_for('customer.notifications') }}"><span>♧</span><div><strong>الإشعارات</strong><small>تابع تحديثات النظام والحجوزات</small></div><b>‹</b></a>
+
+    {% if is_admin %}
+    <a class="profile-admin-action" href="{{ url_for('admin.dashboard') }}">
+      <span>⚙</span>
+      <div><strong>لوحة الإدارة</strong><small>الانتقال إلى إدارة الكأس وجميع تطبيقات النظام</small></div>
+      <b>‹</b>
+    </a>
     {% endif %}
+
     <a href="{{ url_for('bookings.booking_page') }}"><span>＋</span><div><strong>حجز جديد</strong><small>ابدأ حجز ملعب أو أكثر</small></div><b>‹</b></a>
   </div>
 </div>
