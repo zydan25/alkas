@@ -4052,3 +4052,121 @@ body{
     flex:0 0 auto;
   }
 }
+
+/* =========================================================
+   v13 — customer mobile: two-card horizontal resources + stable prices
+   ========================================================= */
+@media(max-width:620px){
+  /* Homepage resources: exactly two cards visible, then horizontal scrolling. */
+  .customer-home-page .home-resources-section .home-resource-scroller{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    gap:8px!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:0 2px 7px!important;
+    direction:rtl!important;
+    scroll-snap-type:x mandatory!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:rgba(24,105,85,.38) transparent!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain!important;
+  }
+
+  .customer-home-page .home-resources-section .home-resource-scroller::-webkit-scrollbar{
+    display:block!important;
+    height:4px!important;
+  }
+  .customer-home-page .home-resources-section .home-resource-scroller::-webkit-scrollbar-track{
+    background:transparent!important;
+  }
+  .customer-home-page .home-resources-section .home-resource-scroller::-webkit-scrollbar-thumb{
+    background:rgba(24,105,85,.38)!important;
+    border-radius:999px!important;
+  }
+
+  .customer-home-page .home-resources-section .home-resource-card{
+    flex:0 0 calc((100% - 8px) / 2)!important;
+    width:calc((100% - 8px) / 2)!important;
+    min-width:0!important;
+    max-width:none!important;
+    scroll-snap-align:start!important;
+  }
+
+  .customer-home-page .home-resources-section .home-resource-photo{
+    height:100px!important;
+  }
+
+  /* Booking resource price block: keep amount and unit separated and aligned. */
+  .customer-app-page .booking-resource-option{
+    grid-template-columns:minmax(0,1fr) auto!important;
+  }
+
+  .customer-app-page .booking-resource-side{
+    min-width:76px!important;
+    width:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    gap:2px!important;
+    overflow:visible!important;
+    white-space:nowrap!important;
+  }
+
+  .customer-app-page .booking-resource-side b{
+    display:block!important;
+    margin:0!important;
+    font-size:.78rem!important;
+    line-height:1.05!important;
+    white-space:nowrap!important;
+  }
+
+  .customer-app-page .booking-resource-side small{
+    display:block!important;
+    margin:0!important;
+    font-size:.48rem!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+  }
+
+  /* Booking table: preserve one physical row and give the price its own readable column. */
+  .customer-app-page .booking-cart-table-wrap{
+    overflow-x:auto!important;
+    overflow-y:auto!important;
+    scrollbar-width:thin!important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .customer-app-page .booking-cart-table .cart-price{
+    min-width:108px!important;
+    width:108px!important;
+    justify-content:flex-start!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:.55rem!important;
+    line-height:1!important;
+  }
+}
+
+@media(max-width:390px){
+  .customer-home-page .home-resources-section .home-resource-card{
+    flex-basis:calc((100% - 7px) / 2)!important;
+    width:calc((100% - 7px) / 2)!important;
+  }
+
+  .customer-app-page .booking-resource-side{
+    min-width:72px!important;
+  }
+
+  .customer-app-page .booking-cart-table .cart-price{
+    min-width:103px!important;
+    width:103px!important;
+    font-size:.52rem!important;
+  }
+}
+
