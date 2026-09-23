@@ -129,7 +129,11 @@
     const q=await getQuote(cart);
     const lines=q.lines||[];
     cart.forEach(x=>{
-      const match=lines.find(line=>Number(line.resource_id)===Number(x.resource_id)&&String(line.price));
+      const match=lines.find(line =>
+        Number(line.resource_id)===Number(x.resource_id) &&
+        String(line.start_at)===x.start.toISOString() &&
+        String(line.end_at)===x.end.toISOString()
+      );
       x.price=match?Number(match.price):0;
     });
     totalNode.innerHTML=(q.total||"0")+" <em>ر.ي</em>";
