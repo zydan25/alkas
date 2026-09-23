@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
@@ -21,17 +21,17 @@ def booking_page():
     )
     resume = session.pop("booking_resume", None)
     now = datetime.now(ZoneInfo("Asia/Aden"))
-    rounded_minute = 30 if now.minute > 0 else 0
-    if now.minute > 30:
-        rounded_hour = now.hour + 1
-        rounded_minute = 0
+    initial_date = now.date()
+    if now.hour < 8:
+        rounded_hour, rounded_minute = 8, 0
     else:
         rounded_hour = now.hour
-    initial_date = now.date()
-    if rounded_hour >= 24:
-        rounded_hour = 8
-        rounded_minute = 0
-        initial_date = now.date().replace(day=now.day)
+        rounded_minute = 0 if now.minute == 0 else (30 if now.minute <= 30 else 0)
+        if now.minute > 30:
+            rounded_hour += 1
+        if rounded_hour >= 24:
+            rounded_hour, rounded_minute = 8, 0
+            initial_date = now.date() + timedelta(days=1)
     initial_time = f"{rounded_hour:02d}:{rounded_minute:02d}"
     time_options = [f"{h:02d}:{m:02d}" for h in range(8,24) for m in (0,30)]
     return render_template(
