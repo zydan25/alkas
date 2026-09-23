@@ -42,8 +42,11 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
             item_end = _as_aware(datetime.fromisoformat(item["end_at"])) if isinstance(item["end_at"], str) else _as_aware(item["end_at"])
         except (KeyError, ValueError, TypeError) as exc:
             raise ValueError("بيانات إحدى فترات الحجز غير صحيحة") from exc
+        now_utc = datetime.now(timezone.utc)
         if item_end <= item_start:
             raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
+        if item_start <= now_utc:
+            raise ValueError("لا يمكن الحجز في وقت مضى")
         normalized.append({"resource_id": resource_id, "start_at": item_start, "end_at": item_end})
 
     if not normalized:
