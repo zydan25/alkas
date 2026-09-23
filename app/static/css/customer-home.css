@@ -962,11 +962,24 @@
   .home-fast-form label,.home-fast-submit{min-height:53px}
 }
 @media(max-width:620px){
-  .home-fast-form{grid-template-columns:1.15fr .82fr .82fr 1.08fr;gap:6px;overflow-x:auto;scrollbar-width:none}
-  .home-fast-form::-webkit-scrollbar{display:none}
-  .home-fast-form label{min-width:126px}
-  .home-fast-submit{min-width:156px}
+  .home-fast-form{
+    grid-template-columns:1fr 1fr 1fr 1.12fr;
+    gap:5px;
+    width:100%;
+    overflow:visible;
+  }
+  .home-fast-form label{min-width:0;padding-inline:6px}
+  .home-fast-form label select,
+  .home-fast-form label input{font-size:.55rem}
+  .home-fast-submit{min-width:0;padding-inline:6px;font-size:.51rem;white-space:nowrap}
   .home-fast-booking{overflow:hidden}
+}
+@media(max-width:390px){
+  .home-fast-form{grid-template-columns:1fr 1fr 1fr 1.05fr;gap:4px}
+  .home-fast-form label{min-height:48px}
+  .home-fast-form label small{font-size:.44rem}
+  .home-fast-form label select,.home-fast-form label input{font-size:.49rem}
+  .home-fast-submit{min-height:48px;font-size:.47rem}
 }
 
 /* Screenshot composition: training/membership beside latest news */
