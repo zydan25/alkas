@@ -10,9 +10,11 @@ from ..ads.models import AdCampaign, AdCreative, AdPlacement
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Booking, BookingAllocation, Customer, Resource, Sport
-from ..memberships.models import MembershipPlan
+from ..memberships.models import MembershipPlan, MembershipRequest
 from ..news.models import Post
 from ..offers.models import Offer
+from ..training.models import TrainingProgram
+
 from ..teams.models import Team
 from ..tournaments.models import Match, Tournament
 
@@ -400,3 +402,95 @@ def get_site_color(key):
         return get_site_settings()["theme"].get(key, "#0f172a")
     except Exception:
         return "#0f172a"
+
+
+@bp.get("/memberships")
+def public_memberships():
+    plans=MembershipPlan.query.filter_by(is_active=True).order_by(MembershipPlan.id.desc()).all()
+    return render_template("public/memberships.html",plans=plans)
+
+@bp.get("/memberships/<int:plan_id>")
+def membership_detail(plan_id):
+    plan=MembershipPlan.query.filter_by(id=plan_id,is_active=True).first_or_404()
+    return render_template("public/membership_detail.html",plan=plan)
+
+@bp.post("/memberships/<int:plan_id>/apply")
+def membership_apply(plan_id):
+    from flask import redirect
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login",next=url_for("public.membership_detail",plan_id=plan_id)))
+    plan=MembershipPlan.query.filter_by(id=plan_id,is_active=True).first_or_404()
+    customer=Customer.query.filter_by(user_id=current_user.id,is_active=True).first()
+    if not customer:
+        return redirect(url_for("customer.profile"))
+    existing=MembershipRequest.query.filter(
+        MembershipRequest.customer_id==customer.id,
+        MembershipRequest.plan_id==plan.id,
+        MembershipRequest.status.in_(["pending","approved"]),
+    ).first()
+    if existing:
+        return redirect(url_for("customer.membership_detail",request_id=existing.id))
+    starts_raw=(request.form.get("starts_on") or "").strip()
+    try:
+        from datetime import date, timedelta
+        starts=date.fromisoformat(starts_raw) if starts_raw else date.today()
+    except ValueError:
+        starts=date.today()
+    row=MembershipRequest(
+        customer_id=customer.id,plan_id=plan.id,title_ar=plan.name_ar,
+        price=plan.price,duration_days=plan.duration_days,starts_on=starts,
+        ends_on=starts+timedelta(days=max(1,plan.duration_days)-1),
+        auto_renew=request.form.get("auto_renew")=="1",status="pending"
+    )
+    db.session.add(row)
+    db.session.flush()
+    from ..notifications.models import Notification
+    db.session.add(Notification(
+        user_id=current_user.id,
+        title_ar="تم استلام طلب العضوية",
+        body_ar=f"تم استلام طلب {plan.name_ar} بسعر {plan.price} ر.ي ومدة {plan.duration_days} يوم.",
+        kind="membership",priority="high"
+    ))
+    db.session.commit()
+    return redirect(url_for("customer.membership_detail",request_id=row.id))
+
+@bp.get("/resources")
+def public_resources():
+    resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id,Resource.id).all()
+    return render_template("public/resources.html",resources=resources)
+
+@bp.get("/announcements")
+def public_announcements():
+    now=datetime.now(timezone.utc)
+    rows=AnnouncementCard.query.filter_by(status="published").order_by(AnnouncementCard.priority.desc(),AnnouncementCard.created_at.desc()).limit(80).all()
+    rows=[row for row in rows if row.visible(now)]
+    return render_template("public/announcements.html",announcements=rows)
+
+@bp.get("/ads")
+def public_ads():
+    now=datetime.now(timezone.utc)
+    rows=(AdCreative.query.join(AdCampaign,AdCreative.campaign_id==AdCampaign.id).join(AdPlacement,AdCreative.placement_id==AdPlacement.id)
+        .filter(AdCreative.status=="active",AdCampaign.status=="active",AdPlacement.is_active.is_(True)).order_by(AdCreative.priority.desc(),AdCreative.id.desc()).limit(80).all())
+    rows=[row for row in rows if (row.campaign.starts_at is None or row.campaign.starts_at<=now) and (row.campaign.ends_at is None or row.campaign.ends_at>now)] if rows else []
+    return render_template("public/ads.html",ads=rows)
+
+@bp.get("/discounts")
+def public_discounts():
+    now=datetime.now(timezone.utc)
+    rows=Offer.query.filter_by(status="published").order_by(Offer.priority.desc(),Offer.id.desc()).all()
+    rows=[row for row in rows if (row.starts_at is None or row.starts_at<=now) and (row.ends_at is None or row.ends_at>now) and (row.discount_percent or row.fixed_discount)]
+    return render_template("public/discounts.html",offers=rows)
+
+@bp.get("/training")
+def public_training():
+    programs=TrainingProgram.query.filter_by(is_active=True).order_by(TrainingProgram.id.desc()).all()
+    sports={sport.id:sport for sport in Sport.query.filter_by(is_active=True).all()}
+    return render_template("public/training.html",programs=programs,sports=sports)
+
+@bp.get("/about")
+def about():
+    return render_template("public/about.html")
+
+@bp.get("/contact")
+def contact():
+    return render_template("public/contact.html")
