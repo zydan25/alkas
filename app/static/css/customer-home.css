@@ -1031,3 +1031,17 @@
   .home-membership-card>strong{font-size:.61rem}
   .home-membership-price{font-size:.82rem}
 }
+
+/* Keep compact lower cards in two columns even on narrow phones */
+@media(max-width:390px){
+  .home-promo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .home-promo-card{min-height:92px}
+  .home-info-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .home-training-panel,.home-latest-news-card{min-height:96px}
+  .home-latest-news-card{grid-template-columns:58px 1fr 12px;padding:6px;gap:5px}
+  .home-latest-news-card>img,.home-latest-news-fallback{width:58px;height:82px}
+  .home-training-panel{grid-template-columns:1fr}
+  .home-training-art{min-height:44px}
+  .home-training-items{padding:5px}
+  .home-training-art span{font-size:1.55rem}
+}
