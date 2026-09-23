@@ -42,7 +42,7 @@
         <div class="resource-pills">{% for resource in b.resources %}<span>{{ resource }}</span>{% endfor %}</div>
       </div>
       <div class="booking-money"><strong>{{ "{:,.2f}".format(b.total|float) }}</strong><small>{{ b.payment_status }}</small></div>
-      <div class="row-actions"><span class="badge badge-info">{{ b.number }}</span></div>
+      <div class="row-actions"><span class="badge badge-info">{{ b.number }}</span><a class="btn btn-soft" href="{{ url_for('admin.booking_chat', booking_id=b.id) }}">محادثة</a></div>
     </article>
     {% else %}
     <div class="empty-state">لا توجد حجوزات لهذا اليوم.</div>
