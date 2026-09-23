@@ -3647,3 +3647,262 @@
     font-size:.72rem!important;
   }
 }
+
+
+/* =========================================================
+   v11 — final phone density pass
+   ========================================================= */
+
+/* Home: reduce overall visual scale slightly without browser zoom. */
+@media(max-width:620px){
+  .home-public-page .page-shell{
+    padding-inline:12px!important;
+    padding-top:9px!important;
+    padding-bottom:104px!important;
+  }
+  .customer-home-header{
+    min-height:52px!important;
+    margin-bottom:7px!important;
+    gap:7px!important;
+  }
+  .home-avatar{
+    width:40px!important;
+    height:40px!important;
+    flex-basis:40px!important;
+    border-radius:12px!important;
+  }
+  .home-profile-copy{
+    gap:2px!important;
+  }
+  .home-profile-copy span{font-size:.7rem!important}
+  .home-profile-copy strong{font-size:.84rem!important}
+  .home-header-actions{gap:4px!important}
+  .home-icon-button{
+    width:39px!important;
+    min-width:39px!important;
+    height:39px!important;
+    min-height:39px!important;
+    border-radius:11px!important;
+  }
+  .home-icon-button svg{width:19px!important;height:19px!important}
+  .home-points-pill{
+    min-height:39px!important;
+    border-radius:11px!important;
+    font-size:.7rem!important;
+  }
+  .home-search{
+    height:46px!important;
+    margin-bottom:9px!important;
+    border-radius:14px!important;
+  }
+  .home-search-icon,.home-filter-button{
+    width:36px!important;
+    height:36px!important;
+    flex-basis:36px!important;
+    border-radius:10px!important;
+  }
+  .home-search input{font-size:14px!important}
+  .home-featured-banner{margin-bottom:12px!important}
+  .home-featured-viewport{
+    min-height:192px!important;
+    max-height:215px!important;
+    border-radius:16px!important;
+  }
+  .home-featured-copy{
+    padding:10px 11px!important;
+    right:11px!important;
+    left:11px!important;
+    bottom:10px!important;
+    gap:3px!important;
+  }
+  .home-featured-copy h1{font-size:.96rem!important}
+  .home-featured-copy p{font-size:.62rem!important;line-height:1.5!important}
+  .home-featured-badge{font-size:.62rem!important;padding:4px 7px!important}
+  .home-featured-cta{min-height:35px!important;font-size:.66rem!important;padding-inline:9px!important}
+  .home-section{margin-top:13px!important}
+  .home-section-label,.home-section-head h2{
+    font-size:1rem!important;
+  }
+  .home-section-head{margin-bottom:6px!important}
+  .home-sports-scroller{
+    gap:7px!important;
+    padding-bottom:3px!important;
+  }
+  .home-sport-tile{
+    flex-basis:92px!important;
+    height:99px!important;
+    border-radius:13px!important;
+  }
+  .home-sport-icon{font-size:1.75rem!important}
+  .home-sport-tile>span:last-child{
+    bottom:7px!important;
+    font-size:.65rem!important;
+  }
+  .home-fast-booking-link{
+    min-height:56px!important;
+    padding:7px 8px!important;
+    border-radius:13px!important;
+    grid-template-columns:36px minmax(0,1fr) 28px!important;
+    gap:7px!important;
+  }
+  .home-fast-booking-icon{
+    width:36px!important;height:36px!important;border-radius:10px!important;
+  }
+  .home-fast-booking-icon svg{width:18px!important;height:18px!important}
+  .home-fast-booking-copy small{font-size:.5rem!important}
+  .home-fast-booking-copy strong{font-size:.74rem!important}
+  .home-fast-booking-copy em{font-size:.5rem!important}
+  .home-fast-booking-arrow{width:28px!important;height:28px!important}
+  .home-resources-head{margin-bottom:5px!important}
+  .home-resources-head .home-section-label{margin-top:8px!important}
+  .home-view-all{min-height:30px!important;font-size:.6rem!important;padding-inline:7px!important}
+  .home-resources-section .home-resource-scroller{
+    grid-auto-columns:166px!important;
+    gap:6px!important;
+    padding-bottom:5px!important;
+  }
+  .home-resources-section .home-resource-photo{height:86px!important}
+  .home-resources-section .home-resource-body{padding:7px!important}
+  .home-resources-section .home-resource-title h3{font-size:.72rem!important}
+  .home-resources-section .home-resource-body p{font-size:.58rem!important;line-height:1.35!important}
+  .home-resources-section .home-resource-meta{font-size:.56rem!important}
+  .home-resources-section .home-card-cta{
+    min-height:34px!important;
+    margin-top:6px!important;
+    font-size:.61rem!important;
+    border-radius:8px!important;
+  }
+}
+
+/* Booking cart: compact, aligned, readable, one physical row per item. */
+@media(max-width:620px){
+  .booking-cart-card{
+    padding:8px!important;
+    border-radius:14px!important;
+  }
+  .booking-cart-card .booking-section-title{
+    margin-bottom:6px!important;
+  }
+  .booking-cart-card .booking-section-title h2{
+    font-size:.85rem!important;
+  }
+  .booking-cart-card .booking-section-title small{
+    font-size:.5rem!important;
+  }
+  .booking-cart-card .booking-section-title>span{
+    font-size:.54rem!important;
+    padding:4px 6px!important;
+  }
+  .booking-cart-table-wrap{
+    max-height:112px!important;
+    overflow-x:auto!important;
+    overflow-y:auto!important;
+    direction:rtl!important;
+    overscroll-behavior:contain;
+    background:#fbfdfc!important;
+  }
+  .booking-cart-table,
+  .booking-cart-table thead,
+  .booking-cart-table tbody,
+  .booking-cart-table tr{
+    width:548px!important;
+    min-width:548px!important;
+  }
+  .booking-cart-table thead,
+  .booking-cart-table tr{
+    grid-template-columns:138px 69px 67px 70px 66px 108px 30px!important;
+  }
+  .booking-cart-table thead{
+    height:27px!important;
+    min-height:27px!important;
+  }
+  .booking-cart-table tbody{
+    grid-auto-rows:38px!important;
+  }
+  .booking-cart-table tr{
+    height:38px!important;
+    min-height:38px!important;
+  }
+  .booking-cart-table th,
+  .booking-cart-table td{
+    height:38px!important;
+    min-height:38px!important;
+    padding:3px 4px!important;
+    border-bottom:1px solid #e9efed!important;
+  }
+  .booking-cart-table th{
+    height:27px!important;
+    min-height:27px!important;
+    font-size:.47rem!important;
+    font-weight:950!important;
+    background:#f3f8f6!important;
+  }
+  .booking-cart-table td{
+    font-size:.52rem!important;
+    background:#fff!important;
+  }
+  .booking-cart-table .cart-resource-cell{
+    padding-inline:6px!important;
+  }
+  .booking-cart-table .cart-resource-cell strong{
+    max-width:128px!important;
+    font-size:.55rem!important;
+    line-height:1.15!important;
+  }
+  .booking-cart-table .cart-resource-cell small,
+  .booking-cart-table .cart-invalid-reason{
+    max-width:128px!important;
+    font-size:.41rem!important;
+    line-height:1.1!important;
+  }
+  .booking-cart-table input,
+  .booking-cart-table select{
+    height:25px!important;
+    min-height:25px!important;
+    border-radius:6px!important;
+    padding:0 3px!important;
+    font-size:.49rem!important;
+    line-height:1!important;
+  }
+  .booking-cart-table .cart-end-time,
+  .booking-cart-table .cart-price{
+    font-size:.53rem!important;
+    font-weight:950!important;
+  }
+  .booking-cart-table .cart-price{
+    color:#009b77!important;
+    white-space:nowrap!important;
+  }
+  .booking-cart-table td:last-child{
+    padding:2px!important;
+  }
+  .booking-cart-table .cart-remove{
+    width:23px!important;
+    height:23px!important;
+    border-radius:6px!important;
+    font-size:.78rem!important;
+  }
+  .booking-cart-total{
+    min-height:29px!important;
+    margin-top:4px!important;
+    padding-top:4px!important;
+  }
+  .booking-cart-total span{font-size:.54rem!important}
+  .booking-cart-total strong{font-size:.84rem!important}
+}
+@media(max-width:390px){
+  .home-public-page .page-shell{padding-inline:10px!important}
+  .home-featured-viewport{min-height:184px!important;max-height:205px!important}
+  .home-sport-tile{flex-basis:87px!important;height:94px!important}
+  .home-resources-section .home-resource-scroller{grid-auto-columns:158px!important}
+  .booking-cart-table,
+  .booking-cart-table thead,
+  .booking-cart-table tbody,
+  .booking-cart-table tr{width:522px!important;min-width:522px!important}
+  .booking-cart-table thead,
+  .booking-cart-table tr{
+    grid-template-columns:130px 66px 63px 67px 63px 103px 30px!important;
+  }
+  .booking-cart-table .cart-resource-cell strong,
+  .booking-cart-table .cart-resource-cell small{max-width:120px!important}
+}
