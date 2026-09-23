@@ -107,6 +107,9 @@ def save_site():
     allowed = {
         "site_name", "site_short_name", "logo_url", "favicon_url",
         "hero_title", "hero_subtitle", "booking_hold_minutes",
+        "payment_intro", "payment_bank_name", "payment_account_name",
+        "payment_account_number", "payment_wallet_name", "payment_wallet_number",
+        "payment_cash_note", "booking_policy_note",
     }
 
     for key in allowed:
