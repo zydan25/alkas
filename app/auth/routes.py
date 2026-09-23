@@ -1,10 +1,11 @@
 import re
+import secrets
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-import secrets
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy import or_
 
 from ..customers.models import Customer
 from ..extensions import db
@@ -46,8 +47,10 @@ def login():
 def login_post():
     identifier = (request.form.get("identifier") or "").strip()
     password = request.form.get("password") or ""
+    phone_identifier = _normalize_phone(identifier)
+    phone_lookup = phone_identifier if 7 <= len(phone_identifier) <= 15 else identifier
     user = User.query.filter(
-        (User.username == identifier) | (User.phone == identifier)
+        or_(User.username == identifier, User.phone == identifier, User.phone == phone_lookup)
     ).first()
 
     if not user or not user.is_active or not user.check_password(password):
