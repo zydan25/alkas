@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block head %}<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-sports">{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking"><link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-sports">{% endblock %}
 {% block content %}
 <div class="booking-detail-page">
   <header class="booking-mobile-head"><a class="booking-back" href="{{ url_for('public.home') }}">‹</a><div><span>الرياضة</span><h1>{{ sport.name_ar }}</h1></div><a class="booking-head-link" href="{{ url_for('bookings.booking_page', sport_id=sport.id) }}">احجز</a></header>
