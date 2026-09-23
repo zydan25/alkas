@@ -147,7 +147,7 @@
       {% for sport in sports %}
       <a class="home-sport-tile sport-tone-{{ loop.index0 % 6 }}" href="{{ url_for('bookings.sport_detail', sport_id=sport.id) }}">
         <div class="home-sport-art">
-          <span class="home-sport-icon">{{ sport.icon or '●' }}</span>
+          {% if sport.image_url %}<img src="{{ sport.image_url }}" alt="" loading="lazy">{% else %}<span class="home-sport-icon">{{ sport.icon or '●' }}</span>{% endif %}
         </div>
         <span>{{ sport.name_ar }}</span>
       </a>
@@ -205,9 +205,11 @@
       {% for resource in resources %}
       <a class="home-resource-card" href="{{ url_for('bookings.resource_detail', resource_id=resource.id) }}">
         <div class="home-resource-photo">
-          <div class="home-resource-photo-fallback sport-tone-{{ loop.index0 % 6 }}">
-            <span>{{ resource.sport.icon or '●' }}</span>
-          </div>
+          {% if resource.image_url %}
+            <img src="{{ resource.image_url }}" alt="{{ resource.name_ar }}" loading="lazy">
+          {% else %}
+            <div class="home-resource-photo-fallback sport-tone-{{ loop.index0 % 6 }}"><span>{{ resource.sport.icon or '●' }}</span></div>
+          {% endif %}
           {% if resource.status == 'available' %}<span class="home-available-chip">متاح</span>{% endif %}
           <span class="home-resource-tag">{{ resource.sport.name_ar }}</span>
         </div>
