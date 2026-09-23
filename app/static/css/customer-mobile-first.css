@@ -3906,3 +3906,149 @@
   .booking-cart-table .cart-resource-cell strong,
   .booking-cart-table .cart-resource-cell small{max-width:120px!important}
 }
+
+
+/* =========================================================
+   v12 — hard mobile width containment for customer home
+   ========================================================= */
+
+/* Never allow the homepage itself to create horizontal overflow. */
+html,
+body{
+  max-width:100%;
+}
+.home-public-page{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+.home-public-page .page-shell,
+.home-public-page .customer-home-page{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow-x:clip;
+}
+.home-public-page .page-shell{
+  margin-inline:auto!important;
+}
+
+/* Every home block must be allowed to shrink with the phone. */
+.customer-home-page > *,
+.customer-home-page section,
+.customer-home-page header,
+.customer-home-page form,
+.customer-home-page .home-section,
+.customer-home-page .home-section-head,
+.customer-home-page .home-resources-head{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+.customer-home-page img,
+.customer-home-page video,
+.customer-home-page svg{
+  max-width:100%;
+}
+
+/* Horizontal scrolling belongs only to the designated scrollers. */
+@media(max-width:768px){
+  .customer-home-page .home-sports-scroller,
+  .customer-home-page .home-resource-scroller,
+  .customer-home-page .home-live-scroller,
+  .customer-home-page .home-match-scroller,
+  .customer-home-page .home-bottom-discover-scroller{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  .customer-home-page .home-sports-scroller,
+  .customer-home-page .home-resource-scroller,
+  .customer-home-page .home-live-scroller,
+  .customer-home-page .home-match-scroller,
+  .customer-home-page .home-bottom-discover-scroller{
+    overscroll-behavior-x:contain!important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* Prevent flex/grid children from widening their parent. */
+  .customer-home-page .home-profile,
+  .customer-home-page .home-profile-copy,
+  .customer-home-page .home-header-actions,
+  .customer-home-page .home-fast-booking-link,
+  .customer-home-page .home-fast-booking-copy,
+  .customer-home-page .home-resource-card,
+  .customer-home-page .home-resource-body,
+  .customer-home-page .home-resource-title,
+  .customer-home-page .home-match-card,
+  .customer-home-page .home-news-card,
+  .customer-home-page .home-info-row,
+  .customer-home-page .home-promo-grid,
+  .customer-home-page .home-membership-grid,
+  .customer-home-page .home-services-grid{
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+
+  .customer-home-page .home-resource-title h3,
+  .customer-home-page .home-resource-body p,
+  .customer-home-page .home-match-card strong,
+  .customer-home-page .home-news-card h3,
+  .customer-home-page .home-news-card p{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+}
+
+/* A slightly more compact 360–412px composition. */
+@media(max-width:430px){
+  .home-public-page .page-shell{
+    padding-inline:10px!important;
+  }
+  .customer-home-page{
+    gap:0!important;
+  }
+  .customer-home-header{
+    min-height:50px!important;
+  }
+  .home-search{
+    height:44px!important;
+    border-radius:13px!important;
+  }
+  .home-featured-viewport{
+    min-height:180px!important;
+    max-height:202px!important;
+    border-radius:15px!important;
+  }
+  .home-section{
+    margin-top:11px!important;
+  }
+  .home-sport-tile{
+    flex-basis:84px!important;
+    height:91px!important;
+    border-radius:12px!important;
+  }
+  .home-resources-section .home-resource-scroller{
+    grid-auto-columns:150px!important;
+  }
+  .home-fast-booking-link{
+    min-height:54px!important;
+    border-radius:12px!important;
+  }
+}
+
+/* On very narrow screens, prevent text-based controls from forcing width. */
+@media(max-width:380px){
+  .customer-home-page .home-featured-copy h1,
+  .customer-home-page .home-featured-copy p,
+  .customer-home-page .home-fast-booking-copy strong,
+  .customer-home-page .home-fast-booking-copy em{
+    max-width:100%!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .home-view-all{
+    flex:0 0 auto;
+  }
+}
