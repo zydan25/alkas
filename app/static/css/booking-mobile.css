@@ -166,3 +166,46 @@
   .booking-cart-table{min-width:830px!important;width:830px!important}
   .booking-resource-option{min-height:120px!important}
 }
+
+
+/* v6 — mobile readability */
+.booking-mobile-page,
+.booking-mobile-page *{font-size-adjust:0.52}
+@media(max-width:620px){
+  .booking-mobile-page{padding-top:10px}
+  .booking-mobile-head>div>span{font-size:.72rem!important}
+  .booking-mobile-head h1{font-size:1.46rem!important}
+  .booking-head-link{font-size:.72rem!important}
+  .booking-card,.booking-guest-card,.booking-help-card{padding:15px!important}
+  .booking-step small{font-size:.61rem!important}
+  .booking-step strong{font-size:.9rem!important}
+  .booking-sport-chip{font-size:.67rem!important;padding:8px 11px!important}
+  .booking-selection-hint{font-size:.64rem!important;line-height:1.75}
+  .booking-date-quick span{font-size:.58rem!important}
+  .booking-date-quick b{font-size:.67rem!important}
+  .booking-date-picker input{font-size:.67rem!important}
+  .booking-time-chip{min-width:61px;height:38px;font-size:.64rem!important}
+  .booking-duration-row>span{font-size:.64rem!important}
+  .booking-duration-row select{height:38px!important;font-size:.64rem!important}
+  .booking-slot-status{font-size:.64rem!important;line-height:1.6}
+  .booking-section-title h2{font-size:.94rem!important}
+  .booking-section-title small{font-size:.58rem!important}
+  .booking-section-title>span{font-size:.61rem!important}
+  .booking-resource-main strong{font-size:.7rem!important}
+  .booking-resource-main small{font-size:.58rem!important}
+  .booking-resource-main em{font-size:.55rem!important}
+  .booking-resource-side b{font-size:.64rem!important}
+  .booking-resource-side small{font-size:.48rem!important}
+  .booking-resource-tap{font-size:.58rem!important}
+  .booking-cart-table th,.booking-cart-table td{font-size:.78rem!important}
+  .booking-cart-table th{font-size:.67rem!important}
+  .booking-cart-table .cart-resource-cell strong{font-size:.78rem!important}
+  .booking-cart-table .cart-resource-cell small,.booking-cart-table .cart-invalid-reason{font-size:.6rem!important}
+  .booking-cart-table input,.booking-cart-table select{font-size:.68rem!important}
+  .booking-total-card small{font-size:.58rem!important}
+  .booking-total-card strong{font-size:1.48rem!important}
+  .booking-total-card strong em{font-size:.55rem!important}
+  .booking-total-card span{font-size:.57rem!important}
+  .booking-primary-button{font-size:.68rem!important}
+  .booking-alert,.booking-policy-card p,.booking-steps-footer{font-size:.62rem!important}
+}
