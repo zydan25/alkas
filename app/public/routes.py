@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 
 import json
-from flask import Blueprint, Response, jsonify, render_template
+from flask import Blueprint, Response, jsonify, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from ..ads.models import AdCampaign, AdCreative, AdPlacement
+from ..extensions import db
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Booking, BookingAllocation, Customer, Resource, Sport
@@ -469,9 +470,17 @@ def public_announcements():
 @bp.get("/ads")
 def public_ads():
     now=datetime.now(timezone.utc)
-    rows=(AdCreative.query.join(AdCampaign,AdCreative.campaign_id==AdCampaign.id).join(AdPlacement,AdCreative.placement_id==AdPlacement.id)
-        .filter(AdCreative.status=="active",AdCampaign.status=="active",AdPlacement.is_active.is_(True)).order_by(AdCreative.priority.desc(),AdCreative.id.desc()).limit(80).all())
-    rows=[row for row in rows if (row.campaign.starts_at is None or row.campaign.starts_at<=now) and (row.campaign.ends_at is None or row.campaign.ends_at>now)] if rows else []
+    rows=(AdCreative.query
+        .join(AdCampaign,AdCreative.campaign_id==AdCampaign.id)
+        .join(AdPlacement,AdCreative.placement_id==AdPlacement.id)
+        .filter(
+            AdCreative.status=="active",
+            AdCampaign.status=="active",
+            AdPlacement.is_active.is_(True),
+            or_(AdCampaign.starts_at.is_(None),AdCampaign.starts_at<=now),
+            or_(AdCampaign.ends_at.is_(None),AdCampaign.ends_at>now),
+        )
+        .order_by(AdCreative.priority.desc(),AdCreative.id.desc()).limit(80).all())
     return render_template("public/ads.html",ads=rows)
 
 @bp.get("/discounts")
