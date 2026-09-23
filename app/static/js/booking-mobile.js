@@ -319,6 +319,7 @@
         actions.append(save,cancel);
 
         panel.append(dateField,timeField,durationField,actions);
+        panel.insertBefore(replace,actions);
         card.appendChild(panel);
       }
 
