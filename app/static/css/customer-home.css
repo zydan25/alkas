@@ -968,3 +968,27 @@
   .home-fast-submit{min-width:156px}
   .home-fast-booking{overflow:hidden}
 }
+
+/* Screenshot composition: training/membership beside latest news */
+.home-info-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.home-training-panel,.home-latest-news-card{min-width:0;min-height:102px;border:1px solid #e4eeea;background:#fff;border-radius:15px;box-shadow:0 5px 18px rgba(17,50,43,.04);overflow:hidden}
+.home-training-panel{display:grid;grid-template-columns:1fr 1.15fr}
+.home-training-art{position:relative;overflow:hidden;background:linear-gradient(145deg,#123f35,#0ca17c);display:grid;place-items:center}
+.home-training-art:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(255,255,255,.22),transparent 28%),linear-gradient(180deg,transparent,rgba(0,0,0,.36))}
+.home-training-art span{position:relative;z-index:1;font-size:2.25rem;filter:drop-shadow(0 6px 10px rgba(0,0,0,.2))}
+.home-training-items{display:grid;grid-template-columns:1fr 1fr;align-items:end;padding:10px;gap:5px;direction:rtl}
+.home-training-items>div{display:grid;gap:2px;text-align:center}.home-training-items small{font-size:.46rem;color:#879791}.home-training-items strong{font-size:.59rem;color:#263831}
+.home-latest-news-card{display:grid;grid-template-columns:78px 1fr 16px;gap:8px;align-items:center;padding:7px}
+.home-latest-news-card>img,.home-latest-news-fallback{width:78px;height:86px;object-fit:cover;border-radius:11px}
+.home-latest-news-fallback{display:grid;place-items:center;background:linear-gradient(145deg,#0c604f,#0fa982);color:#fff;font-size:1.4rem}
+.home-latest-news-card small{display:block;color:#8f9b97;font-size:.46rem}
+.home-latest-news-card strong{display:block;margin-top:3px;font-size:.61rem;line-height:1.45}
+.home-latest-news-card span{display:block;margin-top:3px;color:#7d8b86;font-size:.48rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.home-latest-news-card>svg{color:#9ca7a3}
+.home-fast-booking-head h2{margin:0;color:#17312a;font-size:1rem;font-weight:950}
+@media(max-width:620px){
+  .home-info-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:390px){
+  .home-info-row{grid-template-columns:1fr}
+}
