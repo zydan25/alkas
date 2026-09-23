@@ -353,7 +353,9 @@
       return (data.items||[]).map(item=>({
         available:!!item.available,
         reason:item.reason||"غير متاح",
-        resource_id:item.resource_id
+        resource_id:item.resource_id,
+        previous_available_at:item.previous_available_at||null,
+        next_available_at:item.next_available_at||null
       }));
     }catch(error){
       const reason=error.name==="AbortError"?"تعذر التحقق سريعًا":"تعذر التحقق";
@@ -497,6 +499,8 @@
       card.dataset.availabilitySignature=signature(ctx);
       card.dataset.available=data.available?"1":"0";
       card.dataset.availabilityReason=data.reason||"";
+      card.dataset.previousAvailableAt=data.previous_available_at||"";
+      card.dataset.nextAvailableAt=data.next_available_at||"";
       card.classList.toggle("is-available",data.available);
       card.classList.toggle("is-busy",!data.available);
       if(data.available){
@@ -504,7 +508,8 @@
         if(action){action.disabled=false;action.textContent=pickerIndex===null?"إضافة هذا الملعب":"استبدال الملعب";action.className="booking-picker-resource-action";}
       }else{
         if(status){status.className="booking-picker-resource-status busy";status.textContent=data.reason||"غير متاح في هذا الوقت";}
-        if(action){action.disabled=false;action.textContent="اعرف أقرب وقت";action.className="booking-picker-resource-action busy-action";}
+        if(action){action.disabled=false;action.textContent="تحديث الأوقات";action.className="booking-picker-resource-action busy-action";}
+        renderNearby(card,data,ctx);
       }
     });
   }
@@ -570,7 +575,9 @@
     if(cachedSignature===signature(ctx) && !fromNearby){
       data={
         available:card.dataset.available==="1",
-        reason:card.dataset.availabilityReason||""
+        reason:card.dataset.availabilityReason||"",
+        previous_available_at:card.dataset.previousAvailableAt||null,
+        next_available_at:card.dataset.nextAvailableAt||null
       };
     }else{
       data=await checkSingleResource(Number(card.dataset.resourceId),ctx);
