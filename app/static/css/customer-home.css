@@ -1005,3 +1005,29 @@
 @media(max-width:390px){
   .home-info-row{grid-template-columns:1fr}
 }
+
+/* Membership cards + strict mobile row geometry */
+.home-memberships-section{margin-top:11px}
+.home-section-head-plain{margin-bottom:8px}
+.home-membership-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.home-membership-card{position:relative;min-width:0;min-height:124px;padding:10px;border:1px solid #e1ece8;border-radius:15px;background:linear-gradient(145deg,#ffffff,#f4faf8);box-shadow:0 6px 18px rgba(17,57,48,.045);overflow:hidden}
+.home-membership-card:after{content:"";position:absolute;width:68px;height:68px;border-radius:50%;left:-22px;bottom:-22px;background:rgba(0,167,125,.07)}
+.home-membership-top{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.home-membership-badge,.home-membership-discount{padding:4px 6px;border-radius:999px;font-size:.43rem;font-weight:950}
+.home-membership-badge{background:#e5f7f1;color:#008f6d}.home-membership-discount{background:#fff2e3;color:#b8741e}
+.home-membership-card>strong{display:block;margin-top:7px;font-size:.67rem;color:#24362f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-membership-price{margin-top:5px;color:#00a27b;font-size:.9rem;font-weight:950;line-height:1}
+.home-membership-price small{font-size:.43rem;color:#7d8c86;font-weight:800}
+.home-membership-meta{display:flex;gap:7px;margin-top:6px;color:#7f8e89;font-size:.45rem;font-weight:850;white-space:nowrap;overflow:hidden}
+.home-membership-meta span+span:before{content:"•";margin-inline:4px;color:#bcc7c2}
+.home-membership-cta{display:block;margin-top:8px;color:#009b77;font-size:.47rem;font-weight:950}
+@media(max-width:620px){
+  .home-membership-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .home-membership-card{min-height:116px;padding:9px}
+}
+@media(max-width:390px){
+  .home-membership-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .home-membership-card{min-height:110px;padding:8px}
+  .home-membership-card>strong{font-size:.61rem}
+  .home-membership-price{font-size:.82rem}
+}
