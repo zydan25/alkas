@@ -27,6 +27,7 @@ jobs:
       DATABASE_URL: postgresql+psycopg://alkas:alkas@127.0.0.1:5432/alkas
       SECRET_KEY: ci-test-secret
       TIMEZONE: Asia/Aden
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,4 +40,4 @@ jobs:
       - name: Database upgrade
         run: flask --app wsgi db upgrade
       - name: Tests
-        run: pytest -q
+        run: python -m pytest -q

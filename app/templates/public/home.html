@@ -2,40 +2,6 @@
 {% block content %}
 <div class="public-home">
 
-<section id="announcements" class="section announcement-strip">
-    <div class="section-head">
-        <div>
-            <span class="eyebrow">الجديد أولًا</span>
-            <h2>إعلانات وعروض ملاعب الكأس</h2>
-        </div>
-        <span class="live-pill">مباشر</span>
-    </div>
-    <div class="announcement-grid" data-announcements>
-        {% for item in announcements %}
-        <article class="announcement-card type-{{ item.card_type }}">
-            {% if item.card_type in ("image", "link") and item.image_url %}
-                <div class="announcement-media"><img src="{{ item.image_url }}" alt="{{ item.title_ar }}"></div>
-            {% elif item.card_type == "video" and item.video_url %}
-                <div class="announcement-media video-cover"><a href="{{ item.video_url }}" target="_blank" rel="noopener">▶ مشاهدة الفيديو</a></div>
-            {% else %}
-                <div class="announcement-icon">
-                    {% if item.card_type == "temporary" %}⏱{% elif item.card_type == "link" %}↗{% elif item.card_type == "video" %}▶{% else %}✦{% endif %}
-                </div>
-            {% endif %}
-            <div class="announcement-body">
-                <div class="card-meta">{{ item.accent_label_ar or ("مؤقت" if item.card_type == "temporary" else "جديد") }}</div>
-                <h3>{{ item.title_ar }}</h3>
-                {% if item.body_ar %}<p>{{ item.body_ar }}</p>{% endif %}
-                {% if item.ends_at %}<small class="card-expiry">حتى {{ item.ends_at.strftime("%Y-%m-%d %H:%M") }}</small>{% endif %}
-                {% if item.target_url %}<a class="text-link" href="{{ item.target_url }}">{{ item.button_text_ar or "عرض التفاصيل" }} ↗</a>{% endif %}
-            </div>
-        </article>
-        {% else %}
-        <div class="empty-state">ستظهر هنا الإعلانات والعروض التي ينشرها المدير.</div>
-        {% endfor %}
-    </div>
-</section>
-
 <section class="home-hero">
     <div class="hero">
         <div class="hero-copy">
@@ -44,7 +10,11 @@
             <p>{{ site_settings.hero_subtitle }}</p>
             <div class="hero-actions">
                 <a class="btn btn-primary" href="#booking">احجز ملعبك الآن</a>
-                <a class="btn btn-soft" href="#announcements">شاهد الجديد</a>
+                {% if current_user.is_authenticated %}
+                  <a class="btn btn-soft" href="{{ url_for('customer.dashboard') }}">حسابي</a>
+                {% else %}
+                  <a class="btn btn-soft" href="{{ url_for('auth.register') }}">أنشئ حسابك</a>
+                {% endif %}
             </div>
         </div>
         <div class="hero-stats">
@@ -54,6 +24,65 @@
         </div>
     </div>
 </section>
+
+{% if banners %}
+<section id="announcements" class="section home-banner-section">
+    <div class="section-head home-banner-head">
+        <div>
+            <span class="eyebrow">الجديد والعروض</span>
+            <h2>كل ما يهمك في بانر واحد</h2>
+        </div>
+        <span class="banner-live-status" data-home-banner-status>تشغيل تلقائي</span>
+    </div>
+
+    <div class="home-banner-carousel" data-home-carousel aria-label="عروض وإعلانات ملاعب الكأس">
+        <div class="home-banner-viewport">
+            {% for banner in banners %}
+            <article class="home-banner-slide{% if loop.first %} is-active{% endif %}" data-home-slide data-duration="{{ banner.rotation_seconds or 6 }}" aria-hidden="{{ 'false' if loop.first else 'true' }}">
+                {% if banner.target_url %}<a class="home-banner-link" href="{{ banner.target_url }}"{% if banner.target_url.startswith('http') %} target="_blank" rel="noopener"{% endif %}>{% else %}<div class="home-banner-link">{% endif %}
+
+                <div class="home-banner-media">
+                    {% if banner.video_url %}
+                      <video class="home-banner-video" data-home-video muted playsinline preload="metadata"{% if banner.image_url %} poster="{{ banner.image_url }}"{% endif %}>
+                        <source src="{{ banner.video_url }}">
+                      </video>
+                    {% elif banner.image_url %}
+                      <img src="{{ banner.image_url }}" alt="{{ banner.title_ar }}" loading="{{ 'eager' if loop.first else 'lazy' }}">
+                    {% else %}
+                      <div class="home-banner-placeholder">الكأس</div>
+                    {% endif %}
+                    <div class="home-banner-scrim"></div>
+                    <span class="home-banner-source">{{ banner.label_ar }}</span>
+                    {% if banner.video_url %}<span class="home-banner-video-state">● فيديو تلقائي</span>{% endif %}
+                </div>
+
+                <div class="home-banner-copy">
+                    <span class="eyebrow">{{ banner.label_ar }}</span>
+                    <h2>{{ banner.title_ar }}</h2>
+                    {% if banner.body_ar %}<p>{{ banner.body_ar }}</p>{% endif %}
+                    {% if banner.target_url %}<span class="home-banner-cta">{{ banner.button_text_ar }} ↗</span>{% endif %}
+                </div>
+
+                {% if banner.target_url %}</a>{% else %}</div>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+
+        <button class="home-banner-control home-banner-prev" type="button" data-home-prev aria-label="البانر السابق">‹</button>
+        <button class="home-banner-control home-banner-next" type="button" data-home-next aria-label="البانر التالي">›</button>
+
+        <div class="home-banner-footer">
+            <button class="home-banner-pause" type="button" data-home-pause aria-label="إيقاف العرض مؤقتًا">إيقاف مؤقت</button>
+            <div class="home-banner-dots" role="tablist" aria-label="البانرات">
+                {% for banner in banners %}
+                  <button type="button" class="home-banner-dot{% if loop.first %} is-active{% endif %}" data-home-dot="{{ loop.index0 }}" role="tab" aria-label="البانر {{ loop.index }}" aria-selected="{{ 'true' if loop.first else 'false' }}"></button>
+                {% endfor %}
+            </div>
+            <div class="home-banner-progress" aria-hidden="true"><span data-home-progress></span></div>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <section class="home-quick-links">
     <a class="home-quick-link" href="#booking"><b>⚽</b><span>حجز ملعب</span></a>
@@ -79,6 +108,8 @@
                 <span class="sport-icon">{{ sport.icon or "●" }}</span>
                 <span>{{ sport.name_ar }}</span>
             </button>
+            {% else %}
+            <div class="empty-state">لا توجد رياضات متاحة حاليًا.</div>
             {% endfor %}
         </div>
     </div>
@@ -101,7 +132,10 @@
 
 {% if live_now %}
 <section class="section">
-    <div class="section-head"><div><span class="eyebrow">الآن</span><h2>البث المباشر</h2></div><a class="text-link" href="{{ url_for('public.live') }}">كل البث ↗</a></div>
+    <div class="section-head">
+      <div><span class="eyebrow">الآن</span><h2>البث المباشر</h2></div>
+      <a class="text-link" href="{{ url_for('public.live') }}">كل البث ↗</a>
+    </div>
     <div class="live-now-grid">
       {% for event in live_now %}
       <a class="live-card" href="{{ url_for('public.live_event', event_id=event.id) }}">
@@ -114,4 +148,8 @@
 {% endif %}
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/home.js?v={{ site_settings.asset_version }}" defer></script>
 {% endblock %}

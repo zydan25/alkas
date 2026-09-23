@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from ..extensions import db
 
+
 class AnnouncementCard(db.Model):
     __tablename__ = "announcement_cards"
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +16,7 @@ class AnnouncementCard(db.Model):
     starts_at = db.Column(db.DateTime(timezone=True))
     ends_at = db.Column(db.DateTime(timezone=True))
     priority = db.Column(db.Integer, nullable=False, default=0)
+    rotation_seconds = db.Column(db.Integer, nullable=False, default=6)
     status = db.Column(db.String(30), nullable=False, default="published")
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 

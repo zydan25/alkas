@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /home/root/projects/alkaas
+cd /home/root/projects/alkas
 source venv/bin/activate
 
 flask --app wsgi db upgrade

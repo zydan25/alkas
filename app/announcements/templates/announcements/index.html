@@ -1,42 +1,156 @@
 {% extends "admin/layout.html" %}
 {% block content %}
-<div class="page-header compact"><div><div class="eyebrow">محتوى الصفحة الرئيسية</div><h1>بطاقات الإعلانات</h1><p>أنشئ بطاقة نصية أو صورة أو فيديو أو رابطًا، وحدد الأولوية وفترة الظهور.</p></div></div>
+<div class="page-header compact">
+  <div>
+    <div class="eyebrow">محتوى الصفحة الرئيسية</div>
+    <h1>{{ "تعديل البانر" if edit_row else "البانرات والإعلانات" }}</h1>
+    <p>أنشئ بانرات صورة أو فيديو، حدّد وقت ظهورها ومدتها، ثم فعّلها أو أوقفها من نفس الشاشة.</p>
+  </div>
+</div>
+
+{% if success %}<div class="flash success">{{ success }}</div>{% endif %}
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+
 <div class="payment-layout">
 <section class="panel">
-  <div class="panel-head"><div><span class="eyebrow">بطاقة جديدة</span><h2>إضافة سريعة</h2></div></div>
-  {% if success %}<div class="flash success">{{ success }}</div>{% endif %}
-  {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
-  <form class="form-stack" method="post" action="{{ url_for('announcements.create') }}" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>العنوان<input name="title_ar" required></label>
-    <label>الوصف<textarea name="body_ar" rows="3"></textarea></label>
-    <label>النوع
-      <select name="card_type">
-        <option value="text">نص</option><option value="temporary">مؤقت</option><option value="image">صورة</option><option value="video">فيديو</option><option value="link">رابط</option>
-      </select>
-    </label>
-    <div class="upload-choice-grid">
-      <label class="upload-field"><span class="upload-field-icon">🖼</span><span><b>رفع صورة</b><small>للنوع: صورة</small></span><input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
-      <label class="upload-field"><span class="upload-field-icon">▶</span><span><b>رفع فيديو</b><small>للنوع: فيديو</small></span><input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v"></label>
+  <div class="panel-head">
+    <div>
+      <span class="eyebrow">{{ "تحرير" if edit_row else "بانر جديد" }}</span>
+      <h2>{{ "إعدادات البانر" if edit_row else "إضافة سريعة" }}</h2>
     </div>
-    <label>الرابط المستهدف<input name="target_url" type="url" placeholder="https://..."></label>
-    <label>نص الزر<input name="button_text_ar" value="عرض التفاصيل"></label>
-    <label>الوسم<input name="accent_label_ar"></label>
-    <label>يبدأ الظهور<input name="starts_at" type="datetime-local"></label>
-    <label>ينتهي الظهور<input name="ends_at" type="datetime-local"></label>
-    <label>الأولوية<input name="priority" type="number" value="0"></label>
-    <button class="btn btn-primary">نشر البطاقة</button>
+    {% if edit_row %}<a class="btn btn-soft" href="{{ url_for('announcements.ui') }}">＋ بانر جديد</a>{% endif %}
+  </div>
+
+  <form class="form-stack" method="post" action="{{ url_for('announcements.edit_post', card_id=edit_row.id) if edit_row else url_for('announcements.create') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-grid">
+      <label>العنوان
+        <input name="title_ar" value="{{ edit_row.title_ar if edit_row else '' }}" required maxlength="240" placeholder="مثال: خصم نهاية الأسبوع">
+      </label>
+      <label>النوع
+        <select name="card_type">
+          {% set selected_type = edit_row.card_type if edit_row else 'image' %}
+          {% for value,label in [('image','صورة'),('video','فيديو'),('temporary','مؤقت'),('link','رابط'),('text','نص')] %}
+          <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>الحالة
+        {% set selected_status = edit_row.status if edit_row else 'published' %}
+        <select name="status">
+          <option value="published" {% if selected_status == 'published' %}selected{% endif %}>منشور</option>
+          <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>مسودة</option>
+          <option value="paused" {% if selected_status == 'paused' %}selected{% endif %}>متوقف</option>
+        </select>
+      </label>
+      <label>الأولوية
+        <input name="priority" type="number" value="{{ edit_row.priority if edit_row else 0 }}">
+      </label>
+      <label>مدة العرض
+        <input name="rotation_seconds" type="number" min="3" max="60" value="{{ edit_row.rotation_seconds if edit_row else 6 }}" required>
+        <small class="form-hint">من 3 إلى 60 ثانية للبانرات الصورية، والفيديو يتقدم عند انتهاء المقطع أو انتهاء هذه المدة.</small>
+      </label>
+      <label>الرابط عند الضغط
+        <input name="target_url" type="url" value="{{ edit_row.target_url if edit_row else '' }}" placeholder="https://...">
+      </label>
+    </div>
+
+    <label>الوصف
+      <textarea name="body_ar" rows="3" maxlength="1000" placeholder="وصف قصير يظهر فوق البانر أو أسفله">{{ edit_row.body_ar if edit_row else '' }}</textarea>
+    </label>
+
+    <div class="form-grid">
+      <label>الوسم
+        <input name="accent_label_ar" value="{{ edit_row.accent_label_ar if edit_row else '' }}" placeholder="عرض حصري">
+      </label>
+      <label>نص الزر
+        <input name="button_text_ar" value="{{ edit_row.button_text_ar if edit_row else 'عرض التفاصيل' }}">
+      </label>
+      <label>يبدأ الظهور
+        <input name="starts_at" type="datetime-local" value="{{ edit_row.starts_at.astimezone().strftime('%Y-%m-%dT%H:%M') if edit_row and edit_row.starts_at else '' }}">
+      </label>
+      <label>ينتهي الظهور
+        <input name="ends_at" type="datetime-local" value="{{ edit_row.ends_at.astimezone().strftime('%Y-%m-%dT%H:%M') if edit_row and edit_row.ends_at else '' }}">
+      </label>
+    </div>
+
+    {% if edit_row and (edit_row.image_url or edit_row.video_url) %}
+    <div class="current-media-preview">
+      <div>
+        <span class="eyebrow">الوسيط الحالي</span>
+        <strong>{{ "فيديو" if edit_row.video_url else "صورة" }}</strong>
+      </div>
+      <a href="{{ edit_row.video_url or edit_row.image_url }}" target="_blank" rel="noopener">فتح الوسيط ↗</a>
+    </div>
+    {% endif %}
+
+    <div class="upload-choice-grid">
+      <label class="upload-field">
+        <span class="upload-field-icon">🖼</span>
+        <span><b>{{ "استبدال الصورة" if edit_row and edit_row.image_url else "رفع صورة البانر" }}</b><small>JPG · PNG · WEBP · GIF</small></span>
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+      </label>
+      <label class="upload-field">
+        <span class="upload-field-icon">▶</span>
+        <span><b>{{ "استبدال الفيديو" if edit_row and edit_row.video_url else "رفع فيديو البانر" }}</b><small>MP4 · WEBM · MOV · M4V</small></span>
+        <input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v">
+      </label>
+    </div>
+
+    <div class="banner-editor-note">
+      <strong>سلوك العرض</strong>
+      <span>الصور تظهر تلقائيًا، والفيديو يعمل داخل البانر بصوت مكتوم مع تشغيل تلقائي على الأجهزة التي تسمح بذلك، ثم ينتقل البانر تلقائيًا.</span>
+    </div>
+
+    <div class="row-actions">
+      <button class="btn btn-primary" type="submit">{{ "حفظ التغييرات" if edit_row else "نشر البانر" }}</button>
+      {% if edit_row %}<a class="btn btn-soft" href="{{ url_for('announcements.ui') }}">إلغاء</a>{% endif %}
+    </div>
   </form>
 </section>
+
 <section class="panel">
-  <div class="panel-head"><div><span class="eyebrow">المنشور</span><h2>البطاقات الحالية</h2></div></div>
-  <div class="announcement-grid">
+  <div class="panel-head">
+    <div>
+      <span class="eyebrow">الموجود حاليًا</span>
+      <h2>إدارة البانرات</h2>
+    </div>
+  </div>
+
+  <div class="banner-admin-list">
     {% for r in rows %}
-      <article class="announcement-card">
-        <div class="announcement-icon">{{ '▶' if r.card_type == 'video' else ('🖼' if r.card_type == 'image' else '✦') }}</div>
-        <div class="announcement-body"><div class="card-meta">{{ r.accent_label_ar or r.card_type }}</div><h3>{{ r.title_ar }}</h3><p>{{ r.body_ar or '' }}</p><div class="row-actions" style="margin-top:12px"><span class="badge badge-success">{{ r.status }}</span></div></div>
-      </article>
-    {% else %}<div class="empty-state">لا توجد بطاقات.</div>{% endfor %}
+    <article class="banner-admin-row">
+      <div class="banner-admin-thumb">
+        {% if r.image_url %}
+          <img src="{{ r.image_url }}" alt="{{ r.title_ar }}" loading="lazy">
+        {% elif r.video_url %}
+          <span>▶</span>
+        {% else %}
+          <span>✦</span>
+        {% endif %}
+      </div>
+      <div class="banner-admin-main">
+        <div class="card-meta">{{ r.accent_label_ar or r.card_type }}</div>
+        <strong>{{ r.title_ar }}</strong>
+        <small>كل {{ r.rotation_seconds }} ثانية · أولوية {{ r.priority }}{% if r.starts_at %} · من {{ r.starts_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</small>
+      </div>
+      <div class="banner-admin-actions">
+        <span class="badge badge-{{ 'success' if r.status == 'published' else 'warning' }}">{{ r.status }}</span>
+        <a class="btn btn-soft" href="{{ url_for('announcements.edit', card_id=r.id) }}">تعديل</a>
+        <form method="post" action="{{ url_for('announcements.toggle', card_id=r.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-soft" type="submit">{{ "إيقاف" if r.status == "published" else "تفعيل" }}</button>
+        </form>
+        <form method="post" action="{{ url_for('announcements.delete', card_id=r.id) }}" onsubmit="return confirm('حذف هذا البانر؟');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger-soft" type="submit">حذف</button>
+        </form>
+      </div>
+    </article>
+    {% else %}
+      <div class="empty-state">لا توجد بانرات بعد. أضف أول بانر للواجهة الرئيسية.</div>
+    {% endfor %}
   </div>
 </section>
 </div>
