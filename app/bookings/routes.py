@@ -260,33 +260,88 @@ def sport_detail(sport_id):
 
 
 @bp.post("/availability/batch")
-@login_required
 def availability_batch():
+    """Fast pre-check for many courts/time intervals in one request."""
     expire_holds()
     data = request.get_json(silent=True) or {}
-    items = data.get("items") or []
-    results = []
-    for item in items:
+    raw_items = data.get("items") or []
+    if not raw_items:
+        return jsonify({"available": True, "items": []})
+
+    parsed = []
+    for index, item in enumerate(raw_items):
         try:
             resource_id = int(item["resource_id"])
-            start_at = datetime.fromisoformat(item["start_at"])
-            end_at = datetime.fromisoformat(item["end_at"])
+            start_at = datetime.fromisoformat(item.get("start_at") or item["start"])
+            end_at = datetime.fromisoformat(item.get("end_at") or item["end"])
         except (KeyError, TypeError, ValueError):
-            results.append({"available": False, "error": "بيانات الوقت غير صحيحة"})
+            parsed.append({
+                "index": index, "resource_id": item.get("resource_id"),
+                "available": False, "reason": "بيانات الوقت غير صحيحة",
+            })
             continue
-        conflicts = BookingAllocation.query.join(Booking).filter(
-            Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress"]),
-            BookingAllocation.is_active.is_(True),
-            BookingAllocation.resource_id == resource_id,
-            BookingAllocation.start_at < end_at,
-            BookingAllocation.end_at > start_at,
-        ).count()
-        resource = Resource.query.get(resource_id)
-        results.append({
-            "resource_id": resource_id,
-            "available": bool(resource and resource.is_active and resource.status == "available" and conflicts == 0),
-        })
-    return jsonify({"available": all(x.get("available") for x in results), "items": results})
+        parsed.append({"index": index, "resource_id": resource_id, "start": start_at, "end": end_at})
+
+    valid = [item for item in parsed if "start" in item]
+    if not valid:
+        return jsonify({"available": False, "items": parsed})
+
+    resource_ids = list({item["resource_id"] for item in valid})
+    resources = {r.id: r for r in Resource.query.filter(Resource.id.in_(resource_ids)).all()}
+    min_start = min(item["start"] for item in valid)
+    max_end = max(item["end"] for item in valid)
+    statuses = ["hold", "pending", "confirmed", "checked_in", "in_progress"]
+
+    allocations = BookingAllocation.query.join(Booking).filter(
+        Booking.status.in_(statuses),
+        BookingAllocation.is_active.is_(True),
+        BookingAllocation.resource_id.in_(resource_ids),
+        BookingAllocation.start_at < max_end,
+        BookingAllocation.end_at > min_start,
+    ).all()
+    blocks = ResourceBlock.query.filter(
+        ResourceBlock.resource_id.in_(resource_ids),
+        ResourceBlock.status == "active",
+        ResourceBlock.starts_at < max_end,
+        ResourceBlock.ends_at > min_start,
+    ).all()
+
+    now_utc = datetime.now(ZoneInfo("UTC"))
+    for item in valid:
+        resource = resources.get(item["resource_id"])
+        conflict = any(
+            x.resource_id == item["resource_id"]
+            and x.start_at < item["end"]
+            and x.end_at > item["start"]
+            for x in allocations
+        )
+        blocked = any(
+            x.resource_id == item["resource_id"]
+            and x.starts_at < item["end"]
+            and x.ends_at > item["start"]
+            for x in blocks
+        )
+        available = bool(
+            resource
+            and resource.is_active
+            and resource.status == "available"
+            and item["end"] > item["start"]
+            and item["start"].astimezone(ZoneInfo("UTC")) >= now_utc
+            and not conflict
+            and not blocked
+        )
+        item["available"] = available
+        item["reason"] = (
+            "محجوز" if conflict else
+            "محجوب" if blocked else
+            "وقت غير صالح" if item["end"] <= item["start"] else
+            "الملعب غير متاح" if not resource or not resource.is_active or resource.status != "available" else
+            "متاح"
+        )
+        item.pop("start", None)
+        item.pop("end", None)
+
+    return jsonify({"available": all(item.get("available", False) for item in parsed), "items": parsed})
 
 
 @bp.post("/quote")
