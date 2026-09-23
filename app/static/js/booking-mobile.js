@@ -28,7 +28,8 @@
     const h=Math.floor(minutes/60),m=minutes%60;
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
   }
-  let selectedTime=form.dataset.initialTime||nearestHalfHourTime();
+  // The customer chooses the start time explicitly. Only a supplied deep-link value is preserved.
+  let selectedTime=form.dataset.initialTime||"";
   let selectedSports=new Set();
   let cart=[];
   let requestSerial=0;
@@ -46,8 +47,14 @@
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function dateTime(date,time){return new Date(date+"T"+time+":00")}
-  function selectedStart(){return dateTime(dateInput.value,selectedTime)}
-  function selectedEnd(){const s=selectedStart();return new Date(s.getTime()+Number(durationSelect.value||60)*60000)}
+  function selectedStart(){
+    if(!dateInput?.value || !selectedTime)return null;
+    return dateTime(dateInput.value,selectedTime);
+  }
+  function selectedEnd(){
+    const s=selectedStart();
+    return s ? new Date(s.getTime()+Number(durationSelect.value||60)*60000) : null;
+  }
   function fmtTime(d){return d.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"})}
   function setAlert(message,type="ok"){
     result.hidden=!message;result.textContent=message||"";
@@ -149,7 +156,16 @@
   async function refreshAvailability(){
     const serial=++requestSerial;
     const start=selectedStart(),end=selectedEnd();
-    if(start<=new Date()){
+    if(!start || !end){
+      slotStatus.textContent="اختر وقت البداية من حقل الوقت ليظهر توفر الملاعب.";
+      slotStatus.className="booking-slot-status";
+      cards.forEach(card=>{
+        card.dataset.available="0";
+        card.classList.remove("is-disabled");
+        const s=card.querySelector("[data-resource-status]");
+        if(s){s.textContent="اختر الوقت";s.className="";}
+      });
+    }else if(start<=new Date()){
       slotStatus.textContent="اختر وقتًا مستقبليًا.";
       slotStatus.className="booking-slot-status warn";
     }else{
@@ -265,6 +281,11 @@
   }));
 
   timeButtons.forEach(btn=>btn.addEventListener("click",()=>{setTime(btn.dataset.time);refreshAvailability()}));
+  timeInput?.addEventListener("click",()=>{
+    try{
+      if(typeof timeInput.showPicker==="function")timeInput.showPicker();
+    }catch(_){ timeInput.focus(); }
+  });
   timeInput?.addEventListener("change",()=>{
     const value=timeInput.value;
     if(!value){setTime(nearestHalfHourTime())}
@@ -312,7 +333,7 @@
     dateInput.min=todayValue;
     if(!dateInput.value)dateInput.value=todayValue;
   }
-  setTime(selectedTime);
+  if(selectedTime)setTime(selectedTime);
   updateQuickDates();updateSports();updateSelectedVisuals();refreshAvailability();
 
   form.addEventListener("submit",async e=>{
