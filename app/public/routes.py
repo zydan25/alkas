@@ -467,12 +467,33 @@ def resources():
     resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id,Resource.id).all()
     return render_template("public/resources.html",resources=resources)
 
+@bp.get("/announcements/<int:announcement_id>")
+def announcement_detail(announcement_id):
+    row=AnnouncementCard.query.filter_by(id=announcement_id,status="published").first_or_404()
+    if not row.visible(datetime.now(timezone.utc)):
+        from flask import abort
+        abort(404)
+    return render_template("public/announcement_detail.html",announcement=row)
+
 @bp.get("/announcements")
 def announcements():
     now=datetime.now(timezone.utc)
     rows=AnnouncementCard.query.filter_by(status="published").order_by(AnnouncementCard.priority.desc(),AnnouncementCard.created_at.desc()).limit(80).all()
     rows=[row for row in rows if row.visible(now)]
     return render_template("public/announcements.html",announcements=rows)
+
+@bp.get("/ads/<int:creative_id>")
+def ad_detail(creative_id):
+    creative=AdCreative.query.filter_by(id=creative_id,status="active").first_or_404()
+    campaign=AdCampaign.query.get(creative.campaign_id)
+    now=datetime.now(timezone.utc)
+    if campaign and campaign.status!="active":
+        from flask import abort
+        abort(404)
+    if campaign and ((campaign.starts_at and campaign.starts_at>now) or (campaign.ends_at and campaign.ends_at<=now)):
+        from flask import abort
+        abort(404)
+    return render_template("public/ad_detail.html",ad=creative,campaign=campaign)
 
 @bp.get("/ads")
 def ads():
