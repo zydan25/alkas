@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 from app.auth.routes import _safe_next
@@ -39,8 +39,13 @@ def test_refund_policy_cutoff():
         cancellation_deadline_minutes = 360
         refund_percent_before_deadline = 100
         refund_percent_after_deadline = 0
-    start = datetime.now(timezone.utc).replace(microsecond=0)
-    assert cancellation_refund_percent(Policy(), start, start) == Decimal("100")
+
+    now = datetime(2026, 9, 23, 12, 0, tzinfo=timezone.utc)
+    start = now + timedelta(minutes=360)
+    assert cancellation_refund_percent(Policy(), start, now) == Decimal("100")
+
+    after = now + timedelta(minutes=359)
+    assert cancellation_refund_percent(Policy(), after, now) == Decimal("0")
 
 
 def test_root_account_is_never_postable():
