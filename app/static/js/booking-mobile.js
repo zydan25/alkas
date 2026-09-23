@@ -8,7 +8,6 @@
   const sportButtons=[...form.querySelectorAll("[data-sport-toggle]")];
   const timeButtons=[...form.querySelectorAll("[data-time]")];
   const cards=[...form.querySelectorAll("[data-resource-card]")];
-  const addButton=null;
   const cartCard=form.querySelector("[data-booking-cart-card]");
   const cartBody=form.querySelector("[data-cart-body]");
   const cartCount=form.querySelector("[data-cart-count]");
@@ -194,17 +193,20 @@
       breakdown.textContent="أضف ملعبًا واحدًا أو أكثر.";
       renderCart();return;
     }
+    let quote={total:null,lines:[]};
     try{
-      const q=await quoteCart();
-      cart.forEach(x=>{
-        const line=(q.lines||[])[i];
+      quote=await quoteCart();
+      cart.forEach((x,i)=>{
+        const line=(quote.lines||[])[i];
         x.price=line?Number(line.price):0;
       });
     }catch(e){}
     await validateCart();
-    const total=Number(q?.total ?? cart.reduce((s,x)=>s+(Number(x.price)||0),0)) || 0;
-    totalNode.innerHTML=total.toLocaleString("en-US")+" <em>ر.ي</em>";
-    totalSummary.innerHTML=total.toLocaleString("en-US")+" <em>ر.ي</em>";
+    const calculated=cart.reduce((s,x)=>s+(Number(x.price)||0),0);
+    const quoted=Number(quote.total);
+    const finalTotal=Number.isFinite(quoted) ? quoted : calculated;
+    totalNode.innerHTML=finalTotal.toLocaleString("en-US")+" <em>ر.ي</em>";
+    totalSummary.innerHTML=finalTotal.toLocaleString("en-US")+" <em>ر.ي</em>";
     breakdown.textContent=cart.map(x=>x.resource_name+" · "+fmtTime(x.start)+"–"+fmtTime(x.end)).join(" • ");
     renderCart();
   }
