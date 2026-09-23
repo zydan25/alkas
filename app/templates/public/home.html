@@ -146,8 +146,19 @@
     <div class="home-sports-scroller">
       {% for sport in sports %}
       <a class="home-sport-tile sport-tone-{{ loop.index0 % 6 }}" href="{{ url_for('bookings.sport_detail', sport_id=sport.id) }}">
-        <div class="home-sport-art">
-          {% if sport.image_url %}<img src="{{ sport.image_url }}" alt="" loading="lazy">{% else %}<span class="home-sport-icon">{{ sport.icon or '●' }}</span>{% endif %}
+        <div class="home-sport-art{% if sport.image_url %} has-image{% endif %}">
+          {% if sport.image_url %}
+            <img src="{{ sport.image_url }}" alt="" loading="lazy">
+          {% else %}
+            {% set sport_key=sport.key|lower %}
+            {% if sport_key == "football" %}<span class="home-sport-icon">⚽</span>
+            {% elif sport_key == "basketball" %}<span class="home-sport-icon">🏀</span>
+            {% elif sport_key == "tennis" %}<span class="home-sport-icon">🎾</span>
+            {% elif sport_key == "volleyball" %}<span class="home-sport-icon">🏐</span>
+            {% elif sport_key == "gymnastics" %}<span class="home-sport-icon">🤸</span>
+            {% elif sport_key == "table-tennis" %}<span class="home-sport-icon">🏓</span>
+            {% else %}<span class="home-sport-icon">{{ sport.icon or '●' }}</span>{% endif %}
+          {% endif %}
         </div>
         <span>{{ sport.name_ar }}</span>
       </a>
