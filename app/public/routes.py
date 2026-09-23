@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 
+import json
 from flask import Blueprint, Response, jsonify, render_template
 from sqlalchemy import or_
-import json
 
-from ..ads.models import AdCampaign, AdCreative
+from ..ads.models import AdCampaign, AdCreative, AdPlacement
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Resource, Sport
@@ -19,29 +19,71 @@ bp = Blueprint("public", __name__)
 @bp.get("/")
 def home():
     now = datetime.now(timezone.utc)
+
     ads = (
         AdCreative.query
         .join(AdCampaign, AdCreative.campaign_id == AdCampaign.id)
+        .join(AdPlacement, AdCreative.placement_id == AdPlacement.id)
         .filter(
             AdCreative.status == "active",
             AdCampaign.status == "active",
+            AdPlacement.is_active.is_(True),
             or_(AdCampaign.starts_at.is_(None), AdCampaign.starts_at <= now),
             or_(AdCampaign.ends_at.is_(None), AdCampaign.ends_at > now),
         )
         .order_by(AdCreative.priority.desc(), AdCreative.id.desc())
-        .limit(8)
+        .limit(12)
         .all()
     )
+
     announcements = AnnouncementCard.query.filter_by(status="published").order_by(
         AnnouncementCard.priority.desc(), AnnouncementCard.created_at.desc()
     ).all()
-    announcements = [item for item in announcements if item.visible(now)][:8]
+    announcements = [item for item in announcements if item.visible(now)][:12]
+
+    banners = []
+    for item in ads:
+        banners.append({
+            "id": f"ad-{item.id}",
+            "source": "ad",
+            "title_ar": item.title_ar or "إعلان",
+            "body_ar": None,
+            "label_ar": "إعلان",
+            "image_url": item.image_url,
+            "video_url": item.video_url,
+            "target_url": item.target_url,
+            "button_text_ar": "عرض التفاصيل" if item.target_url else None,
+            "rotation_seconds": 8,
+            "priority": item.priority,
+            "order": 1,
+        })
+
+    for item in announcements:
+        banners.append({
+            "id": f"announcement-{item.id}",
+            "source": "announcement",
+            "title_ar": item.title_ar,
+            "body_ar": item.body_ar,
+            "label_ar": item.accent_label_ar or ("فيديو" if item.video_url else "عرض" if item.image_url else "جديد"),
+            "image_url": item.image_url,
+            "video_url": item.video_url,
+            "target_url": item.target_url,
+            "button_text_ar": item.button_text_ar or "عرض التفاصيل",
+            "rotation_seconds": item.rotation_seconds,
+            "priority": item.priority,
+            "order": 0,
+        })
+
+    banners.sort(key=lambda banner: (banner["priority"], banner["order"], banner["id"]), reverse=True)
+    banners = banners[:10]
+
     sports = Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all()
     resources = Resource.query.filter_by(is_active=True).limit(8).all()
     live_now = LiveEvent.query.filter_by(status="live").order_by(LiveEvent.starts_at.desc()).limit(3).all()
+
     return render_template(
         "public/home.html",
-        ads=ads,
+        banners=banners,
         announcements=announcements,
         sports=sports,
         resources=resources,
@@ -124,16 +166,16 @@ def manifest():
 
 @bp.get("/sw.js")
 def service_worker():
-    js = """const CACHE='alkas-shell-v10';
-const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/js/app.js','/static/css/public-modern.css','/static/css/admin-modern.css','/static/css/admin-theme.css','/static/img/admin-icons.svg'];
+    js = """const CACHE='alkas-shell-v11';
+const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/js/app.js','/static/css/public-modern.css','/static/css/admin-modern.css','/static/css/admin-theme.css','/static/js/home.js','/static/img/admin-icons.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('alkas-shell-')&&k!=='alkas-shell-v11').map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
   const u=new URL(e.request.url);
   if(e.request.method!=='GET'||u.pathname.startsWith('/api')||u.pathname.startsWith('/admin')) return;
   e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('/'))));
 });"""
-    return Response(js,mimetype="application/javascript")
+    return Response(js, mimetype="application/javascript")
 
 
 def get_site_color(key):
