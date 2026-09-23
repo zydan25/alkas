@@ -121,30 +121,44 @@
 
   async function checkResource(card,start,end){
     if(start<=new Date())return {available:false,reason:"وقت منتهٍ"};
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),4500);
     try{
-      const r=await fetch("/bookings/availability?resource_id="+encodeURIComponent(card.dataset.resourceId)+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString()),{cache:"no-store"});
+      const r=await fetch("/bookings/availability?resource_id="+encodeURIComponent(card.dataset.resourceId)+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString()),{
+        cache:"no-store",signal:controller.signal,headers:{"Accept":"application/json"}
+      });
+      if(!r.ok)throw new Error("availability "+r.status);
       return await r.json();
-    }catch(e){return {available:false,reason:"تعذر التحقق"}}
+    }catch(e){
+      return {available:false,reason:e.name==="AbortError"?"تعذر التحقق الآن — حاول مرة أخرى":"تعذر التحقق"};
+    }finally{clearTimeout(timer)}
   }
 
   async function refreshAvailability(){
     const serial=++requestSerial;
     const start=selectedStart(),end=selectedEnd();
-    if(start<=new Date()){slotStatus.textContent="اختر وقتًا مستقبليًا.";slotStatus.className="booking-slot-status warn";}
-    else{
-      slotStatus.textContent="يتحقق النظام من الملاعب المتاحة...";
+    if(start<=new Date()){
+      slotStatus.textContent="اختر وقتًا مستقبليًا.";
+      slotStatus.className="booking-slot-status warn";
+    }else{
+      slotStatus.textContent="جاري فحص توفر الملاعب...";
       const visible=cards.filter(c=>c.style.display!=="none");
-      const data=await Promise.all(visible.map(async c=>({card:c,data:await checkResource(c,start,end)})));
+      const settled=await Promise.all(visible.map(async c=>({card:c,data:await checkResource(c,start,end)})));
       if(serial!==requestSerial)return;
-      data.forEach(({card,data})=>{
+      settled.forEach(({card,data})=>{
         const s=card.querySelector("[data-resource-status]");
         card.dataset.available=data.available?"1":"0";
         card.classList.toggle("is-disabled",!data.available);
         s.textContent=data.available?"متاح للحجز":(data.reason||"غير متاح");
         s.className=data.available?"available":"busy";
       });
-      const available=data.filter(x=>x.data.available).length;
-      slotStatus.textContent=available?"اضغط على أي ملعب متاح لإضافته مباشرة إلى جدول الحجز.":"لا يوجد ملعب متاح بهذا الوقت.";
+      const available=settled.filter(x=>x.data.available).length;
+      const failed=settled.filter(x=>!x.data.available && String(x.data.reason||"").includes("تعذر التحقق")).length;
+      slotStatus.textContent=available
+        ?"اضغط على أي ملعب متاح لإضافته مباشرة إلى جدول الحجز."
+        :(failed
+          ?"تعذر التحقق من بعض الملاعب. اضغط على الوقت مرة أخرى لإعادة الفحص."
+          :"لا يوجد ملعب متاح بهذا الوقت.");
       slotStatus.className="booking-slot-status "+(available?"ok":"warn");
     }
     updateSelectedVisuals();
