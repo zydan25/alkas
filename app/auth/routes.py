@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from ..customers.models import Customer
 from ..extensions import db
@@ -49,8 +49,13 @@ def login_post():
     password = request.form.get("password") or ""
     phone_identifier = _normalize_phone(identifier)
     phone_lookup = phone_identifier if 7 <= len(phone_identifier) <= 15 else identifier
+    username_lookup = identifier.casefold()
     user = User.query.filter(
-        or_(User.username == identifier, User.phone == identifier, User.phone == phone_lookup)
+        or_(
+            func.lower(User.username) == username_lookup,
+            User.phone == identifier,
+            User.phone == phone_lookup,
+        )
     ).first()
 
     if not user or not user.is_active or not user.check_password(password):
