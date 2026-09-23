@@ -163,6 +163,7 @@ def availability():
     conflicts = (
         BookingAllocation.query.join(Booking).filter(
             Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress"]),
+            BookingAllocation.is_active.is_(True),
             BookingAllocation.resource_id == resource_id,
             BookingAllocation.start_at < end_at,
             BookingAllocation.end_at > start_at,
@@ -262,7 +263,7 @@ def sport_detail(sport_id):
 @bp.post("/availability/batch")
 def availability_batch():
     """Fast pre-check for many courts/time intervals in one request."""
-    expire_holds()
+    # Expired holds already deactivate their allocations; avoid a write scan on every pre-check.
     data = request.get_json(silent=True) or {}
     raw_items = data.get("items") or []
     if not raw_items:
