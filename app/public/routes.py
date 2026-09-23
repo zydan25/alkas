@@ -413,7 +413,7 @@ def get_site_color(key):
 
 
 @bp.get("/memberships")
-def public_memberships():
+def memberships():
     plans=MembershipPlan.query.filter_by(is_active=True).order_by(MembershipPlan.id.desc()).all()
     return render_template("public/memberships.html",plans=plans)
 
@@ -463,19 +463,19 @@ def membership_apply(plan_id):
     return redirect(url_for("customer.membership_detail",request_id=row.id))
 
 @bp.get("/resources")
-def public_resources():
+def resources():
     resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id,Resource.id).all()
     return render_template("public/resources.html",resources=resources)
 
 @bp.get("/announcements")
-def public_announcements():
+def announcements():
     now=datetime.now(timezone.utc)
     rows=AnnouncementCard.query.filter_by(status="published").order_by(AnnouncementCard.priority.desc(),AnnouncementCard.created_at.desc()).limit(80).all()
     rows=[row for row in rows if row.visible(now)]
     return render_template("public/announcements.html",announcements=rows)
 
 @bp.get("/ads")
-def public_ads():
+def ads():
     now=datetime.now(timezone.utc)
     rows=(AdCreative.query
         .join(AdCampaign,AdCreative.campaign_id==AdCampaign.id)
@@ -491,14 +491,14 @@ def public_ads():
     return render_template("public/ads.html",ads=rows)
 
 @bp.get("/discounts")
-def public_discounts():
+def discounts():
     now=datetime.now(timezone.utc)
     rows=Offer.query.filter_by(status="published").order_by(Offer.priority.desc(),Offer.id.desc()).all()
     rows=[row for row in rows if (row.starts_at is None or row.starts_at<=now) and (row.ends_at is None or row.ends_at>now) and (row.discount_percent or row.fixed_discount)]
     return render_template("public/discounts.html",offers=rows)
 
 @bp.get("/training")
-def public_training():
+def training():
     programs=TrainingProgram.query.filter_by(is_active=True).order_by(TrainingProgram.id.desc()).all()
     sports={sport.id:sport for sport in Sport.query.filter_by(is_active=True).all()}
     return render_template("public/training.html",programs=programs,sports=sports)
