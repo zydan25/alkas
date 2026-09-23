@@ -15,7 +15,7 @@ def upgrade():
     op.create_table(
         "membership_requests",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("customer_id", sa.Integer(), sa.ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True),
+        sa.Column("customer_id", sa.Integer(), sa.ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False),
         sa.Column("plan_id", sa.Integer(), sa.ForeignKey("membership_plans.id", ondelete="RESTRICT"), nullable=False),
         sa.Column("title_ar", sa.String(length=180), nullable=False),
         sa.Column("price", sa.Numeric(16,2), nullable=False, server_default="0"),
@@ -23,7 +23,7 @@ def upgrade():
         sa.Column("starts_on", sa.Date()),
         sa.Column("ends_on", sa.Date()),
         sa.Column("auto_renew", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("status", sa.String(length=30), nullable=False, server_default="pending", index=True),
+        sa.Column("status", sa.String(length=30), nullable=False, server_default="pending"),
         sa.Column("cancellation_reason", sa.String(length=700)),
         sa.Column("admin_note", sa.String(length=700)),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -35,7 +35,7 @@ def upgrade():
     op.create_table(
         "membership_messages",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("request_id", sa.Integer(), sa.ForeignKey("membership_requests.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column("request_id", sa.Integer(), sa.ForeignKey("membership_requests.id", ondelete="CASCADE"), nullable=False),
         sa.Column("sender_user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
         sa.Column("sender_role", sa.String(length=30), nullable=False, server_default="customer"),
         sa.Column("body_ar", sa.Text()),
