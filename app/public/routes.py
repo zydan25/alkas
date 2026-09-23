@@ -419,7 +419,7 @@ def public_memberships():
 @bp.get("/memberships/<int:plan_id>")
 def membership_detail(plan_id):
     plan=MembershipPlan.query.filter_by(id=plan_id,is_active=True).first_or_404()
-    return render_template("public/membership_detail.html",plan=plan)
+    return render_template("public/membership_detail.html",plan=plan,today_date=datetime.now(timezone.utc).date().isoformat())
 
 @bp.post("/memberships/<int:plan_id>/apply")
 def membership_apply(plan_id):
