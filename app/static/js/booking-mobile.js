@@ -139,18 +139,32 @@
   }
 
   async function checkResource(card,start,end){
-    if(start<=new Date())return {available:false,reason:"وقت منتهٍ"};
+    const results=await checkResourcesBatch([{resource_id:Number(card.dataset.resourceId),start_at:start.toISOString(),end_at:end.toISOString()}]);
+    return results[0]||{available:false,reason:"تعذر التحقق"};
+  }
+
+  async function checkResourcesBatch(items){
+    if(!items.length)return [];
+    if(items.some(x=>!x.start_at||!x.end_at))return items.map(()=>({available:false,reason:"بيانات الوقت غير صحيحة"}));
     const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),4500);
+    const timer=setTimeout(()=>controller.abort(),2500);
     try{
-      const r=await fetch("/bookings/availability?resource_id="+encodeURIComponent(card.dataset.resourceId)+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString()),{
-        cache:"no-store",signal:controller.signal,headers:{"Accept":"application/json"}
+      const r=await fetch("/bookings/availability/batch",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","X-CSRFToken":csrf,"Accept":"application/json"},
+        body:JSON.stringify({items}),
+        cache:"no-store",
+        signal:controller.signal
       });
       if(!r.ok)throw new Error("availability "+r.status);
-      return await r.json();
+      const data=await r.json();
+      return (data.items||[]).map(x=>({available:!!x.available,reason:x.reason||"غير متاح",resource_id:x.resource_id}));
     }catch(e){
-      return {available:false,reason:e.name==="AbortError"?"تعذر التحقق الآن — حاول مرة أخرى":"تعذر التحقق"};
-    }finally{clearTimeout(timer)}
+      const reason=e.name==="AbortError"?"تعذر التحقق سريعًا":"تعذر التحقق";
+      return items.map(x=>({available:false,reason,resource_id:x.resource_id}));
+    }finally{
+      clearTimeout(timer);
+    }
   }
 
   async function refreshAvailability(){
@@ -171,11 +185,18 @@
     }else{
       slotStatus.textContent="جاري فحص توفر الملاعب...";
       const visible=cards.filter(c=>c.style.display!=="none");
-      const settled=await Promise.all(visible.map(async c=>({card:c,data:await checkResource(c,start,end)})));
+      const preflight=visible.map(c=>({
+        resource_id:Number(c.dataset.resourceId),
+        start_at:start.toISOString(),
+        end_at:end.toISOString()
+      }));
+      const checked=await checkResourcesBatch(preflight);
       if(serial!==requestSerial)return;
+      const settled=visible.map((card,i)=>({card,data:checked[i]||{available:false,reason:"تعذر التحقق"}}));
       settled.forEach(({card,data})=>{
         const s=card.querySelector("[data-resource-status]");
         card.dataset.available=data.available?"1":"0";
+        card.dataset.availabilityChecked=String(Date.now());
         card.classList.toggle("is-disabled",!data.available);
         s.textContent=data.available?"متاح للحجز":(data.reason||"غير متاح");
         s.className=data.available?"available":"busy";
@@ -214,15 +235,16 @@
         }
       }
     }
-    const checks=await Promise.all(cart.map(async x=>{
-      if(x.invalid)return {ok:false,skip:true};
-      const r=await fetch("/bookings/availability?resource_id="+x.resource_id+"&start="+encodeURIComponent(x.start.toISOString())+"&end="+encodeURIComponent(x.end.toISOString()),{cache:"no-store"});
-      const data=await r.json();
-      return {ok:!!data.available,data};
-    }));
-    checks.forEach((x,i)=>{
-      if(!x.ok&&!x.skip){
-        cart[i].invalid=true;cart[i].invalid_reason=x.data?.reason||"لم يعد متاحًا";invalid=true;
+    const pending=cart.map((x,i)=>x.invalid?null:{
+      index:i,resource_id:x.resource_id,start_at:x.start.toISOString(),end_at:x.end.toISOString()
+    }).filter(Boolean);
+    const checked=await checkResourcesBatch(pending);
+    pending.forEach((item,j)=>{
+      const data=checked[j]||{available:false,reason:"تعذر التحقق"};
+      if(!data.available){
+        cart[item.index].invalid=true;
+        cart[item.index].invalid_reason=data.reason||"لم يعد متاحًا";
+        invalid=true;
       }
     });
     return !invalid;
@@ -257,8 +279,9 @@
     const start=selectedStart(),end=selectedEnd();
     if(!start||start<=new Date()){setAlert("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
     if(card.classList.contains("is-disabled")){setAlert("هذا الملعب غير متاح في الموعد المحدد.","error");return}
+    setAlert("جاري التحقق من توفر الملعب...");
     const data=await checkResource(card,start,end);
-    if(!data.available){setAlert("هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");await refreshAvailability();return}
+    if(!data.available){setAlert(data.reason||"هذا الملعب لم يعد متاحًا في الموعد المحدد.","error");await refreshAvailability();return}
     const item={resource_id:Number(card.dataset.resourceId),resource_name:card.dataset.resourceName,sport_name:card.dataset.sportName,date:dateInput.value,start_time:selectedTime, duration:String(durationSelect.value||60),start,end,price:(Number(card.dataset.basePrice||0)*Number(durationSelect.value||60)/60)};
     if(cart.some(x=>cartKey(x)===cartKey(item))){setAlert("هذا الملعب موجود أصلًا بهذا الوقت في الجدول.","error");return}
     cart.push(item);
