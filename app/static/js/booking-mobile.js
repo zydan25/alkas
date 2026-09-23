@@ -1,233 +1,316 @@
 (function(){
   const form=document.querySelector("[data-booking-mobile-form]");
   if(!form) return;
+
   const csrf=document.querySelector('meta[name="csrf-token"]')?.content||"";
   const dateInput=form.querySelector("[data-booking-date]");
   const durationSelect=form.querySelector("[data-booking-duration]");
   const timeButtons=[...form.querySelectorAll("[data-time]")];
-  const sportButtons=[...form.querySelectorAll("[data-sport-filter]")];
+  const sportButtons=[...form.querySelectorAll("[data-sport-toggle]")];
   const cards=[...form.querySelectorAll("[data-resource-card]")];
-  const result=form.querySelector("[data-booking-result]");
-  const totalNode=form.querySelector("[data-booking-total]");
-  const breakdown=form.querySelector("[data-booking-breakdown]");
+  const cartCard=form.querySelector("[data-booking-cart-card]");
+  const cartBody=form.querySelector("[data-cart-body]");
+  const cartCount=form.querySelector("[data-cart-count]");
   const selectedCount=form.querySelector("[data-selected-count]");
+  const totalNode=form.querySelector("[data-booking-total]");
+  const totalSummary=form.querySelector("[data-booking-total-summary]");
+  const breakdown=form.querySelector("[data-booking-breakdown]");
   const slotStatus=form.querySelector("[data-slot-status]");
-  const initialSport=form.dataset.initialSport;
-  const initialResource=form.dataset.initialResource;
-  const initialDate=form.dataset.initialDate;
-  const initialTime=form.dataset.initialTime||"18:00";
-  let selectedTime=initialTime;
-  let currentSport="";
-  const availabilityCache=new Map();
+  const result=form.querySelector("[data-booking-result]");
+  const addButton=form.querySelector("[data-add-to-cart]");
 
-  function localDateValue(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day}
-  function selectedStart(){
-    if(!dateInput?.value||!selectedTime) return null;
-    return new Date(dateInput.value+"T"+selectedTime+":00");
-  }
-  function selectedEnd(){
-    const start=selectedStart(); if(!start) return null;
-    return new Date(start.getTime()+Number(durationSelect.value||60)*60000);
-  }
-  function setAlert(message,type="ok"){
+  let selectedTime=form.dataset.initialTime||"18:00";
+  let selectedSports=new Set();
+  let cart=[];
+  let availabilityCache=new Map();
+
+  const localDateValue=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
+  const selectedStart=()=>dateInput?.value&&selectedTime?new Date(dateInput.value+"T"+selectedTime+":00"):null;
+  const selectedEnd=()=>{const s=selectedStart();return s?new Date(s.getTime()+Number(durationSelect.value||60)*60000):null};
+
+  function alertBox(message,type="ok"){
     result.hidden=!message;
     result.textContent=message||"";
     result.className="booking-alert "+(type==="error"?"booking-alert-danger":"");
   }
-  function setTimeButton(value){
+
+  function setTime(value){
     selectedTime=value;
     timeButtons.forEach(b=>b.classList.toggle("is-active",b.dataset.time===value));
   }
+
   function updateQuickDates(){
-    const today=new Date(); today.setHours(0,0,0,0);
+    const today=new Date();today.setHours(0,0,0,0);
     form.querySelectorAll("[data-date-offset]").forEach(btn=>{
-      const d=new Date(today); d.setDate(d.getDate()+Number(btn.dataset.dateOffset||0));
+      const d=new Date(today);d.setDate(d.getDate()+Number(btn.dataset.dateOffset||0));
       btn.querySelector("b").textContent=localDateValue(d);
       btn.classList.toggle("is-active",dateInput.value===localDateValue(d));
     });
   }
-  function applySportFilter(){
-    cards.forEach(card=>{
-      const show=!currentSport || card.dataset.sportId===currentSport;
-      card.style.display=show?"grid":"none";
+
+  function updateSports(){
+    sportButtons.forEach(b=>{
+      b.classList.toggle("is-active",b.dataset.sportToggle===""?selectedSports.size===0:selectedSports.has(b.dataset.sportToggle));
     });
-    sportButtons.forEach(b=>b.classList.toggle("is-active",b.dataset.sportFilter===currentSport));
+    cards.forEach(c=>{
+      c.style.display=(selectedSports.size===0||selectedSports.has(c.dataset.sportId))?"grid":"none";
+    });
+    updateSelectedVisuals();
   }
+
   function updateSelectedVisuals(){
     let count=0;
-    cards.forEach(card=>{
-      const input=card.querySelector("input");
-      const chosen=input.checked && !input.disabled;
+    cards.forEach(c=>{
+      const i=c.querySelector("input");
+      const chosen=i.checked&&!i.disabled;
       if(chosen) count++;
-      card.classList.toggle("is-selected",chosen);
+      c.classList.toggle("is-selected",chosen);
     });
     selectedCount.textContent=count+" محدد";
+    addButton.disabled=count===0;
     return count;
   }
-  async function checkCard(card){
+
+  function duplicateKey(id,start,end){return String(id)+"|"+start.toISOString()+"|"+end.toISOString()}
+
+  async function availability(card){
     const start=selectedStart(),end=selectedEnd();
-    if(!start||!end) return;
-    if(start<=new Date()){
-      card.querySelector("[data-resource-status]").textContent="وقت منتهٍ";
-      card.querySelector("[data-resource-status]").className="busy";
-      card.classList.add("is-disabled");
-      const i=card.querySelector("input"); i.checked=false;i.disabled=true;
-      return;
-    }
+    if(!start||!end)return {available:false,reason:"حدد الوقت"};
+    if(start<=new Date())return {available:false,reason:"وقت منتهٍ"};
     const key=card.dataset.resourceId+"|"+start.toISOString()+"|"+end.toISOString();
-    if(availabilityCache.has(key)){applyAvailability(card,availabilityCache.get(key));return}
-    const status=card.querySelector("[data-resource-status]");
-    status.textContent="جاري التحقق...";
+    if(availabilityCache.has(key))return availabilityCache.get(key);
     try{
-      const url="/bookings/availability?resource_id="+encodeURIComponent(card.dataset.resourceId)+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString());
-      const r=await fetch(url,{headers:{"X-Requested-With":"XMLHttpRequest"}});
-      const data=await r.json();
-      availabilityCache.set(key,data);
-      applyAvailability(card,data);
-    }catch(e){
-      applyAvailability(card,{available:false,reason:"تعذر التحقق"});
-    }
+      const r=await fetch("/bookings/availability?resource_id="+encodeURIComponent(card.dataset.resourceId)+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString()));
+      const data=await r.json();availabilityCache.set(key,data);return data;
+    }catch(e){return {available:false,reason:"تعذر التحقق"}}
   }
-  function applyAvailability(card,data){
-    const input=card.querySelector("input");
-    const status=card.querySelector("[data-resource-status]");
-    const available=!!data.available;
-    input.disabled=!available;
-    if(!available) input.checked=false;
-    card.classList.toggle("is-disabled",!available);
-    status.textContent=available?"متاح للحجز":(data.reason||"غير متاح");
-    status.className=available?"available":"busy";
+
+  function paintAvailability(card,data){
+    const input=card.querySelector("input"),status=card.querySelector("[data-resource-status]");
+    input.disabled=!data.available;
+    if(!data.available)input.checked=false;
+    card.classList.toggle("is-disabled",!data.available);
+    status.textContent=data.available?"متاح للحجز":(data.reason||"غير متاح");
+    status.className=data.available?"available":"busy";
   }
+
   async function refreshAvailability(){
     availabilityCache.clear();
-    const start=selectedStart(),end=selectedEnd();
-    if(!start||!end){slotStatus.textContent="اختر التاريخ والوقت.";return}
-    slotStatus.textContent="يتم التحقق من توفر الملاعب في هذا الموعد...";
-    await Promise.all(cards.map(checkCard));
-    const available=cards.filter(c=>!c.classList.contains("is-disabled") && c.style.display!=="none").length;
-    slotStatus.textContent=available? "المتاح في هذا الموعد يظهر باللون الأخضر." : "لا يوجد ملعب متاح بهذا الموعد.";
+    if(!selectedStart()||!selectedEnd()){slotStatus.textContent="اختر التاريخ والوقت.";return}
+    slotStatus.textContent="يتحقق النظام من كل الملاعب في هذا الوقت...";
+    const visible=cards.filter(c=>c.style.display!=="none");
+    const data=await Promise.all(visible.map(async c=>({card:c,data:await availability(c)})));
+    data.forEach(x=>paintAvailability(x.card,x.data));
+    const available=data.filter(x=>x.data.available).length;
+    slotStatus.textContent=available?"المتاح باللون الأخضر. يمكنك الانتقال لرياضة أخرى وإضافة عناصر جديدة للجدول.":"لا يوجد ملعب متاح بهذا الوقت.";
     slotStatus.className="booking-slot-status "+(available?"ok":"warn");
     updateSelectedVisuals();
-    await refreshQuote();
   }
-  async function refreshQuote(){
-    const start=selectedStart(),end=selectedEnd();
-    const selected=cards.filter(c=>c.querySelector("input").checked && !c.querySelector("input").disabled).map(c=>Number(c.dataset.resourceId));
-    if(!selected.length||!start||!end){
+
+  async function getQuote(items){
+    if(!items.length)return {total:"0",lines:[]};
+    const r=await fetch("/bookings/quote",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","X-CSRFToken":csrf},
+      body:JSON.stringify({items:items.map(x=>({resource_id:x.resource_id,start_at:x.start.toISOString(),end_at:x.end.toISOString()}))})
+    });
+    if(!r.ok)throw new Error("تعذر حساب السعر");
+    return r.json();
+  }
+
+  async function refreshCartPrice(){
+    if(!cart.length){
       totalNode.innerHTML="0 <em>ر.ي</em>";
-      breakdown.textContent="اختر ملعبًا واحدًا على الأقل";
+      totalSummary.innerHTML="0 <em>ر.ي</em>";
+      breakdown.textContent="أضف ملعبًا أو أكثر إلى جدول الحجز";
+      cartCard.hidden=true;
       return;
     }
+    const q=await getQuote(cart);
+    const lines=q.lines||[];
+    cart.forEach(x=>{
+      const match=lines.find(line=>Number(line.resource_id)===Number(x.resource_id)&&String(line.price));
+      x.price=match?Number(match.price):0;
+    });
+    totalNode.innerHTML=(q.total||"0")+" <em>ر.ي</em>";
+    totalSummary.innerHTML=(q.total||"0")+" <em>ر.ي</em>";
+    breakdown.textContent=cart.map(x=>x.resource_name+" · "+x.start.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"})+"–"+x.end.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"})).join(" • ");
+    renderCart();
+  }
+
+  function renderCart(){
+    cartCard.hidden=!cart.length;
+    cartCount.textContent=cart.length+" عنصر";
+    cartBody.innerHTML="";
+    cart.forEach((x,index)=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML='<td data-label="الرياضة / الملعب"><strong></strong><small></small></td><td data-label="من"></td><td data-label="إلى"></td><td data-label="السعر" class="cart-price"></td><td><button type="button" class="cart-remove" data-remove-cart="'+index+'">×</button></td>';
+      tr.querySelector("td strong").textContent=x.resource_name;
+      tr.querySelector("td small").textContent=x.sport_name;
+      tr.children[1].textContent=x.start.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"});
+      tr.children[2].textContent=x.end.toLocaleTimeString("ar-YE",{hour:"2-digit",minute:"2-digit"});
+      tr.querySelector(".cart-price").textContent=(Number(x.price)||0).toLocaleString("en-US")+" ر.ي";
+      cartBody.appendChild(tr);
+    });
+  }
+
+  async function addSelected(){
+    const start=selectedStart(),end=selectedEnd();
+    const selected=cards.filter(c=>c.style.display!=="none"&&c.querySelector("input").checked&&!c.querySelector("input").disabled);
+    if(!start||!end||start<=new Date()){alertBox("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
+    if(!selected.length){alertBox("حدد ملعبًا واحدًا أو أكثر.","error");return}
+
+    addButton.disabled=true;addButton.textContent="جارٍ التحقق...";
     try{
-      const r=await fetch("/bookings/quote",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({items:selected.map(id=>({resource_id:id,start_at:start.toISOString(),end_at:end.toISOString()}))})});
-      const data=await r.json();
-      totalNode.innerHTML=(data.total||"0")+" <em>ر.ي</em>";
-      breakdown.textContent=(data.lines||[]).map(x=>x.resource+" · "+x.price).join("  •  ");
-    }catch(e){
-      breakdown.textContent="تعذر تحديث السعر";
+      const checks=await Promise.all(selected.map(async c=>({card:c,data:await availability(c)})));
+      if(checks.some(x=>!x.data.available)){
+        alertBox("أحد الملاعب أصبح غير متاح. تم تحديث الحالة.","error");
+        await refreshAvailability();
+        return;
+      }
+
+      let added=0,duplicate=0;
+      selected.forEach(c=>{
+        const id=Number(c.dataset.resourceId);
+        if(cart.some(x=>duplicateKey(x.resource_id,x.start,x.end)===duplicateKey(id,start,end))){duplicate++;return}
+        cart.push({
+          resource_id:id,
+          resource_name:c.dataset.resourceName,
+          sport_name:c.dataset.sportName,
+          start:new Date(start),
+          end:new Date(end),
+          price:0
+        });
+        c.querySelector("input").checked=false;
+        added++;
+      });
+
+      updateSelectedVisuals();
+      await refreshCartPrice();
+      alertBox(added?"تمت إضافة العناصر المحددة إلى جدول الحجز.":"العناصر المحددة موجودة مسبقًا في الجدول.");
+      if(duplicate)alertBox("تم تجاهل عنصر مكرر. تمت إضافة العناصر الجديدة.","ok");
+    }finally{
+      addButton.disabled=selectedCount.textContent.startsWith("0");
+      addButton.innerHTML="＋ إضافة المحدد إلى جدول الحجز";
     }
   }
 
-  sportButtons.forEach(btn=>btn.addEventListener("click",()=>{currentSport=btn.dataset.sportFilter||"";applySportFilter();updateSelectedVisuals()}));
-  timeButtons.forEach(btn=>btn.addEventListener("click",()=>{setTimeButton(btn.dataset.time);refreshAvailability()}));
+  sportButtons.forEach(btn=>btn.addEventListener("click",()=>{
+    const id=btn.dataset.sportToggle||"";
+    if(!id)selectedSports.clear();
+    else selectedSports.has(id)?selectedSports.delete(id):selectedSports.add(id);
+    updateSports();
+  }));
+
+  timeButtons.forEach(btn=>btn.addEventListener("click",()=>{setTime(btn.dataset.time);refreshAvailability()}));
   dateInput?.addEventListener("change",()=>{updateQuickDates();refreshAvailability()});
   durationSelect?.addEventListener("change",refreshAvailability);
+
   form.querySelectorAll("[data-date-offset]").forEach(btn=>btn.addEventListener("click",()=>{
     const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+Number(btn.dataset.dateOffset||0));
     dateInput.value=localDateValue(d);updateQuickDates();refreshAvailability();
   }));
-  cards.forEach(card=>card.addEventListener("click",e=>{
-    const input=card.querySelector("input");
-    if(input.disabled) return;
-    if(e.target.closest("input")) return;
-    input.checked=!input.checked;
-    updateSelectedVisuals();
-    refreshQuote();
-  }));
-  cards.forEach(card=>card.querySelector("input")?.addEventListener("change",()=>{updateSelectedVisuals();refreshQuote()}));
 
-  if(initialSport){currentSport=initialSport}
-  else currentSport="";
-  if(initialDate) dateInput.value=initialDate;
-  if(initialResource){
-    const c=cards.find(x=>x.dataset.resourceId===initialResource);
-    if(c) c.querySelector("input").checked=true;
-  }
-  updateQuickDates();applySportFilter();updateSelectedVisuals();refreshAvailability();
+  cards.forEach(card=>card.addEventListener("click",e=>{
+    const i=card.querySelector("input");
+    if(i.disabled)return;
+    if(e.target.closest("input"))return;
+    i.checked=!i.checked;updateSelectedVisuals();
+  }));
+  cards.forEach(card=>card.querySelector("input")?.addEventListener("change",updateSelectedVisuals));
+  addButton?.addEventListener("click",addSelected);
+  cartBody?.addEventListener("click",e=>{
+    const b=e.target.closest("[data-remove-cart]");
+    if(!b)return;
+    cart.splice(Number(b.dataset.removeCart),1);
+    refreshCartPrice();
+  });
+
+  if(form.dataset.initialSport)selectedSports.add(form.dataset.initialSport);
+  if(form.dataset.initialDate)dateInput.value=form.dataset.initialDate;
+  setTime(selectedTime);
+  updateQuickDates();updateSports();updateSelectedVisuals();refreshAvailability();
 
   form.addEventListener("submit",async e=>{
     e.preventDefault();
-    setAlert("");
-    const start=selectedStart(),end=selectedEnd();
-    const selected=cards.filter(c=>c.querySelector("input").checked && !c.querySelector("input").disabled).map(c=>Number(c.dataset.resourceId));
-    if(!start||!end||start<=new Date()){setAlert("اختر تاريخًا ووقتًا مستقبليًا.","error");return}
-    if(!selected.length){setAlert("حدد ملعبًا واحدًا على الأقل.","error");return}
+    alertBox("");
+    if(!cart.length){alertBox("أضف ملعبًا واحدًا على الأقل إلى جدول الحجز.","error");return}
 
-    // Final availability check from server immediately before hold creation.
-    const checks=await Promise.all(selected.map(async id=>{
-      const r=await fetch("/bookings/availability?resource_id="+id+"&start="+encodeURIComponent(start.toISOString())+"&end="+encodeURIComponent(end.toISOString()));
-      return await r.json();
+    const finalChecks=await Promise.all(cart.map(async x=>{
+      const r=await fetch("/bookings/availability?resource_id="+x.resource_id+"&start="+encodeURIComponent(x.start.toISOString())+"&end="+encodeURIComponent(x.end.toISOString()));
+      return r.json();
     }));
-    if(checks.some(x=>!x.available)){setAlert("تغير توفر أحد الملاعب. حدّث الاختيار ثم حاول مرة أخرى.","error");await refreshAvailability();return}
+    if(finalChecks.some(x=>!x.available)){
+      alertBox("تغير التوفر. حدّث الجدول ثم حاول مرة أخرى.","error");
+      return;
+    }
 
-    const item={resource_ids:selected,bundle_ids:[],start_at:start.toISOString(),end_at:end.toISOString()};
+    const items=cart.map(x=>({resource_ids:[x.resource_id],bundle_ids:[],start_at:x.start.toISOString(),end_at:x.end.toISOString()}));
     const authenticated=form.dataset.authenticated==="1";
 
     if(!authenticated){
       const name=form.querySelector("[data-guest-name]")?.value.trim()||"";
       const phone=form.querySelector("[data-guest-phone]")?.value.trim()||"";
       const email=form.querySelector("[data-guest-email]")?.value.trim()||"";
-      if(!name||!phone){setAlert("أدخل الاسم ورقم الهاتف لإكمال الحجز.","error");return}
-      setAlert("حفظ الاختيار ونقلك لتسجيل الدخول...");
-      const r=await fetch("/bookings/prepare",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({name,phone,email,items:[item]})});
+      if(!name||!phone){alertBox("أدخل الاسم ورقم الهاتف لإكمال الحجز.","error");return}
+      alertBox("حفظ اختيارك ونقلك لتسجيل الدخول...");
+      const r=await fetch("/bookings/prepare",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({name,phone,email,items})});
       const data=await r.json();
-      if(!r.ok){setAlert(data.error||"تعذر حفظ الحجز.","error");return}
-      location.href=data.continue_url;return;
+      if(!r.ok){alertBox(data.error||"تعذر حفظ الحجز.","error");return}
+      location.href=data.continue_url;
+      return;
     }
 
-    const r=await fetch("/bookings/holds",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({items:[item],source:"pwa_web"})});
+    const r=await fetch("/bookings/holds",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({items,source:"pwa_web"})});
     const data=await r.json();
-    if(!r.ok){setAlert(data.error||"تعذر إنشاء الحجز. ربما تم حجز الملعب للتو.","error");await refreshAvailability();return}
-    setAlert("تم حجز الموعد مؤقتًا. أكّد الحجز خلال المهلة.");
+    if(!r.ok){alertBox(data.error||"تعذر إنشاء الحجز. ربما حُجز أحد الملاعب للتو.","error");await refreshAvailability();return}
+    alertBox("تم إنشاء حجز مؤقت لكل عناصر الجدول. أكّده خلال المهلة.");
     showConfirm(data.booking);
   });
 
   function showConfirm(booking){
     const box=form.querySelector("[data-booking-confirm]");
     const number=box.querySelector("[data-hold-number]");
-    const countdown=box.querySelector("[data-hold-countdown]");
-    const button=box.querySelector("[data-confirm-booking]");
+    const count=box.querySelector("[data-hold-countdown]");
+    const btn=box.querySelector("[data-confirm-booking]");
     box.hidden=false;number.textContent=booking.number;
     const expires=new Date(booking.hold_expires_at).getTime();
-    const tick=()=>{const remain=Math.max(0,expires-Date.now());const s=Math.floor(remain/1000);countdown.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");if(!remain){clearInterval(timer);button.disabled=true;countdown.textContent="انتهت المهلة"}};
+    const tick=()=>{
+      const rem=Math.max(0,expires-Date.now()),s=Math.floor(rem/1000);
+      count.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+      if(!rem){clearInterval(timer);btn.disabled=true;count.textContent="انتهت المهلة"}
+    };
     const timer=setInterval(tick,500);tick();
-    button.onclick=async()=>{
-      button.disabled=true;
+    btn.onclick=async()=>{
+      btn.disabled=true;
       const r=await fetch("/bookings/"+booking.id+"/confirm",{method:"POST",headers:{"X-CSRFToken":csrf}});
       const data=await r.json();
-      if(!r.ok){button.disabled=false;setAlert(data.error||"تعذر تأكيد الحجز.","error");return}
-      clearInterval(timer);button.textContent="تم التأكيد ✓";
-      setAlert("تم تأكيد الحجز. سيتم فتح صفحة التفاصيل خلال لحظات.");
-      setTimeout(()=>location.href="/customer/bookings/"+booking.id,500);
+      if(!r.ok){btn.disabled=false;alertBox(data.error||"تعذر تأكيد الحجز.","error");return}
+      clearInterval(timer);btn.textContent="تم التأكيد ✓";
+      setTimeout(()=>location.href="/customer/bookings/"+booking.id,250);
     };
   }
 
-  const resumeBox=form.querySelector("[data-booking-confirm][data-resume-booking-id]");
-  if(resumeBox){
-    const button=resumeBox.querySelector("[data-confirm-booking]");
-    const id=resumeBox.dataset.resumeBookingId;
-    const expires=new Date(resumeBox.dataset.resumeExpires).getTime();
-    const countdown=resumeBox.querySelector("[data-hold-countdown]");
-    const number=resumeBox.querySelector("[data-hold-number]");
-    number.textContent=resumeBox.dataset.resumeBookingNumber||"";
-    const tick=()=>{const remain=Math.max(0,expires-Date.now());const s=Math.floor(remain/1000);countdown.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");if(!remain){clearInterval(timer);button.disabled=true;countdown.textContent="انتهت المهلة"}};
+  const resume=form.querySelector("[data-booking-confirm][data-resume-booking-id]");
+  if(resume){
+    const btn=resume.querySelector("[data-confirm-booking]");
+    const count=resume.querySelector("[data-hold-countdown]");
+    const number=resume.querySelector("[data-hold-number]");
+    const id=resume.dataset.resumeBookingId;
+    number.textContent=resume.dataset.resumeBookingNumber||"";
+    const expires=new Date(resume.dataset.resumeExpires).getTime();
+    const tick=()=>{
+      const rem=Math.max(0,expires-Date.now()),s=Math.floor(rem/1000);
+      count.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+      if(!rem){clearInterval(timer);btn.disabled=true;count.textContent="انتهت المهلة"}
+    };
     const timer=setInterval(tick,500);tick();
-    button.onclick=async()=>{
-      button.disabled=true;
+    btn.onclick=async()=>{
+      btn.disabled=true;
       const r=await fetch("/bookings/"+id+"/confirm",{method:"POST",headers:{"X-CSRFToken":csrf}});
       const data=await r.json();
-      if(!r.ok){button.disabled=false;setAlert(data.error||"تعذر التأكيد.","error");return}
-      clearInterval(timer);button.textContent="تم التأكيد ✓";location.href="/customer/bookings/"+id;
+      if(!r.ok){btn.disabled=false;alertBox(data.error||"تعذر التأكيد.","error");return}
+      clearInterval(timer);btn.textContent="تم التأكيد ✓";location.href="/customer/bookings/"+id;
     };
   }
 })();
