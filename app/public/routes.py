@@ -368,10 +368,10 @@ def manifest():
 
 @bp.get("/sw.js")
 def service_worker():
-    js = """const CACHE='alkas-shell-v12';
-const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/css/public-modern.css','/static/css/customer-home.css','/static/js/app.js','/static/js/home.js','/static/js/cache-control.js','/static/css/admin-modern.css','/static/css/admin-theme.css','/static/img/admin-icons.svg'];
+    js = """const CACHE='alkas-shell-v13';
+const SHELL=['/','/static/css/app.css','/static/css/admin.css','/static/css/customer.css','/static/css/public-modern.css','/static/css/customer-home.css','/static/js/app.js','/static/js/home.js?v=13','/static/js/cache-control.js','/static/css/admin-modern.css','/static/css/admin-theme.css','/static/img/admin-icons.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('alkas-shell-')&&k!=='alkas-shell-v12').map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('alkas-shell-')&&k!=='alkas-shell-v13').map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
   const u=new URL(e.request.url);
   if(e.request.method!=='GET'||u.pathname.startsWith('/api')||u.pathname.startsWith('/admin')) return;
