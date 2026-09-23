@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, redirect, render_template, request, sessio
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Booking, BookingAllocation, Customer, Resource, ResourceBundle, Sport
+from ..models import Booking, BookingAllocation, BookingMessage, BookingPaymentReceipt, Customer, Resource, ResourceBundle, Sport
 from ..policies.models import BookingPolicy, PaymentPolicy
 from ..settings.services import get_site_settings
 from .services import add_to_waitlist, cancel_booking, confirm_booking, create_hold_booking, expand_resource_bundles, expire_holds
@@ -363,7 +363,114 @@ def cancel(booking_id):
     })
 
 
-@bp.post("/waitlist")
+@bp.get("/<int:booking_id>/messages")
+@login_required
+def messages(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    staff = current_user.username == "admin" or current_user.has_permission("booking.view")
+    if not staff and (not customer or booking.customer_id != customer.id):
+        return jsonify({"error":"غير مصرح"}),403
+    rows = booking.messages.order_by(BookingMessage.created_at.asc()).all()
+    return jsonify([{
+        "id": row.id,
+        "sender_role": row.sender_role,
+        "message_type": row.message_type,
+        "body_ar": row.body_ar,
+        "attachment_url": row.attachment_url,
+        "attachment_name": row.attachment_name,
+        "created_at": row.created_at.isoformat(),
+    } for row in rows])
+
+
+@bp.post("/<int:booking_id>/messages")
+@login_required
+def send_message(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    staff = current_user.username == "admin" or current_user.has_permission("booking.view")
+    if not staff and (not customer or booking.customer_id != customer.id):
+        return jsonify({"error":"غير مصرح"}),403
+
+    body = (request.form.get("body_ar") or "").strip()
+    attachment = request.files.get("attachment")
+    if not body and not (attachment and attachment.filename):
+        return jsonify({"error":"اكتب رسالة أو أرفق ملفًا"}),400
+    saved = None
+    if attachment and attachment.filename:
+        try:
+            if request.content_length and request.content_length > 12 * 1024 * 1024:
+                raise ValueError("حجم المرفق يتجاوز 12 ميجابايت")
+            from ..utils.media import save_uploaded_attachment
+            saved = save_uploaded_attachment(attachment, f"booking-{booking.id}")
+        except ValueError as exc:
+            return jsonify({"error":str(exc)}),400
+
+    row = BookingMessage(
+        booking_id=booking.id,
+        sender_user_id=current_user.id,
+        sender_role="staff" if staff else "customer",
+        message_type="message",
+        body_ar=body or None,
+        attachment_url=saved["url"] if saved else None,
+        attachment_name=saved["name"] if saved else None,
+        attachment_mime=saved["mime"] if saved else None,
+    )
+    db.session.add(row)
+    db.session.commit()
+    return jsonify({
+        "id":row.id,
+        "sender_role":row.sender_role,
+        "body_ar":row.body_ar,
+        "attachment_url":row.attachment_url,
+        "attachment_name":row.attachment_name,
+        "created_at":row.created_at.isoformat(),
+    }),201
+
+
+@bp.post("/<int:booking_id>/payment-receipt")
+@login_required
+def payment_receipt(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not customer or booking.customer_id != customer.id:
+        return jsonify({"error":"غير مصرح"}),403
+    attachment = request.files.get("receipt")
+    if not attachment or not attachment.filename:
+        return jsonify({"error":"اختر صورة أو ملف PDF لإشعار الدفع"}),400
+    try:
+        if request.content_length and request.content_length > 12 * 1024 * 1024:
+            raise ValueError("حجم الإشعار يتجاوز 12 ميجابايت")
+        from ..utils.media import save_uploaded_attachment
+        saved = save_uploaded_attachment(attachment, f"booking-{booking.id}-receipts")
+    except ValueError as exc:
+        return jsonify({"error":str(exc)}),400
+
+    receipt = BookingPaymentReceipt(
+        booking_id=booking.id,
+        uploaded_by_id=current_user.id,
+        file_url=saved["url"],
+        original_name=saved["name"],
+        mime_type=saved["mime"],
+        status="pending",
+    )
+    db.session.add(receipt)
+    db.session.add(BookingMessage(
+        booking_id=booking.id,
+        sender_user_id=current_user.id,
+        sender_role="customer",
+        message_type="payment_receipt",
+        body_ar="تم رفع إشعار الدفع للمراجعة.",
+        attachment_url=saved["url"],
+        attachment_name=saved["name"],
+        attachment_mime=saved["mime"],
+    ))
+    db.session.commit()
+    return jsonify({"id":receipt.id,"status":receipt.status,"file_url":receipt.file_url,"message":"تم رفع إشعار الدفع، وحالته الآن قيد المراجعة."}),201
+
+
+@bp.get("/resource/<int:resource_id>")
+def resource_detail(resource_id):
 @login_required
 def join_waitlist():
     customer = Customer.query.filter_by(user_id=current_user.id, is_active=True).first()
