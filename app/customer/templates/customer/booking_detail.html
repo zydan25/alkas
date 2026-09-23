@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking">
+<link rel="stylesheet" href="/static/css/booking-detail.css?v={{ site_settings.asset_version }}&ui=20260923-detail">
+{% endblock %}
+{% block content %}
+<div class="booking-detail-page">
+  <header class="booking-mobile-head">
+    <a class="booking-back" href="{{ url_for('customer.bookings') }}">‹</a>
+    <div><span>تفاصيل الحجز</span><h1>{{ booking.booking_number }}</h1></div>
+    <span class="detail-status detail-{{ booking.status }}">{{ {"hold":"مؤقت","pending":"قيد المراجعة","confirmed":"مؤكد","cancelled":"ملغى","expired":"منتهي","completed":"مكتمل"}.get(booking.status,booking.status) }}</span>
+  </header>
+
+  <section class="detail-hero">
+    <div><small>موعد اللعب</small><strong>{{ booking.start_at.strftime("%Y-%m-%d") }}</strong><span>{{ booking.start_at.strftime("%H:%M") }} — {{ booking.end_at.strftime("%H:%M") }}</span></div>
+    <div><small>إجمالي الحجز</small><strong>{{ "{:,.0f}".format(booking.total|float) }}</strong><span>ر.ي</span></div>
+  </section>
+
+  <section class="booking-card">
+    <div class="booking-section-title"><div><small>الملاعب</small><h2>تفاصيل ما حجزته</h2></div><span>{{ booking.allocations|length }} ملعب</span></div>
+    <div class="detail-resource-list">
+      {% for allocation in booking.allocations %}
+      <div class="detail-resource-row">
+        <span class="detail-resource-icon">{{ allocation.resource.sport.icon if allocation.resource and allocation.resource.sport else "●" }}</span>
+        <div><strong>{{ allocation.resource.name_ar if allocation.resource else "ملعب" }}</strong><small>{{ allocation.resource.sport.name_ar if allocation.resource and allocation.resource.sport else "" }} · {{ allocation.start_at.strftime("%H:%M") }}–{{ allocation.end_at.strftime("%H:%M") }}</small></div>
+        <b>{{ "{:,.0f}".format(allocation.price|float) }}</b>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="booking-card">
+    <div class="booking-section-title"><div><small>الدفع</small><h2>حالة الفاتورة والدفع</h2></div><span class="detail-payment-{{ booking.payment_status }}">{{ booking.payment_status }}</span></div>
+    {% if invoice %}
+    <div class="detail-money-grid">
+      <div><small>الفاتورة</small><strong>{{ invoice.number }}</strong></div>
+      <div><small>الإجمالي</small><strong>{{ "{:,.0f}".format(invoice.total|float) }} ر.ي</strong></div>
+      <div><small>المدفوع</small><strong>{{ "{:,.0f}".format(invoice.paid_amount|float) }} ر.ي</strong></div>
+      <div><small>المتبقي</small><strong>{{ "{:,.0f}".format(invoice.balance_due|float) }} ر.ي</strong></div>
+    </div>
+    {% else %}
+    <p class="detail-muted">سيتم إنشاء الفاتورة عند تأكيد الحجز.</p>
+    {% endif %}
+  </section>
+
+  <section class="booking-card detail-payment-card">
+    <div class="booking-section-title"><div><small>كيف تدفع؟</small><h2>بيانات الدفع</h2></div></div>
+    {% if site_settings.payment_bank_name or site_settings.payment_account_number %}
+      <div class="payment-instruction-row"><span>🏦</span><div><small>تحويل بنكي</small><strong>{{ site_settings.payment_bank_name or "البنك" }}</strong><p>الحساب: {{ site_settings.payment_account_name or "—" }}</p><p>رقم الحساب: <b>{{ site_settings.payment_account_number or "—" }}</b></p></div></div>
+    {% endif %}
+    {% if site_settings.payment_wallet_name or site_settings.payment_wallet_number %}
+      <div class="payment-instruction-row"><span>📱</span><div><small>محفظة</small><strong>{{ site_settings.payment_wallet_name or "المحفظة" }}</strong><p>الرقم: <b>{{ site_settings.payment_wallet_number or "—" }}</b></p></div></div>
+    {% endif %}
+    {% if site_settings.payment_cash_note %}<div class="payment-note">💵 {{ site_settings.payment_cash_note }}</div>{% endif %}
+    {% if site_settings.payment_intro %}<p class="detail-muted">{{ site_settings.payment_intro }}</p>{% endif %}
+  </section>
+
+  <section class="booking-card">
+    <div class="booking-section-title"><div><small>إشعار الدفع</small><h2>ارفع إيصال التحويل</h2></div></div>
+    <form class="receipt-upload" data-receipt-form enctype="multipart/form-data">
+      <label class="receipt-drop"><input type="file" name="receipt" accept="image/*,.pdf" required><span>📎 اختر صورة أو PDF</span><small data-receipt-name>لم يتم اختيار ملف</small></label>
+      <button class="detail-action-button" type="submit">إرسال للمراجعة</button>
+      <div class="detail-form-message" data-receipt-result></div>
+    </form>
+    {% if receipts %}
+      <div class="receipt-history">
+      {% for receipt in receipts %}
+        <a href="{{ receipt.file_url }}" target="_blank" rel="noopener" class="receipt-item"><span>🧾</span><div><strong>{{ receipt.original_name }}</strong><small>{{ {"pending":"قيد المراجعة","approved":"تمت الموافقة","rejected":"مرفوض"}.get(receipt.status,receipt.status) }}</small></div>›</a>
+      {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="booking-card booking-chat-card">
+    <div class="booking-section-title"><div><small>التواصل</small><h2>المحادثة الخاصة بالحجز</h2></div><span>مباشرة</span></div>
+    <div class="booking-chat" data-chat-box>
+      {% for message in messages %}
+      <div class="chat-bubble {{ 'mine' if message.sender_user_id == current_user.id else 'theirs' }}">
+        <p>{{ message.body_ar or "مرفق" }}</p>
+        {% if message.attachment_url %}<a href="{{ message.attachment_url }}" target="_blank" rel="noopener">📎 {{ message.attachment_name or "مرفق" }}</a>{% endif %}
+        <small>{{ message.created_at.strftime("%H:%M · %Y-%m-%d") }}</small>
+      </div>
+      {% else %}
+      <div class="chat-empty">ابدأ برسالة وسيتابع فريق المنشأة معك هنا.</div>
+      {% endfor %}
+    </div>
+    <form class="chat-compose" data-chat-form enctype="multipart/form-data">
+      <input type="text" name="body_ar" placeholder="اكتب رسالتك..." autocomplete="off">
+      <label class="chat-attach"><input type="file" name="attachment" accept="image/*,.pdf"><span>📎</span></label>
+      <button type="submit">إرسال</button>
+    </form>
+    <div class="detail-form-message" data-chat-result></div>
+  </section>
+
+  <section class="booking-card">
+    <div class="booking-section-title"><div><small>السياسات</small><h2>ملاحظات مهمة</h2></div></div>
+    {% if booking_policy %}
+      <p class="detail-policy">الإلغاء: قبل الموعد بـ {{ booking_policy.cancellation_deadline_minutes }} دقيقة = استرجاع {{ booking_policy.refund_percent_before_deadline }}%، وبعدها {{ booking_policy.refund_percent_after_deadline }}%.</p>
+      <p class="detail-policy">نسبة العربون/الدفع المطلوبة: {{ booking_policy.deposit_percent }}%.</p>
+    {% endif %}
+    {% if payment_policy %}
+      <p class="detail-policy">الدفع الكامل {{ "مطلوب" if payment_policy.require_full_payment else "غير مطلوب" }}، والطرق المتاحة معروضة بالأعلى.</p>
+    {% endif %}
+    <p class="detail-policy">{{ site_settings.booking_policy_note }}</p>
+  </section>
+
+  {% if booking.status in ["hold","pending","confirmed"] %}
+  <button class="detail-cancel-button btn-cancel-booking" data-booking-id="{{ booking.id }}">إلغاء الحجز</button>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+ const csrf=document.querySelector('meta[name="csrf-token"]')?.content||"";
+ const receiptForm=document.querySelector("[data-receipt-form]");
+ const receiptFile=receiptForm?.querySelector('input[type=file]');
+ const receiptName=receiptForm?.querySelector("[data-receipt-name]");
+ receiptFile?.addEventListener("change",()=>{receiptName.textContent=receiptFile.files?.[0]?.name||"لم يتم اختيار ملف"});
+ receiptForm?.addEventListener("submit",async e=>{
+   e.preventDefault();
+   const fd=new FormData(receiptForm), out=document.querySelector("[data-receipt-result]");
+   const r=await fetch("{{ url_for('bookings.payment_receipt', booking_id=booking.id) }}",{method:"POST",body:fd,headers:{"X-CSRFToken":csrf}});
+   const data=await r.json();out.textContent=data.message||data.error||"";
+   if(r.ok){out.className="detail-form-message ok";setTimeout(()=>location.reload(),700)}else out.className="detail-form-message error";
+ });
+ const chatForm=document.querySelector("[data-chat-form]");
+ const chatBox=document.querySelector("[data-chat-box]");
+ function appendMessage(data){
+   const empty=chatBox.querySelector(".chat-empty");if(empty)empty.remove();
+   const wrap=document.createElement("div");wrap.className="chat-bubble "+(data.sender_role==="customer"?"mine":"theirs");
+   const p=document.createElement("p");p.textContent=data.body_ar||"مرفق";wrap.appendChild(p);
+   if(data.attachment_url){const a=document.createElement("a");a.href=data.attachment_url;a.target="_blank";a.rel="noopener";a.textContent="📎 "+(data.attachment_name||"مرفق");wrap.appendChild(a)}
+   const s=document.createElement("small");s.textContent=new Date(data.created_at).toLocaleString("ar-YE");wrap.appendChild(s);chatBox.appendChild(wrap);chatBox.scrollTop=chatBox.scrollHeight;
+ }
+ chatForm?.addEventListener("submit",async e=>{
+   e.preventDefault();const fd=new FormData(chatForm);const out=document.querySelector("[data-chat-result]");
+   if(!fd.get("body_ar")&&!fd.get("attachment")?.name){out.textContent="اكتب رسالة أو اختر مرفقًا.";out.className="detail-form-message error";return}
+   const r=await fetch("{{ url_for('bookings.send_message', booking_id=booking.id) }}",{method:"POST",body:fd,headers:{"X-CSRFToken":csrf}});
+   const data=await r.json();if(!r.ok){out.textContent=data.error||"تعذر الإرسال";out.className="detail-form-message error";return}
+   appendMessage(data);chatForm.reset();out.textContent="";
+ });
+ document.querySelectorAll(".btn-cancel-booking").forEach(btn=>btn.addEventListener("click",async()=>{
+   if(!confirm("سيتم إلغاء الحجز وتطبيق سياسة الاسترجاع. متابعة؟"))return;
+   const r=await fetch("/bookings/"+btn.dataset.bookingId+"/cancel",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf},body:JSON.stringify({reason_ar:"إلغاء من العميل"})});
+   const data=await r.json();if(!r.ok){alert(data.error||"تعذر الإلغاء");return}location.reload();
+ }));
+})();
+</script>
+{% endblock %}
