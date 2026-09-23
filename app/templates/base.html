@@ -10,8 +10,8 @@
     <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
     <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-    <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
-    <link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">
+    {% if request.path.startswith('/admin') %}<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">{% endif %}
+    {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">{% endif %}
     <link rel="stylesheet" href="/static/css/public-modern.css?v={{ site_settings.asset_version }}&ui=20260923c">
     {% set customer_shell = request.endpoint in [
       'public.home','public.matches','public.offers','public.tournaments','public.news','public.live','public.live_event','public.memberships','public.membership_detail','public.news_post','public.resources','public.announcements','public.announcement_detail','public.ads','public.ad_detail','public.discounts','public.training','public.about','public.contact',
