@@ -52,6 +52,11 @@ def create_hold_booking(customer_id, resource_ids=None, start_at=None, end_at=No
     if not normalized:
         raise ValueError("أضف فترة حجز واحدة على الأقل")
 
+    for i, left in enumerate(normalized):
+        for right in normalized[i + 1:]:
+            if left["resource_id"] == right["resource_id"] and left["start_at"] < right["end_at"] and right["start_at"] < left["end_at"]:
+                raise ValueError("يوجد تداخل بين فترتين لنفس الملعب في هذا الحجز")
+
     resource_ids = list(dict.fromkeys(item["resource_id"] for item in normalized))
     for item in normalized:
         blocked = ResourceBlock.query.filter(
