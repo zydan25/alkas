@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
@@ -31,8 +32,13 @@ def booking_page():
         "bookings/index.html",
         customer=customer,
         sports=Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all(),
-        resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
-        bundles=ResourceBundle.query.filter_by(is_active=True).order_by(ResourceBundle.id).all(),
+        resources=(
+            Resource.query
+            .options(selectinload(Resource.sport), selectinload(Resource.zone))
+            .filter_by(is_active=True)
+            .order_by(Resource.sport_id, Resource.id)
+            .all()
+        ),
         is_guest=not current_user.is_authenticated,
         resume=resume,
         resume_error=request.args.get("resume_error"),
