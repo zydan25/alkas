@@ -25,7 +25,7 @@
 .booking-mobile-page select{font:inherit}
 .booking-mobile-page button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .booking-mobile-page input,.booking-mobile-page select{outline:none}
-.booking-mobile-page [hidden]{display:none!important}
+[hidden]{display:none!important}
 
 /* Header */
 .booking-app-header{
