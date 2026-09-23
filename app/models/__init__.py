@@ -1,7 +1,7 @@
 from ..users.models import Permission, Role, User
 from ..customers.models import Customer
 from ..resources.models import Resource, ResourceBundle, Sport, Venue, VenueZone
-from ..bookings.models import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry
+from ..bookings.models import Booking, BookingAllocation, BookingHold, RecurringBooking, ResourceBlock, WaitlistEntry, BookingMessage, BookingPaymentReceipt
 from ..settings.models import SiteSetting, SiteTheme
 from ..announcements.models import AnnouncementCard
 
