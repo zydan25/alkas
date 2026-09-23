@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-card auth-card-register">
+    <div class="eyebrow">حساب عميل جديد</div>
+    <h1>ابدأ حجزك خلال دقيقة</h1>
+    <p>أنشئ حسابك مرة واحدة لتحتفظ بحجوزاتك وفواتيرك وإشعاراتك في مكان واحد.</p>
+
+    {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+
+    <form method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+
+        <label>الاسم الكامل
+            <input name="full_name" value="{{ form_data.get('full_name', '') }}" required autocomplete="name" minlength="2" placeholder="مثال: محمد أحمد">
+        </label>
+
+        <label>رقم الهاتف
+            <input name="phone" value="{{ form_data.get('phone', '') }}" required autocomplete="tel" inputmode="tel" placeholder="77xxxxxxxx">
+            <small class="form-hint">سيكون رقم الهاتف أحد طرق تسجيل الدخول إلى حسابك.</small>
+        </label>
+
+        <label>البريد الإلكتروني <span class="optional-label">(اختياري)</span>
+            <input name="email" value="{{ form_data.get('email', '') }}" type="email" autocomplete="email" placeholder="example@email.com">
+        </label>
+
+        <div class="form-grid">
+            <label>كلمة المرور
+                <input name="password" type="password" required autocomplete="new-password" minlength="8" placeholder="8 أحرف على الأقل">
+            </label>
+            <label>تأكيد كلمة المرور
+                <input name="password_confirm" type="password" required autocomplete="new-password" minlength="8">
+            </label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">إنشاء الحساب ومتابعة</button>
+    </form>
+
+    <div class="auth-switch">
+        <span>لديك حساب بالفعل؟</span>
+        <a href="{{ url_for('auth.login', next=next_url) }}">تسجيل الدخول</a>
+    </div>
+</section>
+{% endblock %}
