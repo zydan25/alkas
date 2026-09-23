@@ -331,6 +331,74 @@ def availability_batch():
         ResourceBlock.ends_at > min_start,
     ).all()
 
+    # Build the already-fetched intervals once so unavailable cards can also
+    # show nearby free starts without issuing one request per court.
+    intervals_by_resource = {}
+    for allocation in allocations:
+        intervals_by_resource.setdefault(allocation.resource_id, []).append(
+            (allocation.start_at, allocation.end_at)
+        )
+    for block in blocks:
+        intervals_by_resource.setdefault(block.resource_id, []).append(
+            (block.starts_at, block.ends_at)
+        )
+    for resource_intervals in intervals_by_resource.values():
+        resource_intervals.sort(key=lambda pair: pair[0])
+
+    def normalize_forward(value, tz):
+        local = value.astimezone(tz).replace(second=0, microsecond=0)
+        if local.hour < 8:
+            return local.replace(hour=8, minute=0)
+        if local.hour > 23 or (local.hour == 23 and local.minute > 30):
+            return (local + timedelta(days=1)).replace(hour=8, minute=0)
+        return local
+
+    def nearby_free_starts(resource_id, start_at, duration):
+        intervals = intervals_by_resource.get(resource_id, [])
+        tz = start_at.tzinfo or ZoneInfo("Asia/Aden")
+        now_local = now_utc.astimezone(tz)
+        previous = None
+        candidate = (start_at - duration).replace(second=0, microsecond=0)
+        floor = max(now_local, start_at - timedelta(days=1))
+        while candidate >= floor:
+            candidate_end = candidate + duration
+            if (
+                candidate.hour >= 8
+                and candidate.hour <= 23
+                and not (candidate.hour == 23 and candidate.minute > 30)
+                and candidate >= now_local
+                and not any(
+                    interval_start < candidate_end and interval_end > candidate
+                    for interval_start, interval_end in intervals
+                )
+            ):
+                previous = candidate
+                break
+            candidate -= timedelta(minutes=1)
+
+        next_start = normalize_forward(max(start_at, now_utc.astimezone(tz)), tz)
+        horizon = next_start + timedelta(days=7)
+        while next_start + duration <= horizon:
+            conflict_ends = []
+            conflict = False
+            for interval_start, interval_end in intervals:
+                if interval_end <= next_start:
+                    continue
+                if interval_start >= next_start + duration:
+                    break
+                conflict = True
+                conflict_ends.append(interval_end)
+            if not conflict:
+                return previous, next_start
+            next_start = normalize_forward(
+                max(
+                    next_start + timedelta(minutes=1),
+                    max(conflict_ends),
+                ),
+                tz,
+            )
+        return previous, None
+
     for item in valid:
         resource = resources.get(item["resource_id"])
         conflict = any(
@@ -360,7 +428,16 @@ def availability_batch():
             "الملعب غير متاح" if not resource or not resource.is_active or resource.status != "available" else
             "متاح"
         )
+        item["previous_available_at"] = None
         item["next_available_at"] = None
+        if not available and resource and resource.is_active and resource.status == "available" and (conflict or blocked):
+            previous, next_start = nearby_free_starts(
+                item["resource_id"],
+                item["start"],
+                item["end"] - item["start"],
+            )
+            item["previous_available_at"] = previous.isoformat() if previous else None
+            item["next_available_at"] = next_start.isoformat() if next_start else None
         item.pop("start", None)
         item.pop("end", None)
 
