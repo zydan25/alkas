@@ -134,3 +134,35 @@
   .booking-resource-option{min-height:118px!important;padding-bottom:40px!important}
   .booking-cart-table{min-width:720px!important}
 }
+
+
+/* v5 — readable booking cart and tap-to-add cards */
+.booking-cart-table-wrap{background:#fff}
+.booking-cart-total strong{font-size:1.05rem!important;color:#009c78!important}
+.booking-resource-tap{position:absolute;inset-inline:8px;bottom:7px;display:flex;align-items:center;justify-content:center;gap:4px;min-height:29px;border:1px solid #dcebe6;border-radius:9px;background:#edf9f5;color:#008f6d;font-size:.48rem;font-weight:950}
+.booking-resource-option{cursor:pointer}
+@media(max-width:620px){
+  .booking-cart-table{min-width:830px!important;width:830px!important}
+  .booking-cart-table thead,.booking-cart-table tbody{width:790px!important;min-width:790px!important}
+  .booking-cart-table tr{width:790px!important;min-width:790px!important;grid-template-columns:215px 125px 100px 105px 100px 95px 50px!important}
+  .booking-cart-table th,.booking-cart-table td{height:54px!important;font-size:.72rem!important;padding:6px 8px!important}
+  .booking-cart-table th{height:38px!important;font-size:.62rem!important}
+  .booking-cart-table .cart-resource-cell strong{max-width:205px;font-size:.72rem!important}
+  .booking-cart-table .cart-resource-cell small,.booking-cart-table .cart-invalid-reason{max-width:205px;font-size:.55rem!important}
+  .booking-cart-table input,.booking-cart-table select{height:36px!important;font-size:.62rem!important;padding:0 7px!important}
+  .booking-cart-table .cart-end-time,.booking-cart-table .cart-price{font-size:.7rem!important}
+  .booking-cart-total{padding:10px 3px!important}
+  .booking-cart-total span{font-size:.64rem!important}
+  .booking-cart-total strong{font-size:1.05rem!important}
+  .booking-resource-option{min-height:124px!important}
+  .booking-resource-main strong{font-size:.62rem!important}
+  .booking-resource-main small{font-size:.52rem!important}
+  .booking-resource-main em{font-size:.5rem!important}
+  .booking-resource-side b{font-size:.56rem!important}
+  .booking-resource-side small{font-size:.42rem!important}
+  .booking-resource-tap{font-size:.5rem!important}
+}
+@media(max-width:390px){
+  .booking-cart-table{min-width:830px!important;width:830px!important}
+  .booking-resource-option{min-height:120px!important}
+}
