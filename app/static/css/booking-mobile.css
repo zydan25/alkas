@@ -575,8 +575,7 @@
   justify-content:center;
   align-items:flex-end;
   padding:0;
-  background:rgba(8,24,19,.34);
-  backdrop-filter:blur(3px);
+  background:color-mix(in srgb,var(--bk-text,#172821) 24%,var(--bk-bg,#f4f8f6));
 }
 .booking-picker-sheet{
   width:min(100%,760px);
@@ -584,8 +583,9 @@
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  border:1px solid var(--bk-line);
   border-radius:25px 25px 0 0;
-  background:var(--bk-surface);
+  background:var(--bk-surface,#fff);
   box-shadow:0 -18px 48px rgba(8,30,24,.18);
 }
 .booking-picker-handle{
