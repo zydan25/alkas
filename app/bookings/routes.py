@@ -27,7 +27,6 @@ def booking_page():
     # Date defaults to today; start time is intentionally chosen by the customer.
     initial_date = now.date()
     initial_time = request.args.get("time") or ""
-    time_options = [f"{h:02d}:{m:02d}" for h in range(8,24) for m in (0,30)]
     return render_template(
         "bookings/index.html",
         customer=customer,
@@ -46,8 +45,7 @@ def booking_page():
         initial_resource_id=request.args.get("resource_id", type=int),
         initial_date=request.args.get("date") or initial_date.isoformat(),
         initial_time=request.args.get("time") or initial_time,
-        time_options=time_options,
-        booking_policy=BookingPolicy.query.filter_by(is_default=True, is_active=True).first(),
+         booking_policy=BookingPolicy.query.filter_by(is_default=True, is_active=True).first(),
         payment_policy=PaymentPolicy.query.filter_by(is_default=True, is_active=True).first(),
         site_settings=get_site_settings(),
     )
