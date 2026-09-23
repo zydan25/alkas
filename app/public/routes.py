@@ -10,6 +10,7 @@ from ..ads.models import AdCampaign, AdCreative, AdPlacement
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Booking, BookingAllocation, Customer, Resource, Sport
+from ..memberships.models import MembershipPlan
 from ..news.models import Post
 from ..offers.models import Offer
 from ..teams.models import Team
@@ -157,7 +158,15 @@ def _upcoming_matches(now):
 @bp.get("/")
 def home():
     now = datetime.now(timezone.utc)
+    local_now = now.astimezone()
     banners = _active_banner_rows(now)
+
+    membership_plans = (
+        MembershipPlan.query.filter_by(is_active=True)
+        .order_by(MembershipPlan.id.desc())
+        .limit(6)
+        .all()
+    )
 
     sports = (
         Sport.query.filter_by(is_active=True)
@@ -237,6 +246,7 @@ def home():
         offers=offers,
         tournaments=tournaments,
         news_posts=news_posts,
+        membership_plans=membership_plans,
         customer=customer,
         customer_bookings=customer_bookings,
         today_date=now.astimezone().strftime("%Y-%m-%d"),
