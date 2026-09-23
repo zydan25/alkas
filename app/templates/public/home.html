@@ -383,21 +383,7 @@
 
   <div class="home-scroll-space"></div>
 
-  <nav class="home-bottom-nav" aria-label="التنقل الرئيسي">
-    <a class="is-active" href="{{ url_for('public.home') }}">
-      <span>{{ icon("home", 21) }}</span><small>الرئيسية</small>
-    </a>
-    <a href="{{ url_for('public.matches') }}">
-      <span>{{ icon("football", 21) }}</span><small>مباريات</small>
-    </a>
-    <a class="home-book-fab" href="{{ url_for('bookings.booking_page') }}" aria-label="احجز الآن">＋</a>
-    <a href="{{ url_for('bookings.booking_page') }}">
-      <span>{{ icon("calendar", 21) }}</span><small>جواري</small>
-    </a>
-    <a href="{% if current_user.is_authenticated %}{{ url_for('customer.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}">
-      <span>{{ icon("user", 21) }}</span><small>حسابي</small>
-    </a>
-  </nav>
+  
 
 </div>
 {% endblock %}
