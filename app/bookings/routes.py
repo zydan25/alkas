@@ -264,7 +264,7 @@ def sport_detail(sport_id):
 
 @bp.post("/availability/batch")
 def availability_batch():
-    """Fast availability map for the selected date/time, with the next free slot."""
+    """Fast pre-check of only the requested booking intervals."""
     data = request.get_json(silent=True) or {}
     raw_items = data.get("items") or []
     if not raw_items:
@@ -278,23 +278,35 @@ def availability_batch():
             end_at = datetime.fromisoformat(item.get("end_at") or item["end"])
         except (KeyError, TypeError, ValueError):
             parsed.append({
-                "index": index, "resource_id": item.get("resource_id"),
-                "available": False, "reason": "بيانات الوقت غير صحيحة",
+                "index": index,
+                "resource_id": item.get("resource_id"),
+                "available": False,
+                "reason": "بيانات الوقت غير صحيحة",
+                "next_available_at": None,
             })
             continue
-        parsed.append({"index": index, "resource_id": resource_id, "start": start_at, "end": end_at})
+        parsed.append({
+            "index": index,
+            "resource_id": resource_id,
+            "start": start_at,
+            "end": end_at,
+        })
 
     valid = [item for item in parsed if "start" in item]
     if not valid:
         return jsonify({"available": False, "items": parsed})
 
     resource_ids = list({item["resource_id"] for item in valid})
-    resources = {r.id: r for r in Resource.query.filter(Resource.id.in_(resource_ids)).all()}
+    resources = {
+        resource.id: resource
+        for resource in Resource.query.filter(Resource.id.in_(resource_ids)).all()
+    }
     min_start = min(item["start"] for item in valid)
     max_end = max(item["end"] for item in valid)
     now_utc = datetime.now(ZoneInfo("UTC"))
     statuses = ["hold", "pending", "confirmed", "checked_in", "in_progress"]
 
+    # Only load allocations that can intersect the requested interval.
     allocations = BookingAllocation.query.join(Booking).filter(
         Booking.status.in_(statuses),
         or_(
@@ -304,50 +316,15 @@ def availability_batch():
         ),
         BookingAllocation.is_active.is_(True),
         BookingAllocation.resource_id.in_(resource_ids),
-        BookingAllocation.start_at < max_end + timedelta(days=3),
+        BookingAllocation.start_at < max_end,
         BookingAllocation.end_at > min_start,
     ).all()
     blocks = ResourceBlock.query.filter(
         ResourceBlock.resource_id.in_(resource_ids),
         ResourceBlock.status == "active",
-        ResourceBlock.starts_at < max_end + timedelta(days=3),
+        ResourceBlock.starts_at < max_end,
         ResourceBlock.ends_at > min_start,
     ).all()
-
-    def next_free_start(resource_id, requested_start, requested_end):
-        duration = requested_end - requested_start
-        local_now = now_utc.astimezone(requested_start.tzinfo or ZoneInfo("Asia/Aden"))
-        candidate = max(requested_end, local_now)
-        candidate = candidate.replace(second=0, microsecond=0)
-        if candidate.minute % 30:
-            candidate += timedelta(minutes=30 - (candidate.minute % 30))
-
-        intervals = [
-            (x.start_at, x.end_at)
-            for x in allocations if x.resource_id == resource_id
-        ]
-        intervals += [
-            (x.starts_at, x.ends_at)
-            for x in blocks if x.resource_id == resource_id
-        ]
-        intervals.sort(key=lambda pair: pair[0])
-
-        search_limit = candidate + timedelta(days=3)
-        while candidate + duration <= search_limit:
-            conflict_end = None
-            for interval_start, interval_end in intervals:
-                if interval_end <= candidate:
-                    continue
-                if interval_start >= candidate + duration:
-                    break
-                if interval_start < candidate + duration and interval_end > candidate:
-                    conflict_end = interval_end if conflict_end is None else max(conflict_end, interval_end)
-            if conflict_end is None:
-                return candidate
-            candidate = conflict_end.replace(second=0, microsecond=0)
-            if candidate.minute % 30:
-                candidate += timedelta(minutes=30 - (candidate.minute % 30))
-        return None
 
     for item in valid:
         resource = resources.get(item["resource_id"])
@@ -374,14 +351,11 @@ def availability_batch():
             "محجوز" if conflict else
             "محجوب" if blocked else
             "وقت غير صالح" if item["end"] <= item["start"] else
+            "وقت منتهٍ" if item["start"].astimezone(ZoneInfo("UTC")) < now_utc else
             "الملعب غير متاح" if not resource or not resource.is_active or resource.status != "available" else
             "متاح"
         )
-        item["next_available_at"] = (
-            next_free_start(item["resource_id"], item["start"], item["end"]).isoformat()
-            if not available and resource and resource.is_active
-            else None
-        )
+        item["next_available_at"] = None
         item.pop("start", None)
         item.pop("end", None)
 
@@ -389,6 +363,99 @@ def availability_batch():
         "available": all(item.get("available", False) for item in parsed),
         "items": parsed,
     })
+
+
+@bp.get("/availability/next")
+def availability_next():
+    """Find the next period with enough free time for one court."""
+    resource_id = request.args.get("resource_id", type=int)
+    start_raw = request.args.get("start")
+    end_raw = request.args.get("end")
+    if not resource_id or not start_raw or not end_raw:
+        return jsonify({"error": "start, end, resource_id are required"}), 400
+
+    try:
+        requested_start = datetime.fromisoformat(start_raw)
+        requested_end = datetime.fromisoformat(end_raw)
+    except ValueError:
+        return jsonify({"error": "بيانات الوقت غير صحيحة"}), 400
+
+    if requested_end <= requested_start:
+        return jsonify({"next_available_at": None, "error": "وقت غير صالح"}), 400
+
+    resource = Resource.query.get_or_404(resource_id)
+    if not resource.is_active or resource.status != "available":
+        return jsonify({
+            "next_available_at": None,
+            "available": False,
+            "reason": "الملعب غير متاح",
+        })
+
+    now_utc = datetime.now(ZoneInfo("UTC"))
+    duration = requested_end - requested_start
+    tz = requested_start.tzinfo or ZoneInfo("Asia/Aden")
+    candidate = max(requested_end, now_utc.astimezone(tz))
+    candidate = candidate.replace(second=0, microsecond=0)
+
+    # Booking UI permits starts from 08:00 through 23:30.
+    def normalize_start(value):
+        local = value.astimezone(tz)
+        if local.hour < 8:
+            return local.replace(hour=8, minute=0, second=0, microsecond=0)
+        if local.hour > 23 or (local.hour == 23 and local.minute > 30):
+            return (local + timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
+        return local
+
+    candidate = normalize_start(candidate)
+
+    statuses = ["hold", "pending", "confirmed", "checked_in", "in_progress"]
+    horizon = candidate + timedelta(days=7)
+    allocations = BookingAllocation.query.join(Booking).filter(
+        Booking.status.in_(statuses),
+        or_(
+            Booking.status != "hold",
+            Booking.hold_expires_at.is_(None),
+            Booking.hold_expires_at > now_utc,
+        ),
+        BookingAllocation.is_active.is_(True),
+        BookingAllocation.resource_id == resource.id,
+        BookingAllocation.start_at < horizon,
+        BookingAllocation.end_at > candidate,
+    ).order_by(BookingAllocation.start_at.asc()).all()
+    blocks = ResourceBlock.query.filter(
+        ResourceBlock.resource_id == resource.id,
+        ResourceBlock.status == "active",
+        ResourceBlock.starts_at < horizon,
+        ResourceBlock.ends_at > candidate,
+    ).order_by(ResourceBlock.starts_at.asc()).all()
+
+    intervals = [(x.start_at, x.end_at) for x in allocations]
+    intervals += [(x.starts_at, x.ends_at) for x in blocks]
+    intervals.sort(key=lambda pair: pair[0])
+
+    while candidate + duration <= horizon:
+        conflict_end = None
+        for interval_start, interval_end in intervals:
+            if interval_end <= candidate:
+                continue
+            if interval_start >= candidate + duration:
+                break
+            if interval_start < candidate + duration and interval_end > candidate:
+                conflict_end = interval_end if conflict_end is None else max(conflict_end, interval_end)
+        if conflict_end is None:
+            return jsonify({
+                "available": True,
+                "next_available_at": candidate.isoformat(),
+                "reason": "متاح",
+            })
+        candidate = normalize_start(max(candidate + timedelta(minutes=1), conflict_end))
+
+    return jsonify({
+        "available": False,
+        "next_available_at": None,
+        "reason": "لا توجد فترة متاحة خلال الأيام القادمة",
+    })
+
 
 @bp.post("/quote")
 def quote():
