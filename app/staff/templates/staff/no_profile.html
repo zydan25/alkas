@@ -1,1 +1,2 @@
-{% extends "base.html" %}{% block content %}<section class="auth-card"><div class="eyebrow">الموظف</div><h1>لم يتم ربط ملف الموظف</h1><p>حساب الدخول موجود، لكن ملف الموظف غير مرتبط به.</p></section>{% endblock %}
+{% extends "base.html" %}
+{% block content %}<section class="panel" style="max-width:620px;margin:40px auto;text-align:center"><div class="eyebrow">لوحة الموظف</div><h1>لا يوجد ملف موظف مرتبط بهذا الحساب</h1><p>اطلب من المدير ربط حساب الدخول بسجل موظف نشط ثم أعد تسجيل الدخول.</p><a class="btn btn-primary" href="{{ url_for('public.home') }}">العودة للموقع</a></section>{% endblock %}
