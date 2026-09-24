@@ -743,9 +743,12 @@ def test_customer_aurora_theme_is_available_and_wired():
 
 
 def test_customer_aurora_palette_is_independent_from_global_theme():
+    from app import create_app
     from app.settings.services import get_site_settings
 
-    values = get_site_settings()
+    app = create_app()
+    with app.app_context():
+        values = get_site_settings()
     assert values["customer_aurora_primary"].startswith("#")
     assert values["customer_aurora_secondary"].startswith("#")
     assert values["customer_aurora_accent"].startswith("#")
