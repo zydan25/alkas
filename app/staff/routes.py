@@ -796,6 +796,42 @@ def finance():
     )
 
 
+@bp.post("/attendance/check-in")
+@login_required
+def attendance_check_in():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    today = _now().date()
+    row = Attendance.query.filter_by(employee_id=employee.id, work_date=today).first()
+    if row and row.check_in:
+        return jsonify({"error": "تم تسجيل الحضور اليوم بالفعل"}), 400
+    if not row:
+        row = Attendance(employee_id=employee.id, work_date=today, status="present")
+        db.session.add(row)
+    row.check_in = _now()
+    row.status = "present"
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم تسجيل الحضور", "check_in": row.check_in.isoformat()})
+
+
+@bp.post("/attendance/check-out")
+@login_required
+def attendance_check_out():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    today = _now().date()
+    row = Attendance.query.filter_by(employee_id=employee.id, work_date=today).first()
+    if not row or not row.check_in:
+        return jsonify({"error": "سجل الحضور أولًا"}), 400
+    if row.check_out:
+        return jsonify({"error": "تم تسجيل الانصراف اليوم بالفعل"}), 400
+    row.check_out = _now()
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم تسجيل الانصراف", "check_out": row.check_out.isoformat()})
+
+
 @bp.get("/attendance")
 @login_required
 def attendance():
