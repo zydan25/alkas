@@ -269,7 +269,7 @@ def test_booking_policy_and_multi_player_fields_are_present():
 
     policy = BookingPolicy()
     booking = Booking()
-    assert policy.hold_duration_minutes.default.arg == 60
+    assert BookingPolicy.__table__.c.hold_duration_minutes.default.arg == 60
     assert hasattr(booking, "participant_count")
     assert hasattr(booking, "participants_remaining")
     assert hasattr(booking, "participant_unit_price")
