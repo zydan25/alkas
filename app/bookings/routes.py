@@ -16,6 +16,15 @@ from .services import add_to_waitlist, cancel_booking, confirm_booking, create_h
 bp = Blueprint("bookings", __name__, url_prefix="/bookings")
 
 
+def _hold_minutes():
+    policy = BookingPolicy.query.filter_by(is_default=True, is_active=True).first()
+    try:
+        value = int(policy.hold_duration_minutes) if policy else 60
+    except (TypeError, ValueError):
+        value = 60
+    return max(5, min(value, 24 * 60))
+
+
 @bp.get("")
 def booking_page():
     customer = (
@@ -136,6 +145,7 @@ def resume_guest_booking():
             customer_id=customer.id,
             items=expanded_items,
             source="web",
+            minutes=_hold_minutes(),
         )
         db.session.commit()
     except (KeyError, TypeError, ValueError) as exc:
@@ -746,6 +756,7 @@ def create_hold():
             end_at=end_at,
             items=items,
             source=data.get("source", "web"),
+            minutes=_hold_minutes(),
         )
     except (KeyError, ValueError, TypeError) as exc:
         return jsonify({"error": str(exc)}), 400
