@@ -620,7 +620,35 @@ def park():
     if not _can("staff.park.manage"):
         return jsonify({"error": "لا تملك صلاحية إدارة دخول الحديقة"}), 403
     visits = ParkVisit.query.filter_by(status="open").order_by(ParkVisit.started_at.desc()).limit(100).all()
-    return render_template("staff/park.html", employee=employee, visits=visits, occupancy=sum(v.people_remaining for v in visits))
+    today_start = datetime.combine(_now().date(), datetime.min.time(), tzinfo=TZ)
+    today_end = today_start + timedelta(days=1)
+    today_entries = (
+        db.session.query(func.coalesce(func.sum(ParkVisit.people_count), 0))
+        .filter(ParkVisit.started_at >= today_start, ParkVisit.started_at < today_end)
+        .scalar()
+        or 0
+    )
+    today_exits = (
+        db.session.query(func.coalesce(func.sum(ParkVisitExit.people_count), 0))
+        .filter(ParkVisitExit.exited_at >= today_start, ParkVisitExit.exited_at < today_end)
+        .scalar()
+        or 0
+    )
+    recent_exits = (
+        ParkVisitExit.query
+        .order_by(ParkVisitExit.exited_at.desc())
+        .limit(60)
+        .all()
+    )
+    return render_template(
+        "staff/park.html",
+        employee=employee,
+        visits=visits,
+        occupancy=sum(v.people_remaining for v in visits),
+        today_entries=int(today_entries),
+        today_exits=int(today_exits),
+        recent_exits=recent_exits,
+    )
 
 
 @bp.post("/park/entry")
