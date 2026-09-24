@@ -409,8 +409,10 @@ def booking_quick():
             booking.allocations[0].price = base_price
         else:
             factor = base_price / existing
-            for allocation in booking.allocations:
+            allocations = list(booking.allocations)
+            for allocation in allocations[:-1]:
                 allocation.price = (Decimal(allocation.price or 0) * factor).quantize(Decimal("0.01"))
+            allocations[-1].price = base_price - sum((Decimal(a.price or 0) for a in allocations[:-1]), Decimal("0"))
         booking.subtotal = base_price
         booking.discount = discount
         booking.tax = Decimal("0")
@@ -750,6 +752,7 @@ def availability():
     employee, error = _require_employee()
     if error:
         return error
+    expire_holds()
     try:
         start_at = _normalize_datetime(request.args.get("start_at"))
         duration = int(request.args.get("duration") or 60)
