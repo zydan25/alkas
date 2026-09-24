@@ -12,54 +12,79 @@ branch_labels = None
 depends_on = None
 
 
+def _tables(bind):
+    return set(sa.inspect(bind).get_table_names())
+
+
+def _indexes(bind, table):
+    return {item["name"] for item in sa.inspect(bind).get_indexes(table)}
+
+
 def upgrade():
-    op.create_table(
-        "staff_deductions",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("employee_id", sa.Integer(), sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("amount", sa.Numeric(16, 2), nullable=False),
-        sa.Column("deduction_date", sa.Date(), nullable=False),
-        sa.Column("reason_ar", sa.String(length=500), nullable=False),
-        sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint("amount >= 0", name="ck_staff_deduction_nonnegative"),
-    )
-    op.create_index("ix_staff_deductions_employee_id", "staff_deductions", ["employee_id"])
+    bind = op.get_bind()
+    tables = _tables(bind)
 
-    op.create_table(
-        "park_visits",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("customer_id", sa.Integer(), sa.ForeignKey("customers.id", ondelete="SET NULL")),
-        sa.Column("visitor_name", sa.String(length=180), nullable=False),
-        sa.Column("people_count", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("people_remaining", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("price_per_person", sa.Numeric(16, 2), nullable=False, server_default="0"),
-        sa.Column("total", sa.Numeric(16, 2), nullable=False, server_default="0"),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("expected_end_at", sa.DateTime(timezone=True)),
-        sa.Column("closed_at", sa.DateTime(timezone=True)),
-        sa.Column("status", sa.String(length=20), nullable=False, server_default="open"),
-        sa.Column("invoice_id", sa.Integer(), sa.ForeignKey("invoices.id", ondelete="SET NULL")),
-        sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.CheckConstraint("people_count > 0", name="ck_park_visit_people_positive"),
-        sa.CheckConstraint("people_remaining >= 0 AND people_remaining <= people_count", name="ck_park_visit_remaining_valid"),
-        sa.CheckConstraint("price_per_person >= 0 AND total >= 0", name="ck_park_visit_amounts_nonnegative"),
-    )
-    op.create_index("ix_park_visits_customer_id", "park_visits", ["customer_id"])
-    op.create_index("ix_park_visits_status", "park_visits", ["status"])
-    op.create_index("ix_park_visits_started_status", "park_visits", ["started_at", "status"])
+    if "staff_deductions" not in tables:
+        op.create_table(
+            "staff_deductions",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("employee_id", sa.Integer(), sa.ForeignKey("employees.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("amount", sa.Numeric(16, 2), nullable=False),
+            sa.Column("deduction_date", sa.Date(), nullable=False),
+            sa.Column("reason_ar", sa.String(length=500), nullable=False),
+            sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+            sa.CheckConstraint("amount >= 0", name="ck_staff_deduction_nonnegative"),
+        )
+    if "staff_deductions" in _tables(bind) and "ix_staff_deductions_employee_id" not in _indexes(bind, "staff_deductions"):
+        op.create_index("ix_staff_deductions_employee_id", "staff_deductions", ["employee_id"])
 
-    op.create_table(
-        "park_visit_exits",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("visit_id", sa.Integer(), sa.ForeignKey("park_visits.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("people_count", sa.Integer(), nullable=False),
-        sa.Column("exited_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("note_ar", sa.String(length=400)),
-        sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.CheckConstraint("people_count > 0", name="ck_park_exit_people_positive"),
-    )
-    op.create_index("ix_park_visit_exits_visit_id", "park_visit_exits", ["visit_id"])
+    tables = _tables(bind)
+    if "park_visits" not in tables:
+        op.create_table(
+            "park_visits",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("customer_id", sa.Integer(), sa.ForeignKey("customers.id", ondelete="SET NULL")),
+            sa.Column("visitor_name", sa.String(length=180), nullable=False),
+            sa.Column("people_count", sa.Integer(), nullable=False, server_default="1"),
+            sa.Column("people_remaining", sa.Integer(), nullable=False, server_default="1"),
+            sa.Column("price_per_person", sa.Numeric(16, 2), nullable=False, server_default="0"),
+            sa.Column("total", sa.Numeric(16, 2), nullable=False, server_default="0"),
+            sa.Column("started_at", sa.DateTime(timezone=True), nullable=False),
+            sa.Column("expected_end_at", sa.DateTime(timezone=True)),
+            sa.Column("closed_at", sa.DateTime(timezone=True)),
+            sa.Column("status", sa.String(length=20), nullable=False, server_default="open"),
+            sa.Column("invoice_id", sa.Integer(), sa.ForeignKey("invoices.id", ondelete="SET NULL")),
+            sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
+            sa.CheckConstraint("people_count > 0", name="ck_park_visit_people_positive"),
+            sa.CheckConstraint("people_remaining >= 0 AND people_remaining <= people_count", name="ck_park_visit_remaining_valid"),
+            sa.CheckConstraint("price_per_person >= 0 AND total >= 0", name="ck_park_visit_amounts_nonnegative"),
+        )
+    tables = _tables(bind)
+    if "park_visits" in tables:
+        indexes = _indexes(bind, "park_visits")
+        for name, columns in (
+            ("ix_park_visits_customer_id", ["customer_id"]),
+            ("ix_park_visits_status", ["status"]),
+            ("ix_park_visits_started_status", ["started_at", "status"]),
+        ):
+            if name not in indexes:
+                op.create_index(name, "park_visits", columns)
+
+    tables = _tables(bind)
+    if "park_visit_exits" not in tables:
+        op.create_table(
+            "park_visit_exits",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("visit_id", sa.Integer(), sa.ForeignKey("park_visits.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("people_count", sa.Integer(), nullable=False),
+            sa.Column("exited_at", sa.DateTime(timezone=True), nullable=False),
+            sa.Column("note_ar", sa.String(length=400)),
+            sa.Column("created_by_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL")),
+            sa.CheckConstraint("people_count > 0", name="ck_park_exit_people_positive"),
+        )
+    if "park_visit_exits" in _tables(bind) and "ix_park_visit_exits_visit_id" not in _indexes(bind, "park_visit_exits"):
+        op.create_index("ix_park_visit_exits_visit_id", "park_visit_exits", ["visit_id"])
 
     permissions = [
         ("staff.access", "دخول لوحة الموظف", "الوصول إلى واجهة التشغيل والكاشير الخاصة بالموظف."),
@@ -82,14 +107,24 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("ix_park_visit_exits_visit_id", table_name="park_visit_exits")
-    op.drop_table("park_visit_exits")
-    op.drop_index("ix_park_visits_started_status", table_name="park_visits")
-    op.drop_index("ix_park_visits_status", table_name="park_visits")
-    op.drop_index("ix_park_visits_customer_id", table_name="park_visits")
-    op.drop_table("park_visits")
-    op.drop_index("ix_staff_deductions_employee_id", table_name="staff_deductions")
-    op.drop_table("staff_deductions")
+    bind = op.get_bind()
+    tables = _tables(bind)
+    if "park_visit_exits" in tables:
+        if "ix_park_visit_exits_visit_id" in _indexes(bind, "park_visit_exits"):
+            op.drop_index("ix_park_visit_exits_visit_id", table_name="park_visit_exits")
+        op.drop_table("park_visit_exits")
+    tables = _tables(bind)
+    if "park_visits" in tables:
+        indexes = _indexes(bind, "park_visits")
+        for name in ("ix_park_visits_started_status", "ix_park_visits_status", "ix_park_visits_customer_id"):
+            if name in indexes:
+                op.drop_index(name, table_name="park_visits")
+        op.drop_table("park_visits")
+    tables = _tables(bind)
+    if "staff_deductions" in tables:
+        if "ix_staff_deductions_employee_id" in _indexes(bind, "staff_deductions"):
+            op.drop_index("ix_staff_deductions_employee_id", table_name="staff_deductions")
+        op.drop_table("staff_deductions")
     for key in (
         "staff.access",
         "staff.booking.confirm",
