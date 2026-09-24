@@ -23,6 +23,13 @@ from ..tournaments.models import Match, Tournament
 bp = Blueprint("public", __name__)
 
 
+def _role_redirect(endpoint):
+    response = redirect(url_for(endpoint), code=303)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
 def _active_banner_rows(now):
     ads = (
         AdCreative.query
@@ -165,21 +172,21 @@ def home():
     # and customers should land in their own dashboard immediately.
     if current_user.is_authenticated:
         if current_user.username == "admin" or current_user.has_permission("admin.access"):
-            return redirect(url_for("admin.dashboard"), code=303)
+            return _role_redirect("admin.dashboard")
 
         employee = Employee.query.filter_by(
             user_id=current_user.id,
             employment_status="active",
         ).first()
         if employee:
-            return redirect(url_for("staff.dashboard"), code=303)
+            return _role_redirect("staff.dashboard")
 
         customer = Customer.query.filter_by(
             user_id=current_user.id,
             is_active=True,
         ).first()
         if customer:
-            return redirect(url_for("customer.dashboard"), code=303)
+            return _role_redirect("customer.dashboard")
 
     now = datetime.now(timezone.utc)
     local_now = now.astimezone()
