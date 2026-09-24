@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block head %}
 <link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v25">
+{% if site_settings.customer_home_theme == "flutter" %}<link rel="stylesheet" href="/static/css/customer-flutter-theme.css?v={{ site_settings.asset_version }}&ui=20260924-flutter-v1">{% endif %}
 {% endblock %}
 
 {% macro icon(name, size=20) -%}
@@ -94,15 +95,15 @@
 
       <div class="booking-selected-empty" data-selected-empty>
         <div class="booking-empty-icon">＋</div>
-        <strong>لم تضف ملعبًا بعد</strong>
-        <small>حدد الوقت أولًا، ثم اختر الملعب المناسب لك.</small>
+        <strong>لم تختر ملعبًا بعد</strong>
+        <small>بعد تحديد الموعد، اضغط «اختيار ملعب» لرؤية الملاعب المتاحة فورًا.</small>
       </div>
 
       <div class="booking-selected-list" data-selected-bookings></div>
 
       <button type="button" class="booking-add-resource" data-open-resource-picker>
         <span class="booking-add-resource-icon">{{ icon("plus",19) }}</span>
-        <span><b>إضافة ملعب</b><small>بحث أو اختر من الملاعب المتاحة</small></span>
+        <span><b>اختيار ملعب</b><small>اعرض الملاعب المتاحة في الموعد المحدد</small></span>
         <span class="booking-add-resource-arrow">←</span>
       </button>
     </section>
