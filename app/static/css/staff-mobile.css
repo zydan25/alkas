@@ -1,0 +1,373 @@
+/* Mobile-first corrections for the RTL employee cashier app.
+   Keep this file after staff.css so these rules are the final layout contract. */
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+body.staff-body {
+  width: 100%;
+  min-width: 0 !important;
+}
+
+.staff-shell,
+.staff-main,
+.staff-content,
+.staff-appbar,
+.staff-card,
+.staff-form,
+.staff-form-grid,
+.staff-stat-grid,
+.staff-quick-grid,
+.staff-resource-grid,
+.staff-list {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.staff-main {
+  overflow-x: clip;
+}
+
+.staff-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.staff-appbar {
+  position: sticky;
+  inset-inline: 0;
+  width: 100%;
+  padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+}
+
+.staff-appbar-title {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.staff-appbar-title b,
+.staff-appbar-title span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.staff-menu-button,
+.staff-profile-chip {
+  flex: 0 0 auto;
+}
+
+.staff-card,
+.staff-hero,
+.staff-stat-grid article,
+.staff-action,
+.staff-resource-chip span,
+.staff-booking-item,
+.staff-park-item,
+.staff-attendance-row {
+  min-width: 0;
+}
+
+.staff-hero > div,
+.staff-item-main,
+.staff-item-main > div:last-child,
+.staff-card-head > div,
+.staff-customer-box,
+.staff-resource-box {
+  min-width: 0;
+}
+
+.staff-hero p,
+.staff-card-head h2,
+.staff-item-main strong,
+.staff-item-main small,
+.staff-mini-table b,
+.staff-park-item b {
+  overflow-wrap: anywhere;
+}
+
+.staff-drawer {
+  right: 0 !important;
+  left: auto !important;
+  inset-inline-end: auto !important;
+  width: min(86vw, 340px) !important;
+  max-width: calc(100vw - 12px) !important;
+  height: 100dvh;
+  max-height: 100dvh;
+  transform: translate3d(110%, 0, 0) !important;
+  will-change: transform;
+}
+
+.staff-drawer.open {
+  right: 0 !important;
+  left: auto !important;
+  transform: translate3d(0, 0, 0) !important;
+}
+
+.staff-drawer-scroll {
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.staff-drawer details,
+.staff-drawer details > div,
+.staff-drawer-link,
+.staff-drawer details summary {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.staff-drawer details summary b,
+.staff-drawer details > div a,
+.staff-drawer-link b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.staff-drawer-foot {
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+.staff-overlay {
+  width: 100vw !important;
+  height: 100dvh !important;
+}
+
+body.staff-menu-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+.staff-form-grid,
+.staff-customer-actions,
+.staff-form-actions,
+.staff-item-actions,
+.staff-cash-open,
+.staff-cash-close {
+  min-width: 0;
+}
+
+.staff-cash-open > *,
+.staff-cash-close > *,
+.staff-item-actions > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.staff-form input,
+.staff-form select,
+.staff-form button,
+.staff-main-button,
+.staff-outline-button,
+.staff-danger-button {
+  max-width: 100%;
+}
+
+.staff-customer-box input,
+.staff-new-customer > div input {
+  min-width: 0;
+}
+
+.staff-search-results {
+  max-width: calc(100% - 24px);
+}
+
+.staff-resource-grid {
+  overflow: hidden;
+}
+
+.staff-resource-chip {
+  min-width: 0;
+}
+
+.staff-resource-chip span b,
+.staff-resource-chip span small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.staff-segment {
+  min-width: 0;
+}
+
+.staff-segment button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staff-item-actions form {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.staff-item-actions form input,
+.staff-item-actions form select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.staff-snackbar {
+  max-width: calc(100vw - 24px);
+}
+
+@media (max-width: 760px) {
+  .staff-main {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .staff-content {
+    width: 100% !important;
+    padding: 10px !important;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .staff-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .staff-stat-grid,
+  .staff-quick-grid {
+    width: 100%;
+  }
+
+  .staff-stat-grid article,
+  .staff-action {
+    width: 100%;
+  }
+
+  .staff-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .staff-booking-item {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .staff-item-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .staff-item-actions form,
+  .staff-item-actions a,
+  .staff-item-actions button {
+    width: 100%;
+  }
+
+  .staff-item-actions form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-park-item {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .staff-park-item form {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .staff-park-item form input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .staff-cash-open,
+  .staff-cash-close {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-cash-open > *,
+  .staff-cash-close > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .staff-drawer {
+    width: min(88vw, 320px) !important;
+    max-width: calc(100vw - 8px) !important;
+  }
+
+  .staff-appbar {
+    height: 60px;
+    padding-inline: 8px !important;
+  }
+
+  .staff-menu-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  .staff-profile-chip {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .staff-content {
+    padding: 8px !important;
+  }
+
+  .staff-hero {
+    padding: 14px !important;
+    border-radius: 19px;
+  }
+
+  .staff-hero h1 {
+    font-size: 1.45rem;
+  }
+
+  .staff-card {
+    padding: 11px !important;
+    border-radius: 18px;
+  }
+
+  .staff-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .staff-resource-chip span {
+    min-height: 66px;
+    padding: 9px;
+  }
+
+  .staff-item-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Desktop RTL: keep the drawer on the right as expected by the Arabic UI. */
+@media (min-width: 900px) {
+  .staff-drawer {
+    right: 0 !important;
+    left: auto !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: auto !important;
+    width: 270px !important;
+    transform: none !important;
+  }
+
+  .staff-main {
+    margin-inline-start: 0 !important;
+    margin-inline-end: 270px !important;
+  }
+}
