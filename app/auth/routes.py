@@ -28,6 +28,54 @@ def _normalize_phone(value):
     return re.sub(r"\D+", "", (value or "").strip())
 
 
+def _role_home(user):
+    """Return the default landing page for an authenticated account."""
+    if user.username == "admin" or user.has_permission("admin.access"):
+        return url_for("admin.dashboard")
+
+    employee = Employee.query.filter_by(
+        user_id=user.id,
+        employment_status="active",
+    ).first()
+    if employee:
+        return url_for("staff.dashboard")
+
+    customer = Customer.query.filter_by(
+        user_id=user.id,
+        is_active=True,
+    ).first()
+    if customer:
+        return url_for("customer.dashboard")
+
+    return url_for("public.home")
+
+
+def _role_next(user, requested_next):
+    """Keep an explicit next target only when it belongs to the user's area."""
+    target = _safe_next(requested_next)
+    if not target:
+        return _role_home(user)
+
+    if user.username == "admin" or user.has_permission("admin.access"):
+        return target if target == "/admin" or target.startswith("/admin/") else _role_home(user)
+
+    employee = Employee.query.filter_by(
+        user_id=user.id,
+        employment_status="active",
+    ).first()
+    if employee:
+        return target if target == "/staff" or target.startswith("/staff/") else _role_home(user)
+
+    customer = Customer.query.filter_by(
+        user_id=user.id,
+        is_active=True,
+    ).first()
+    if customer:
+        return target if target == "/customer" or target.startswith("/customer/") else _role_home(user)
+
+    return url_for("public.home")
+
+
 def _render_register(error=None):
     return render_template(
         "auth/register.html",
@@ -40,7 +88,7 @@ def _render_register(error=None):
 @bp.get("/login")
 def login():
     if current_user.is_authenticated:
-        return redirect(_safe_next(request.args.get("next")) or url_for("public.home"))
+        return redirect(_role_next(current_user, request.args.get("next")))
     return render_template("auth/login.html", next_url=_safe_next(request.args.get("next")) or "")
 
 
@@ -69,11 +117,7 @@ def login_post():
     user.last_login_at = datetime.now(timezone.utc)
     db.session.commit()
 
-    employee = Employee.query.filter_by(user_id=user.id, employment_status="active").first()
-    if employee and user.username != "admin" and not user.has_permission("admin.access"):
-        return redirect(_safe_next(request.form.get("next")) or url_for("staff.dashboard"))
-
-    return redirect(_safe_next(request.form.get("next")) or url_for("public.home"))
+    return redirect(_role_next(user, request.form.get("next")))
 
 
 @bp.get("/register")
