@@ -21,6 +21,12 @@ DEFAULTS = {
     "booking_policy_note": "لا يعتبر الحجز نهائيًا إلا بعد تأكيده. المواعيد المتعارضة تُرفض تلقائيًا.",
     "asset_version": "1",
     "customer_home_theme": "classic",
+    "customer_aurora_primary": "#7c3aed",
+    "customer_aurora_secondary": "#06b6d4",
+    "customer_aurora_accent": "#f472b6",
+    "customer_aurora_background": "#070b18",
+    "customer_aurora_surface": "#11182b",
+    "customer_aurora_text": "#f4f7ff",
 }
 
 
