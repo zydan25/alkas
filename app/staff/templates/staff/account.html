@@ -1,0 +1,41 @@
+{% extends "staff/layout.html" %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>الحساب</span><h1>حسابي</h1><p>{{ employee.name_ar }} · {{ employee.employee_code }} · {{ user.username }}</p></div>
+  <a class="staff-outline-button" href="{{ url_for('staff.finance') }}">المال والراتب</a>
+</section>
+
+{% if error %}<div class="staff-inline-error">{{ error }}</div>{% endif %}
+{% if saved == 'profile' %}<div class="staff-inline-success">تم تحديث بيانات الحساب بنجاح.</div>{% elif saved == 'password' %}<div class="staff-inline-success">تم تحديث كلمة السر بنجاح.</div>{% endif %}
+
+<section class="staff-card">
+  <details class="staff-account-panel">
+    <summary><span>تحديث بيانات الحساب</span><b>فتح</b></summary>
+    <form class="staff-form" method="post" action="{{ url_for('staff.account_update') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="staff-form-grid">
+        <label>الاسم<input name="name" required value="{{ employee.name_ar }}"></label>
+        <label>رقم الهاتف<input name="phone" inputmode="tel" value="{{ employee.phone or '' }}"></label>
+        <label>رقم الهوية<input name="national_id" value="{{ employee.national_id or '' }}"></label>
+        <label>اسم المستخدم<input value="{{ user.username }}" disabled></label>
+      </div>
+      <button class="staff-main-button" type="submit">حفظ وتحديث البيانات</button>
+    </form>
+  </details>
+</section>
+
+<section class="staff-card">
+  <details class="staff-account-panel">
+    <summary><span>تحديث كلمة السر</span><b>فتح</b></summary>
+    <form class="staff-form" method="post" action="{{ url_for('staff.account_password_update') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="staff-form-grid">
+        <label>كلمة السر الحالية<input type="password" name="current_password" required autocomplete="current-password"></label>
+        <label>كلمة السر الجديدة<input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
+        <label>تأكيد كلمة السر<input type="password" name="confirm_password" required minlength="8" autocomplete="new-password"></label>
+      </div>
+      <button class="staff-main-button" type="submit">حفظ كلمة السر الجديدة</button>
+    </form>
+  </details>
+</section>
+{% endblock %}

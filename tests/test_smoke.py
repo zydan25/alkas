@@ -586,3 +586,37 @@ def test_root_routes_authenticated_employee_to_staff_dashboard():
         db.session.delete(employee)
         db.session.delete(user)
         db.session.commit()
+
+
+def test_staff_reports_and_account_views_are_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    staff_routes = (root / "app" / "staff" / "routes.py").read_text(encoding="utf-8")
+    layout = (root / "app" / "staff" / "templates" / "staff" / "layout.html").read_text(encoding="utf-8")
+    reports = (root / "app" / "staff" / "templates" / "staff" / "reports.html").read_text(encoding="utf-8")
+    account = (root / "app" / "staff" / "templates" / "staff" / "account.html").read_text(encoding="utf-8")
+
+    assert 'def reports():' in staff_routes
+    assert 'def account():' in staff_routes
+    assert 'def bookings_list():' in staff_routes
+    assert 'def customer_new_form():' in staff_routes
+    assert 'url_for('staff.reports', type='account')' in layout
+    assert 'url_for('staff.reports', type='all_bookings')' in layout
+    assert 'تحديث بيانات الحساب' in account
+    assert 'تحديث كلمة السر' in account
+    assert 'window.print()' in reports
+
+
+def test_staff_pending_queue_accepts_pending_and_legacy_holds():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    staff_routes = (root / "app" / "staff" / "routes.py").read_text(encoding="utf-8")
+    start = staff_routes.index("def _staff_booking_context")
+    end = staff_routes.index('@bp.get("")', start)
+    block = staff_routes[start:end]
+
+    assert 'Booking.status == "pending"' in block
+    assert 'Booking.status == "hold"' in block
+    assert 'Booking.hold_expires_at.is_(None)' in block

@@ -195,9 +195,16 @@ def _staff_booking_context(employee):
             selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
         )
         .filter(
-            Booking.status.in_(["hold", "pending"]),
-            Booking.hold_expires_at.is_not(None),
-            Booking.hold_expires_at > now,
+            or_(
+                Booking.status == "pending",
+                (
+                    (Booking.status == "hold")
+                    & or_(
+                        Booking.hold_expires_at.is_(None),
+                        Booking.hold_expires_at > now,
+                    )
+                ),
+            )
         )
         .order_by(Booking.start_at)
         .limit(30)
@@ -352,12 +359,16 @@ def customer_new():
     )
     db.session.add(customer)
     db.session.commit()
-    return jsonify({
-        "id": customer.id,
-        "name": customer.name,
-        "phone": customer.phone or "",
-        "code": customer.customer_code,
-    }), 201
+
+    if "application/json" in (request.headers.get("Accept") or "") or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "id": customer.id,
+            "name": customer.name,
+            "phone": customer.phone or "",
+            "code": customer.customer_code,
+        }), 201
+
+    return redirect(url_for("staff.customers", q=customer.name), code=303)
 
 
 @bp.post("/bookings/quick")
@@ -959,6 +970,538 @@ def cash_close():
     shift.closed_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"ok": True, "message": "تم إخلاء العهدة وإغلاق الوردية", "expected": str(expected), "difference": str(shift.difference)})
+
+
+
+
+def _report_period():
+    today = _now().date()
+    first = today.replace(day=1)
+    raw_start = (request.args.get("start") or "").strip()
+    raw_end = (request.args.get("end") or "").strip()
+    try:
+        start = date.fromisoformat(raw_start) if raw_start else first
+    except ValueError:
+        start = first
+    try:
+        end = date.fromisoformat(raw_end) if raw_end else today
+    except ValueError:
+        end = today
+    if end < start:
+        start, end = end, start
+    return start, end
+
+
+def _report_window(start, end):
+    return (
+        datetime.combine(start, datetime.min.time(), tzinfo=TZ),
+        datetime.combine(end + timedelta(days=1), datetime.min.time(), tzinfo=TZ),
+    )
+
+
+def _booking_rows(query):
+    rows = []
+    for booking in query.order_by(Booking.start_at.desc(), Booking.id.desc()).all():
+        names = "، ".join(a.resource.name_ar for a in booking.allocations if a.resource)
+        rows.append({
+            "id": booking.id,
+            "number": booking.booking_number,
+            "customer": booking.customer.name if booking.customer else "بدون عميل",
+            "resources": names or "—",
+            "start": booking.start_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+            "end": booking.end_at.astimezone(TZ).strftime("%H:%M"),
+            "status": booking.status,
+            "payment_status": booking.payment_status,
+            "total": Decimal(booking.total or 0),
+            "paid": Decimal(booking.paid_amount or 0),
+            "balance": Decimal(booking.total or 0) - Decimal(booking.paid_amount or 0),
+        })
+    return rows
+
+
+@bp.get("/bookings")
+@login_required
+def bookings_list():
+    employee, error = _require_employee()
+    if error:
+        return render_template("staff/no_profile.html"), 403
+
+    expire_holds()
+    status = (request.args.get("status") or "all").strip()
+    allowed = {"all", "pending", "confirmed", "checked_in", "in_progress", "completed", "cancelled", "expired"}
+    if status not in allowed:
+        status = "all"
+
+    query = Booking.query.options(
+        selectinload(Booking.customer),
+        selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
+    )
+
+    if status == "pending":
+        now_utc = datetime.now(timezone.utc)
+        query = query.filter(
+            or_(
+                Booking.status == "pending",
+                (
+                    (Booking.status == "hold")
+                    & or_(
+                        Booking.hold_expires_at.is_(None),
+                        Booking.hold_expires_at > now_utc,
+                    )
+                ),
+            )
+        )
+    elif status != "all":
+        query = query.filter(Booking.status == status)
+
+    rows = _booking_rows(query.limit(200))
+    return render_template(
+        "staff/bookings.html",
+        employee=employee,
+        rows=rows,
+        status=status,
+        today=_now().date(),
+        payment_methods=PAYMENT_METHODS,
+        can_confirm=_can("staff.booking.confirm"),
+        can_cancel=_can("staff.booking.cancel"),
+        can_chat=_can("staff.booking.chat"),
+    )
+
+
+@bp.get("/customers")
+@login_required
+def customers():
+    employee, error = _require_employee()
+    if error:
+        return render_template("staff/no_profile.html"), 403
+    q = (request.args.get("q") or "").strip()
+    query = Customer.query.filter(Customer.is_active.is_(True))
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(
+                Customer.name.ilike(like),
+                Customer.phone.ilike(like),
+                Customer.customer_code.ilike(like),
+            )
+        )
+    rows = query.order_by(Customer.name).limit(100).all()
+    return render_template("staff/customers.html", employee=employee, rows=rows, q=q)
+
+
+@bp.get("/customers/new")
+@login_required
+def customer_new_form():
+    employee, error = _require_employee()
+    if error:
+        return render_template("staff/no_profile.html"), 403
+    return render_template("staff/customer_new.html", employee=employee)
+
+
+@bp.post("/profile/update")
+@login_required
+def account_update():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    from ..users.models import User
+
+    user = db.session.get(User, current_user.id)
+    name = (request.form.get("name") or "").strip()
+    phone = (request.form.get("phone") or "").strip() or None
+    national_id = (request.form.get("national_id") or "").strip() or None
+
+    if len(name) < 2:
+        return render_template("staff/account.html", employee=employee, user=user, error="الاسم مطلوب بشكل صحيح"), 400
+
+    if phone:
+        conflict_user = User.query.filter(User.phone == phone, User.id != user.id).first()
+        conflict_employee = Employee.query.filter(
+            Employee.phone == phone,
+            Employee.id != employee.id,
+            Employee.employment_status == "active",
+        ).first()
+        if conflict_user or conflict_employee:
+            return render_template("staff/account.html", employee=employee, user=user, error="رقم الهاتف مستخدم في حساب آخر"), 400
+
+    employee.name_ar = name
+    employee.phone = phone
+    employee.national_id = national_id
+    user.display_name = name
+    user.phone = phone
+    db.session.commit()
+    return redirect(url_for("staff.account", saved="profile"), code=303)
+
+
+@bp.post("/profile/password")
+@login_required
+def account_password_update():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    from ..users.models import User
+
+    user = db.session.get(User, current_user.id)
+    current_password = request.form.get("current_password") or ""
+    new_password = request.form.get("new_password") or ""
+    confirm_password = request.form.get("confirm_password") or ""
+
+    if not user.check_password(current_password):
+        return render_template("staff/account.html", employee=employee, user=user, error="كلمة السر الحالية غير صحيحة"), 400
+    if len(new_password) < 8:
+        return render_template("staff/account.html", employee=employee, user=user, error="كلمة السر الجديدة يجب ألا تقل عن 8 أحرف"), 400
+    if new_password != confirm_password:
+        return render_template("staff/account.html", employee=employee, user=user, error="تأكيد كلمة السر غير مطابق"), 400
+
+    user.set_password(new_password)
+    db.session.commit()
+    return redirect(url_for("staff.account", saved="password"), code=303)
+
+
+@bp.get("/account")
+@login_required
+def account():
+    employee, error = _require_employee()
+    if error:
+        return render_template("staff/no_profile.html"), 403
+    from ..users.models import User
+
+    user = db.session.get(User, current_user.id)
+    return render_template(
+        "staff/account.html",
+        employee=employee,
+        user=user,
+        saved=request.args.get("saved") or "",
+        error=None,
+    )
+
+
+@bp.get("/reports")
+@login_required
+def reports():
+    employee, error = _require_employee()
+    if error:
+        return render_template("staff/no_profile.html"), 403
+
+    kind = (request.args.get("type") or "account").strip()
+    allowed = {
+        "account", "custody", "attendance", "salary",
+        "operations", "my_bookings", "empty_resources", "all_bookings",
+    }
+    if kind not in allowed:
+        kind = "account"
+
+    start, end = _report_period()
+    start_dt, end_dt = _report_window(start, end)
+    rows = []
+    summary = []
+
+    if kind == "account":
+        statement = []
+
+        payments = (
+            Payment.query
+            .filter(
+                Payment.received_by_id == current_user.id,
+                Payment.status == "completed",
+                Payment.paid_at >= start_dt,
+                Payment.paid_at < end_dt,
+            )
+            .order_by(Payment.paid_at.asc(), Payment.id.asc())
+            .all()
+        )
+        for payment in payments:
+            statement.append({
+                "date": payment.paid_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                "description": f"تحصيل {payment.number}",
+                "debit": Decimal("0"),
+                "credit": Decimal(payment.amount or 0),
+            })
+
+        deductions = (
+            StaffDeduction.query
+            .filter(
+                StaffDeduction.employee_id == employee.id,
+                StaffDeduction.deduction_date >= start,
+                StaffDeduction.deduction_date <= end,
+            )
+            .order_by(StaffDeduction.deduction_date.asc(), StaffDeduction.id.asc())
+            .all()
+        )
+        for row in deductions:
+            statement.append({
+                "date": row.deduction_date.strftime("%Y-%m-%d"),
+                "description": f"خصم: {row.reason_ar}",
+                "debit": Decimal(row.amount or 0),
+                "credit": Decimal("0"),
+            })
+
+        advances = (
+            EmployeeAdvance.query
+            .filter(
+                EmployeeAdvance.employee_id == employee.id,
+                EmployeeAdvance.issue_date >= start,
+                EmployeeAdvance.issue_date <= end,
+            )
+            .order_by(EmployeeAdvance.issue_date.asc(), EmployeeAdvance.id.asc())
+            .all()
+        )
+        for row in advances:
+            statement.append({
+                "date": row.issue_date.strftime("%Y-%m-%d"),
+                "description": f"سلفة #{row.id} {row.note_ar or ''}".strip(),
+                "debit": Decimal(row.amount or 0),
+                "credit": Decimal("0"),
+            })
+
+        payroll_rows = (
+            db.session.query(PayrollLine, PayrollRun)
+            .join(PayrollRun, PayrollRun.id == PayrollLine.payroll_run_id)
+            .filter(
+                PayrollLine.employee_id == employee.id,
+                PayrollRun.end_date >= start,
+                PayrollRun.start_date <= end,
+                PayrollRun.status.in_(["posted", "approved", "paid"]),
+            )
+            .order_by(PayrollRun.end_date.asc(), PayrollRun.id.asc())
+            .all()
+        )
+        for line, run in payroll_rows:
+            statement.append({
+                "date": run.end_date.strftime("%Y-%m-%d"),
+                "description": f"راتب {run.period_name}",
+                "debit": Decimal("0"),
+                "credit": Decimal(line.net_salary or 0),
+            })
+
+        shifts = CashShift.query.filter_by(employee_id=employee.id).all()
+        shift_ids = [
+            row.id for row in shifts
+            if row.opened_at < end_dt
+            and (row.closed_at is None or row.closed_at >= start_dt)
+        ]
+        if shift_ids:
+            other_cash = CashTransaction.query.filter(
+                CashTransaction.shift_id.in_(shift_ids),
+                CashTransaction.transaction_type != "receipt",
+                CashTransaction.created_at >= start_dt,
+                CashTransaction.created_at < end_dt,
+            ).order_by(CashTransaction.created_at.asc(), CashTransaction.id.asc()).all()
+            for tx in other_cash:
+                statement.append({
+                    "date": tx.created_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                    "description": tx.description_ar or tx.transaction_type,
+                    "debit": Decimal(tx.amount or 0),
+                    "credit": Decimal("0"),
+                })
+
+        statement.sort(key=lambda row: row["date"])
+        running = Decimal("0")
+        for row in statement:
+            running += row["credit"] - row["debit"]
+            row["balance"] = running
+        rows = statement
+        total_debit = sum((x["debit"] for x in rows), Decimal("0"))
+        total_credit = sum((x["credit"] for x in rows), Decimal("0"))
+        summary = [
+            ("له", total_credit),
+            ("عليه", total_debit),
+            ("الرصيد", total_credit - total_debit),
+        ]
+
+    elif kind == "custody":
+        shifts = (
+            CashShift.query
+            .filter(
+                CashShift.employee_id == employee.id,
+                CashShift.opened_at < end_dt,
+                or_(CashShift.closed_at.is_(None), CashShift.closed_at >= start_dt),
+            )
+            .order_by(CashShift.opened_at.desc())
+            .limit(100)
+            .all()
+        )
+        for shift in shifts:
+            txs = CashTransaction.query.filter_by(shift_id=shift.id).order_by(CashTransaction.created_at.asc()).all()
+            receipt = sum((Decimal(x.amount or 0) for x in txs if x.transaction_type in {"sale", "receipt", "deposit"}), Decimal("0"))
+            out = sum((Decimal(x.amount or 0) for x in txs if x.transaction_type in {"refund", "payment", "withdraw"}), Decimal("0"))
+            expected = Decimal(shift.opening_amount or 0) + receipt - out
+            actual = Decimal(shift.actual_amount or 0)
+            rows.append({
+                "date": shift.opened_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                "register": f"صندوق #{shift.register_id}",
+                "status": "مفتوحة" if shift.status == "open" else "مغلقة",
+                "opening": Decimal(shift.opening_amount or 0),
+                "receipts": receipt,
+                "out": out,
+                "expected": expected,
+                "actual": actual if shift.status != "open" else None,
+                "difference": (actual - expected) if shift.status != "open" else None,
+            })
+
+    elif kind == "attendance":
+        rows = [
+            {
+                "date": row.work_date.strftime("%Y-%m-%d"),
+                "status": row.status,
+                "check_in": row.check_in.astimezone(TZ).strftime("%H:%M") if row.check_in else "—",
+                "check_out": row.check_out.astimezone(TZ).strftime("%H:%M") if row.check_out else "—",
+                "note": row.note_ar or "—",
+            }
+            for row in Attendance.query.filter(
+                Attendance.employee_id == employee.id,
+                Attendance.work_date >= start,
+                Attendance.work_date <= end,
+            ).order_by(Attendance.work_date.desc()).all()
+        ]
+
+    elif kind == "salary":
+        payroll_rows = (
+            db.session.query(PayrollLine, PayrollRun)
+            .join(PayrollRun, PayrollRun.id == PayrollLine.payroll_run_id)
+            .filter(
+                PayrollLine.employee_id == employee.id,
+                PayrollRun.end_date >= start,
+                PayrollRun.start_date <= end,
+            )
+            .order_by(PayrollRun.end_date.desc(), PayrollRun.id.desc())
+            .all()
+        )
+        rows = [
+            {
+                "period": run.period_name,
+                "range": f"{run.start_date} → {run.end_date}",
+                "status": run.status,
+                "base": Decimal(line.base_salary or 0),
+                "overtime": Decimal(line.overtime or 0),
+                "bonus": Decimal(line.bonus or 0),
+                "commission": Decimal(line.commission or 0),
+                "deductions": Decimal(line.deductions or 0),
+                "advances": Decimal(line.advances or 0),
+                "net": Decimal(line.net_salary or 0),
+            }
+            for line, run in payroll_rows
+        ]
+
+    elif kind == "operations":
+        ops = []
+        payments = (
+            Payment.query
+            .filter(
+                Payment.received_by_id == current_user.id,
+                Payment.status == "completed",
+                Payment.paid_at >= start_dt,
+                Payment.paid_at < end_dt,
+            )
+            .order_by(Payment.paid_at.desc(), Payment.id.desc())
+            .all()
+        )
+        for payment in payments:
+            ops.append({
+                "date": payment.paid_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                "type": "تحصيل",
+                "description": payment.number,
+                "amount": Decimal(payment.amount or 0),
+            })
+
+        bookings = Booking.query.filter(
+            Booking.created_by_id == current_user.id,
+            Booking.start_at < end_dt,
+            Booking.end_at >= start_dt,
+        ).order_by(Booking.start_at.desc()).limit(100).all()
+        for booking in bookings:
+            ops.append({
+                "date": booking.created_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                "type": "حجز",
+                "description": f"{booking.booking_number} · {booking.status}",
+                "amount": Decimal(booking.total or 0),
+            })
+
+        visits = ParkVisit.query.filter(
+            ParkVisit.created_by_id == current_user.id,
+            ParkVisit.started_at >= start_dt,
+            ParkVisit.started_at < end_dt,
+        ).order_by(ParkVisit.started_at.desc()).limit(100).all()
+        for visit in visits:
+            ops.append({
+                "date": visit.started_at.astimezone(TZ).strftime("%Y-%m-%d %H:%M"),
+                "type": "حديقة",
+                "description": visit.visitor_name,
+                "amount": Decimal(visit.total or 0),
+            })
+
+        ops.sort(key=lambda row: row["date"], reverse=True)
+        rows = ops
+
+    elif kind == "my_bookings":
+        query = (
+            Booking.query
+            .options(
+                selectinload(Booking.customer),
+                selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
+            )
+            .filter(
+                Booking.created_by_id == current_user.id,
+                Booking.start_at < end_dt,
+                Booking.end_at >= start_dt,
+            )
+        )
+        rows = _booking_rows(query)
+
+    elif kind == "all_bookings":
+        query = (
+            Booking.query
+            .options(
+                selectinload(Booking.customer),
+                selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
+            )
+            .filter(Booking.start_at < end_dt, Booking.end_at >= start_dt)
+        )
+        rows = _booking_rows(query.limit(300))
+
+    elif kind == "empty_resources":
+        active_resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
+        booked_resource_ids = {
+            allocation.resource_id
+            for allocation in BookingAllocation.query.join(Booking).filter(
+                BookingAllocation.is_active.is_(True),
+                Booking.start_at < end_dt,
+                Booking.end_at >= start_dt,
+                Booking.status.in_(["hold", "pending", "confirmed", "checked_in", "in_progress", "completed"]),
+            ).all()
+        }
+        rows = [
+            {
+                "resource": resource.name_ar,
+                "sport": resource.sport.name_ar if resource.sport else "—",
+                "status": "فارغ بالكامل" if resource.id not in booked_resource_ids else "لديه حجز ضمن الفترة",
+                "price": Decimal(resource.base_price or 0),
+            }
+            for resource in active_resources
+        ]
+        rows.sort(key=lambda item: item["status"] != "فارغ بالكامل")
+
+    titles = {
+        "account": "كشف حسابي المالي",
+        "custody": "تقرير العهد",
+        "attendance": "تقرير الدوام",
+        "salary": "تقرير الراتب",
+        "operations": "تقرير العمليات",
+        "my_bookings": "تقرير حجوزاتي",
+        "empty_resources": "تقرير الملاعب الفارغة",
+        "all_bookings": "تقرير كل الحجوزات",
+    }
+
+    return render_template(
+        "staff/reports.html",
+        employee=employee,
+        kind=kind,
+        title_ar=titles[kind],
+        start=start,
+        end=end,
+        rows=rows,
+        summary=summary,
+    )
 
 
 @bp.get("/api/summary")

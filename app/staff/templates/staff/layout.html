@@ -9,8 +9,8 @@
 <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
 <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v7">
-<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v5">
+<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v9">
+<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v7">
 <title>{{ title or 'لوحة الموظف - ' ~ site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
@@ -25,28 +25,28 @@
       <button class="staff-icon-button" type="button" data-staff-close aria-label="إغلاق القائمة">×</button>
     </div>
     <div class="staff-drawer-scroll">
-      <a class="staff-drawer-link active" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><b>الرئيسية</b></a>
+      <a class="staff-drawer-link {{ 'active' if request.endpoint == 'staff.dashboard' else '' }}" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><b>الرئيسية</b></a>
       <details open>
         <summary><span>▣</span><b>التشغيل والحجوزات</b><i>⌄</i></summary>
         <div>
           <a href="{{ url_for('staff.dashboard') }}#booking">＋ حجز سريع</a>
-          <a href="{{ url_for('staff.dashboard') }}#pending">الحجوزات القادمة</a>
+          <a href="{{ url_for('staff.bookings_list', status='pending') }}">الحجوزات بانتظار الدفع</a>
+          <a href="{{ url_for('staff.bookings_list', status='all') }}">كل الحجوزات والتشغيل</a>
           <a href="{{ url_for('staff.dashboard') }}#active">الجارية والعد التنازلي</a>
         </div>
       </details>
       <details open>
         <summary><span>◉</span><b>العملاء</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.dashboard') }}#booking">بحث عميل / فريق عام</a>
-          <a href="{{ url_for('staff.dashboard') }}#booking">+ عميل جديد</a>
-          <a href="{{ url_for('staff.dashboard') }}#pending">محادثات الحجوزات</a>
+          <a href="{{ url_for('staff.customers') }}">بحث العملاء</a>
+          <a href="{{ url_for('staff.customer_new_form') }}">+ عميل جديد</a>
+          <a href="{{ url_for('staff.bookings_list', status='pending') }}">محادثات الحجوزات</a>
         </div>
       </details>
       <details open>
         <summary><span>▤</span><b>الصندوق والعهدة</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.dashboard') }}#custody">وردية الصندوق والعهدة</a>
-          <a href="{{ url_for('staff.finance') }}">راتبي والخصومات والسلف</a>
+          <a href="{{ url_for('staff.finance') }}">وردية الصندوق والعهدة</a>
         </div>
       </details>
       <details open>
@@ -56,16 +56,31 @@
           <a href="{{ url_for('staff.park') }}#occupancy">الموجودون ومن خرج</a>
         </div>
       </details>
+
+      <details open>
+        <summary><span>▤</span><b>التقارير</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.reports', type='account') }}">كشف حسابي: له وعليه</a>
+          <a href="{{ url_for('staff.reports', type='custody') }}">تقرير العهد</a>
+          <a href="{{ url_for('staff.reports', type='attendance') }}">تقرير الدوام</a>
+          <a href="{{ url_for('staff.reports', type='salary') }}">تقرير الراتب</a>
+          <a href="{{ url_for('staff.reports', type='operations') }}">تقرير العمليات</a>
+          <a href="{{ url_for('staff.reports', type='my_bookings') }}">تقرير حجوزاتي</a>
+          <a href="{{ url_for('staff.reports', type='empty_resources') }}">تقرير الملاعب الفارغة</a>
+          <a href="{{ url_for('staff.reports', type='all_bookings') }}">تقرير كل الحجوزات</a>
+        </div>
+      </details>
+
       <details open>
         <summary><span>▤</span><b>الموظف</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.finance') }}">حسابي المالي</a>
-          <a href="{{ url_for('staff.attendance') }}">الحضور والانصراف</a>
+          <a href="{{ url_for('staff.account') }}" class="{{ 'active' if request.endpoint == 'staff.account' else '' }}">حسابي</a>
+          <a href="{{ url_for('staff.attendance') }}">تسجيل الحضور والانصراف</a>
         </div>
       </details>
     </div>
     <div class="staff-drawer-foot">
-      <a href="{{ url_for('public.home') }}">الموقع العام</a>
+      <a href="{{ url_for('public.home', public='1') }}">الموقع العام</a>
       <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">تسجيل الخروج</button></form>
     </div>
   </aside>
@@ -77,7 +92,7 @@
         <span>بوابة الموظف</span>
         <b>{{ employee.name_ar if employee is defined and employee else 'الموظف' }}</b>
       </div>
-      <a class="staff-profile-chip" href="{{ url_for('staff.finance') }}">
+      <a class="staff-profile-chip" href="{{ url_for('staff.account') }}">
         <span>{{ (employee.name_ar[:1] if employee is defined and employee else 'م') }}</span>
       </a>
     </header>
@@ -93,13 +108,13 @@
       <a class="{{ 'active' if request.endpoint == 'staff.dashboard' else '' }}" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><small>الرئيسية</small></a>
       <a href="{{ url_for('staff.dashboard') }}#booking"><span>＋</span><small>حجز</small></a>
       <a class="{{ 'active' if request.endpoint == 'staff.park' else '' }}" href="{{ url_for('staff.park') }}"><span>◉</span><small>الحديقة</small></a>
-      <a class="{{ 'active' if request.endpoint in ['staff.finance','staff.attendance'] else '' }}" href="{{ url_for('staff.finance') }}"><span>●</span><small>حسابي</small></a>
+      <a class="{{ 'active' if request.endpoint in ['staff.account','staff.finance','staff.attendance','staff.reports'] else '' }}" href="{{ url_for('staff.account') }}"><span>●</span><small>حسابي</small></a>
     </nav>
   </div>
 </div>
 <div class="staff-overlay" data-staff-overlay></div>
 <div class="staff-snackbar" data-staff-snackbar hidden></div>
-<script src="/static/js/cache-control.js?v={{ site_settings.asset_version }}&ui=20260924-cache-v3" defer></script>
+<script src="/static/js/cache-control.js?v={{ site_settings.asset_version }}&ui=20260924-cache-v5" defer></script>
 <script src="/static/js/staff.js?v={{ site_settings.asset_version }}&ui=20260924-staff-v6" defer></script>
 {% block scripts %}{% endblock %}
 </body>
