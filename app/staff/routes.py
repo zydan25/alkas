@@ -1000,8 +1000,13 @@ def _report_window(start, end):
 
 
 def _booking_rows(query):
+    """Convert an already-filtered/ordered booking query into report rows.
+    
+    Ordering is intentionally left to the caller so a query with LIMIT/OFFSET
+    is not modified after the limit has been applied.
+    """
     rows = []
-    for booking in query.order_by(Booking.start_at.desc(), Booking.id.desc()).all():
+    for booking in query.all():
         names = "، ".join(a.resource.name_ar for a in booking.allocations if a.resource)
         rows.append({
             "id": booking.id,
@@ -1054,7 +1059,8 @@ def bookings_list():
     elif status != "all":
         query = query.filter(Booking.status == status)
 
-    rows = _booking_rows(query.limit(200))
+    query = query.order_by(Booking.start_at.desc(), Booking.id.desc()).limit(200)
+    rows = _booking_rows(query)
     return render_template(
         "staff/bookings.html",
         employee=employee,
@@ -1445,6 +1451,7 @@ def reports():
                 Booking.start_at < end_dt,
                 Booking.end_at >= start_dt,
             )
+            .order_by(Booking.start_at.desc(), Booking.id.desc())
         )
         rows = _booking_rows(query)
 
@@ -1456,6 +1463,7 @@ def reports():
                 selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
             )
             .filter(Booking.start_at < end_dt, Booking.end_at >= start_dt)
+            .order_by(Booking.start_at.desc(), Booking.id.desc())
         )
         rows = _booking_rows(query.limit(300))
 

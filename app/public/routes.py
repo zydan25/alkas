@@ -181,13 +181,9 @@ def home():
         if employee:
             return _role_redirect("staff.dashboard")
 
-        customer = Customer.query.filter_by(
-            user_id=current_user.id,
-            is_active=True,
-        ).first()
-        if customer:
-            return _role_redirect("customer.dashboard")
-
+        # العميل يدخل إلى الرئيسية العامة ويرى البنرات والعروض
+        # والحجز والمحتوى الرياضي، وتبقى صفحة الحساب متاحة من التنقل.
+        
     now = datetime.now(timezone.utc)
     local_now = now.astimezone()
     banners = _active_banner_rows(now)

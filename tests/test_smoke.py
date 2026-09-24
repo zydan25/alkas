@@ -601,11 +601,76 @@ def test_staff_reports_and_account_views_are_wired():
     assert 'def account():' in staff_routes
     assert 'def bookings_list():' in staff_routes
     assert 'def customer_new_form():' in staff_routes
-    assert 'url_for('staff.reports', type='account')' in layout
-    assert 'url_for('staff.reports', type='all_bookings')' in layout
+    assert 'url_for("staff.reports", type="account")' in layout or "url_for('staff.reports', type='account')" in layout
+    assert 'url_for("staff.reports", type="all_bookings")' in layout or "url_for('staff.reports', type='all_bookings')" in layout
     assert 'تحديث بيانات الحساب' in account
     assert 'تحديث كلمة السر' in account
     assert 'window.print()' in reports
+
+
+def test_root_routes_customer_to_public_homepage():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Customer, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    username = "root_customer_" + uuid.uuid4().hex[:10]
+    phone = "77" + str(uuid.uuid4().int % 10**8).zfill(8)
+
+    with app.app_context():
+        user = User(
+            username=username,
+            phone=phone,
+            display_name="عميل الجذر",
+            is_active=True,
+        )
+        user.set_password("TestPass123")
+        db.session.add(user)
+        db.session.flush()
+        customer = Customer(
+            user_id=user.id,
+            customer_code="CUS-ROOT-" + uuid.uuid4().hex[:8].upper(),
+            name="عميل الجذر",
+            phone=phone,
+            is_active=True,
+        )
+        db.session.add(customer)
+        db.session.commit()
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user.id)
+            session["_fresh"] = True
+
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 200
+        assert "الرئيسية" in response.get_data(as_text=True)
+
+        response = client.get("/auth/login", follow_redirects=False)
+        assert response.status_code == 303
+        assert response.headers["Location"].endswith("/")
+
+        db.session.delete(customer)
+        db.session.delete(user)
+        db.session.commit()
+
+
+def test_staff_booking_helpers_order_before_limit():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    staff_routes = (root / "app" / "staff" / "routes.py").read_text(encoding="utf-8")
+    helper_start = staff_routes.index("def _booking_rows")
+    helper_end = staff_routes.index("def bookings_list", helper_start)
+    helper = staff_routes[helper_start:helper_end]
+    assert ".order_by(" not in helper
+    bookings_block = staff_routes[staff_routes.index("def bookings_list"):staff_routes.index("def customers", staff_routes.index("def bookings_list"))]
+    assert "order_by(Booking.start_at.desc(), Booking.id.desc()).limit(200)" in bookings_block
+    reports_block = staff_routes[staff_routes.index("elif kind == 'all_bookings':"):staff_routes.index("elif kind == 'empty_resources':")]
+    assert ".order_by(Booking.start_at.desc(), Booking.id.desc())" in reports_block
 
 
 def test_staff_pending_queue_accepts_pending_and_legacy_holds():

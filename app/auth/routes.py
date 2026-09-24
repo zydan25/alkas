@@ -45,7 +45,9 @@ def _role_home(user):
         is_active=True,
     ).first()
     if customer:
-        return url_for("customer.dashboard")
+        # تسجيل دخول العميل يفتح الرئيسية العامة،
+        # بينما تبقى صفحة حسابه وحجوزاته متاحة من التنقل.
+        return url_for("public.home")
 
     return url_for("public.home")
 
@@ -71,7 +73,8 @@ def _role_next(user, requested_next):
         is_active=True,
     ).first()
     if customer:
-        return target if target == "/customer" or target.startswith("/customer/") else _role_home(user)
+        # لا نرسل العميل تلقائيًا إلى لوحة الحساب بعد تسجيل الدخول.
+        return url_for("public.home")
 
     return url_for("public.home")
 
@@ -197,7 +200,7 @@ def register_post():
 
     login_user(user, remember=True)
     flash("تم إنشاء حسابك بنجاح.", "success")
-    return redirect(_safe_next(request.form.get("next")) or url_for("customer.dashboard"))
+    return redirect(_safe_next(request.form.get("next")) or url_for("public.home"))
 
 
 @bp.post("/logout")
