@@ -25,8 +25,11 @@
   <div class="form-grid">
     <label>اسم المستخدم<input name="login_username" autocomplete="username" placeholder="مثلاً ahmed.staff"></label>
     <label>كلمة مرور الموظف<input type="password" name="login_password" minlength="8" autocomplete="new-password" placeholder="8 أحرف على الأقل"></label>
+    <label>دور الموظف <small>اختياري؛ يحدد مثلًا تأكيد الحجوزات والمحادثات</small>
+      <select name="login_role_id"><option value="">بدون دور</option>{% for r in roles %}<option value="{{ r.id }}">{{ r.name_ar }}</option>{% endfor %}</select>
+    </label>
   </div>
-  <small class="employee-login-note">الصلاحيات الخاصة مثل تأكيد الحجوزات والمحادثات تُدار من شاشة الأدوار والصلاحيات بعد إنشاء الحساب.</small>
+  <small class="employee-login-note">الدور يحدد الصلاحيات الخاصة مثل تأكيد الحجوزات والمحادثات، ويمكن تغييره لاحقًا من إدارة المستخدمين والصلاحيات.</small>
 </div>
 
 <div class="page-actions">
