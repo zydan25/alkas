@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from ..accounting.models import Account
 from ..bookings.services import cancel_booking, confirm_booking, create_hold_booking, expire_holds
-from ..cashier.models import CashShift, CashTransaction
+from ..cashier.models import CashRegister, CashShift, CashTransaction
 from ..employees.models import Attendance, Employee
 from ..extensions import db
 from ..invoices.models import Invoice, InvoiceLine
@@ -19,7 +19,7 @@ from ..payments.models import Payment
 from ..payments.services import record_payment_with_accounting
 from ..policies.models import BookingPolicy, PaymentPolicy, RefundRequest
 from ..payroll.models import EmployeeAdvance, PayrollLine, PayrollRun
-from ..models import Booking, BookingAllocation, Customer, Resource, Sport
+from ..models import Booking, BookingAllocation, BookingMessage, Customer, Resource, ResourceBlock, Sport
 from .models import ParkVisit, ParkVisitExit, StaffDeduction
 
 bp = Blueprint("staff", __name__, url_prefix="/staff", template_folder="templates")
@@ -287,6 +287,8 @@ def dashboard():
         can_chat=_can("staff.booking.chat"),
         can_cancel=_can("staff.booking.cancel"),
         can_park=_can("staff.park.manage"),
+        can_cash=_can("staff.cash.manage"),
+        registers=CashRegister.query.filter_by(is_active=True).order_by(CashRegister.id).all(),
         today=today,
         now=_now(),
     )
