@@ -1,6 +1,5 @@
 from datetime import date
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for
-from uuid import uuid4
 from flask_login import login_required, current_user
 from ..extensions import db
 from .models import Department, Employee, Position, Attendance
