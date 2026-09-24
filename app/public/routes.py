@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 import json
-from flask import Blueprint, Response, jsonify, render_template, request, url_for
+from flask import Blueprint, Response, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
@@ -11,6 +11,7 @@ from ..extensions import db
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Booking, BookingAllocation, Customer, Resource, Sport
+from ..employees.models import Employee
 from ..memberships.models import MembershipPlan, MembershipRequest
 from ..news.models import Post
 from ..offers.models import Offer
@@ -20,6 +21,13 @@ from ..teams.models import Team
 from ..tournaments.models import Match, Tournament
 
 bp = Blueprint("public", __name__)
+
+
+def _role_redirect(endpoint):
+    response = redirect(url_for(endpoint), code=303)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 def _active_banner_rows(now):
@@ -160,6 +168,26 @@ def _upcoming_matches(now):
 
 @bp.get("/")
 def home():
+    # The domain root is the account gateway: managers/admins, employees,
+    # and customers should land in their own dashboard immediately.
+    if current_user.is_authenticated:
+        if current_user.username == "admin" or current_user.has_permission("admin.access"):
+            return _role_redirect("admin.dashboard")
+
+        employee = Employee.query.filter_by(
+            user_id=current_user.id,
+            employment_status="active",
+        ).first()
+        if employee:
+            return _role_redirect("staff.dashboard")
+
+        customer = Customer.query.filter_by(
+            user_id=current_user.id,
+            is_active=True,
+        ).first()
+        if customer:
+            return _role_redirect("customer.dashboard")
+
     now = datetime.now(timezone.utc)
     local_now = now.astimezone()
     banners = _active_banner_rows(now)

@@ -538,3 +538,51 @@ def test_booking_policy_and_multi_player_fields_are_present():
     assert hasattr(booking, "participant_count")
     assert hasattr(booking, "participants_remaining")
     assert hasattr(booking, "participant_unit_price")
+
+
+def test_root_routes_authenticated_employee_to_staff_dashboard():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Employee, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    username = "root_staff_" + uuid.uuid4().hex[:10]
+    phone = "77" + str(uuid.uuid4().int % 10**8).zfill(8)
+
+    with app.app_context():
+        user = User(
+            username=username,
+            phone=phone,
+            display_name="موظف الجذر",
+            is_active=True,
+        )
+        user.set_password("TestPass123")
+        db.session.add(user)
+        db.session.flush()
+
+        employee = Employee(
+            employee_code="EMP-ROOT-" + uuid.uuid4().hex[:6].upper(),
+            name_ar="موظف الجذر",
+            phone=phone,
+            employment_status="active",
+            base_salary=1000,
+            user_id=user.id,
+        )
+        db.session.add(employee)
+        db.session.commit()
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user.id)
+            session["_fresh"] = True
+
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 303
+        assert response.headers["Location"].endswith("/staff")
+
+        db.session.delete(employee)
+        db.session.delete(user)
+        db.session.commit()

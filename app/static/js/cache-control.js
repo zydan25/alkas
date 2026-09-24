@@ -1,12 +1,13 @@
 (function () {
-  // Legacy PWA cleanup:
-  // Older releases registered a service worker that cached HTML/assets.
-  // The customer app now uses normal HTTP loading; remove any old worker/cache
-  // without blocking page rendering.
+  const RELOAD_KEY = "alkas-legacy-cache-cleaned-v1";
+
   const cleanup = async () => {
+    let hadLegacy = false;
+
     try {
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
+        hadLegacy = hadLegacy || registrations.length > 0;
         await Promise.all(registrations.map(registration => registration.unregister()));
       }
     } catch (_) {}
@@ -14,16 +15,37 @@
     try {
       if ("caches" in window) {
         const keys = await caches.keys();
+        hadLegacy = hadLegacy || keys.length > 0;
         await Promise.all(keys.map(key => caches.delete(key)));
       }
     } catch (_) {}
+
+    return hadLegacy;
   };
 
-  // Run after the first paint so cleanup never delays navigation/UI startup.
+  async function bootCleanup() {
+    const hadLegacy = await cleanup();
+
+    // The old PWA could serve a stale HTML shell before JS ran. Re-enter the
+    // exact same URL once after removing that shell so the server response and
+    // fresh versioned assets are used.
+    if (
+      hadLegacy &&
+      !sessionStorage.getItem(RELOAD_KEY)
+    ) {
+      sessionStorage.setItem(RELOAD_KEY, "1");
+      window.location.reload();
+      return;
+    }
+
+    sessionStorage.removeItem(RELOAD_KEY);
+  }
+
+  // Run without blocking first paint.
   if (window.requestIdleCallback) {
-    window.requestIdleCallback(cleanup, {timeout: 1500});
+    window.requestIdleCallback(bootCleanup, {timeout: 700});
   } else {
-    window.setTimeout(cleanup, 100);
+    window.setTimeout(bootCleanup, 50);
   }
 
   const buttons = [...document.querySelectorAll("[data-clear-app-cache]")];
