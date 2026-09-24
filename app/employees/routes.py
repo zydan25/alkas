@@ -81,10 +81,15 @@ def ui():
         .limit(100)
         .all()
     )
+    users_by_employee = {
+        employee.id: _user_for_employee(employee)
+        for employee in rows
+    }
     return render_template(
         "employees/index.html",
         rows=rows,
         departments=Department.query.filter_by(is_active=True).all(),
+        users_by_employee=users_by_employee,
     )
 
 
@@ -187,10 +192,14 @@ def detail(employee_id):
 
     employee = Employee.query.get_or_404(employee_id)
     user = _user_for_employee(employee)
+    department = db.session.get(Department, employee.department_id) if employee.department_id else None
+    position = db.session.get(Position, employee.position_id) if employee.position_id else None
     return render_template(
         "employees/detail.html",
         employee=employee,
         user=user,
+        department_name=department.name_ar if department else None,
+        position_name=position.name_ar if position else None,
         attendance=(
             Attendance.query
             .filter_by(employee_id=employee.id)
