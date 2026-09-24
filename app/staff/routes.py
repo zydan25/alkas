@@ -195,9 +195,14 @@ def _staff_booking_context(employee):
             selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
         )
         .filter(
-            Booking.status.in_(["hold", "pending"]),
-            Booking.hold_expires_at.is_not(None),
-            Booking.hold_expires_at > now,
+            or_(
+                Booking.status == "pending",
+                (
+                    (Booking.status == "hold")
+                    & Booking.hold_expires_at.is_not(None)
+                    & (Booking.hold_expires_at > now)
+                ),
+            )
         )
         .order_by(Booking.start_at)
         .limit(30)
