@@ -199,8 +199,10 @@ def _staff_booking_context(employee):
                 Booking.status == "pending",
                 (
                     (Booking.status == "hold")
-                    & Booking.hold_expires_at.is_not(None)
-                    & (Booking.hold_expires_at > now)
+                    & or_(
+                        Booking.hold_expires_at.is_(None),
+                        Booking.hold_expires_at > now,
+                    )
                 ),
             )
         )
@@ -1042,8 +1044,10 @@ def bookings_list():
                 Booking.status == "pending",
                 (
                     (Booking.status == "hold")
-                    & Booking.hold_expires_at.is_not(None)
-                    & (Booking.hold_expires_at > now_utc)
+                    & or_(
+                        Booking.hold_expires_at.is_(None),
+                        Booking.hold_expires_at > now_utc,
+                    )
                 ),
             )
         )
