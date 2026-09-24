@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block head %}
 <link rel="stylesheet" href="/static/css/customer-home.css?v={{ site_settings.asset_version }}&ui=20260923-home-pixel-v6">
+{% if site_settings.customer_home_theme == "flutter" %}<link rel="stylesheet" href="/static/css/customer-flutter-theme.css?v={{ site_settings.asset_version }}&ui=20260924-flutter-v1">{% endif %}
 {% endblock %}
 
 {% macro icon(name, size=20) -%}
@@ -45,7 +46,7 @@
 {%- endmacro %}
 
 {% block content %}
-<div class="customer-home-page">
+<div class="customer-home-page customer-home-theme-{{ site_settings.customer_home_theme or "classic" }}">
 
   <header class="customer-home-header">
     <div class="home-profile">
