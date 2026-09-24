@@ -33,7 +33,8 @@ def test_staff_mobile_layout_has_rtl_drawer_and_full_width_guards():
     assert "right: 0 !important" in css
     assert "transform: translate3d(110%, 0, 0) !important" in css
     assert "width: 100% !important" in css
-    assert "margin-inline-end: 270px !important" in css
+    assert "max-width: 100dvw !important" in css
+    assert "margin-inline-end: 270px !important" not in css
     assert "staff-mobile.css" in layout
     assert "20260924-mobile-v4" in layout
     assert "@media(min-width:900px)" not in staff_css
@@ -669,8 +670,11 @@ def test_staff_booking_helpers_order_before_limit():
     assert ".order_by(" not in helper
     bookings_block = staff_routes[staff_routes.index("def bookings_list"):staff_routes.index("def customers", staff_routes.index("def bookings_list"))]
     assert "order_by(Booking.start_at.desc(), Booking.id.desc()).limit(200)" in bookings_block
-    reports_block = staff_routes[staff_routes.index("elif kind == 'all_bookings':"):staff_routes.index("elif kind == 'empty_resources':")]
+    reports_start = staff_routes.index('elif kind == "all_bookings":')
+    reports_end = staff_routes.index('elif kind == "empty_resources":', reports_start)
+    reports_block = staff_routes[reports_start:reports_end]
     assert ".order_by(Booking.start_at.desc(), Booking.id.desc())" in reports_block
+    assert "rows = _booking_rows(query.limit(300))" in reports_block
 
 
 def test_staff_pending_queue_accepts_pending_and_legacy_holds():
