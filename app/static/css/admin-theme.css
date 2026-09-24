@@ -718,3 +718,9 @@
   .admin-nav-badge{min-width:28px!important;height:24px!important}
   .admin-nav-children>a,.admin-nav-children>.side-link{min-height:43px!important}
 }
+
+.employee-login-panel{margin-top:16px;padding:16px;border:1px solid var(--admin-border);border-radius:16px;background:linear-gradient(135deg,#f5faff,#fff)}
+.employee-login-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.employee-login-head h2{margin:4px 0;font-size:1rem;color:var(--admin-brand-dark)}
+.employee-login-head p{margin:0;color:var(--admin-muted);font-size:.68rem;line-height:1.7}
+.employee-login-note{display:block;margin-top:10px;color:var(--admin-muted);font-size:.62rem;line-height:1.7}
