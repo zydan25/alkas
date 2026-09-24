@@ -685,3 +685,34 @@ def test_staff_pending_queue_accepts_pending_and_legacy_holds():
     assert 'Booking.status == "pending"' in block
     assert 'Booking.status == "hold"' in block
     assert 'Booking.hold_expires_at.is_(None)' in block
+
+
+def test_customer_flutter_theme_is_opt_in_and_classic_is_default():
+    from app.settings.services import DEFAULTS
+
+    assert DEFAULTS["customer_home_theme"] == "classic"
+
+    root = __import__("pathlib").Path(__file__).resolve().parents[1]
+    home = (root / "app" / "templates" / "public" / "home.html").read_text(encoding="utf-8")
+    booking = (root / "app" / "templates" / "bookings" / "index.html").read_text(encoding="utf-8")
+    theme = (root / "app" / "static" / "css" / "customer-flutter-theme.css").read_text(encoding="utf-8")
+
+    assert 'site_settings.customer_home_theme == "flutter"' in home
+    assert "customer-flutter-theme.css" in home
+    assert "customer-flutter-theme.css" in booking
+    assert ".customer-ui-theme-flutter" in theme
+    assert ".customer-book-fab" in theme
+
+
+def test_customer_theme_selector_and_validation_are_present():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    settings_page = (root / "app" / "templates" / "settings" / "index.html").read_text(encoding="utf-8")
+    settings_routes = (root / "app" / "settings" / "routes.py").read_text(encoding="utf-8")
+
+    assert 'name="customer_home_theme"' in settings_page
+    assert 'value="classic"' in settings_page
+    assert 'value="flutter"' in settings_page
+    assert 'CUSTOMER_HOME_THEMES = {"classic", "flutter"}' in settings_routes
+    assert '"customer_home_theme"' in settings_routes
