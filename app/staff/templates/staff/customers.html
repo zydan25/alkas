@@ -1,0 +1,37 @@
+{% extends "staff/layout.html" %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>العملاء</span><h1>بحث العملاء</h1><p>ابحث بالاسم أو رقم الهاتف أو رقم العميل، ثم افتح ملفه أو أنشئ عميلاً جديدًا.</p></div>
+  <a class="staff-main-button" href="{{ url_for('staff.customer_new_form') }}">＋ عميل جديد</a>
+</section>
+
+<section class="staff-card">
+  <form class="staff-report-filter" method="get">
+    <label>البحث
+      <input name="q" value="{{ q }}" placeholder="اسم العميل أو الهاتف أو الرقم">
+    </label>
+    <button class="staff-main-button" type="submit">بحث</button>
+    <a class="staff-outline-button" href="{{ url_for('staff.customers') }}">مسح</a>
+  </form>
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head">
+    <div><span>النتائج</span><h2>العملاء النشطون</h2></div>
+    <span class="staff-count-badge">{{ rows|length }}</span>
+  </div>
+  <div class="staff-list">
+    {% for row in rows %}
+    <article class="staff-customer-row">
+      <div class="staff-item-main">
+        <div class="staff-item-icon success-dot">◉</div>
+        <div><strong>{{ row.name }}</strong><small>{{ row.phone or 'بدون هاتف' }} · {{ row.customer_code }}</small></div>
+      </div>
+      <a class="staff-outline-button small" href="{{ url_for('staff.dashboard') }}#booking">حجز له</a>
+    </article>
+    {% else %}
+    <div class="staff-empty">لا توجد نتائج مطابقة.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
