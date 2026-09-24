@@ -19,7 +19,7 @@ def ui():
 @login_required
 def new():
     if not _allowed(): return {"error":"forbidden"},403
-    return render_template("employees/form.html",departments=Department.query.filter_by(is_active=True).all(),positions=Position.query.order_by(Position.name_ar).all(),roles=Role.query.order_by(Role.name_ar).all(),roles=Role.query.order_by(Role.name_ar).all())
+    return render_template("employees/form.html",departments=Department.query.filter_by(is_active=True).all(),positions=Position.query.order_by(Position.name_ar).all(),roles=Role.query.order_by(Role.name_ar).all())
 
 @bp.post("/new")
 @login_required
