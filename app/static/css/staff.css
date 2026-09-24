@@ -47,3 +47,5 @@ html,body{min-height:100%;margin:0}
 
 .park-exit-form{display:grid!important;grid-template-columns:minmax(58px,74px) auto!important;gap:5px!important;align-items:center!important}.park-exit-form input{min-height:38px!important;width:100%!important;border:1px solid var(--staff-border);border-radius:10px;padding:0 7px;background:#fff}.park-exit-form button{white-space:nowrap}
 @media(max-width:460px){.park-exit-form{grid-template-columns:1fr!important}.park-exit-form button{width:100%}}
+
+.staff-sport-filter{display:flex;gap:6px;overflow:auto;padding:2px 0 9px;margin-bottom:3px;-webkit-overflow-scrolling:touch}.staff-sport-filter button{flex:0 0 auto;min-height:38px;padding:0 12px;border:1px solid var(--staff-border);border-radius:11px;background:#fff;color:#5f7488;font-size:.64rem;font-weight:900;cursor:pointer}.staff-sport-filter button.active{background:linear-gradient(135deg,var(--staff-primary),var(--staff-cyan));border-color:var(--staff-primary);color:#fff;box-shadow:0 5px 12px rgba(23,105,224,.14)}
