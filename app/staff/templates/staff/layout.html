@@ -9,7 +9,7 @@
 <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
 <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v2">
+<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v3">
 <title>{{ title or 'لوحة الموظف - ' ~ site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
@@ -26,24 +26,39 @@
     <div class="staff-drawer-scroll">
       <a class="staff-drawer-link active" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><b>الرئيسية</b></a>
       <details open>
-        <summary><span>▣</span><b>التشغيل</b><i>⌄</i></summary>
+        <summary><span>▣</span><b>التشغيل والحجوزات</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.dashboard') }}#booking">حجز ملعب</a>
+          <a href="{{ url_for('staff.dashboard') }}#booking">＋ حجز سريع</a>
           <a href="{{ url_for('staff.dashboard') }}#pending">الحجوزات القادمة</a>
-          <a href="{{ url_for('staff.dashboard') }}#active">الحجوزات الجارية</a>
+          <a href="{{ url_for('staff.dashboard') }}#active">الجارية والعد التنازلي</a>
+        </div>
+      </details>
+      <details open>
+        <summary><span>◉</span><b>العملاء</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.dashboard') }}#booking">بحث عميل / فريق عام</a>
+          <a href="{{ url_for('staff.dashboard') }}#booking">+ عميل جديد</a>
+          <a href="{{ url_for('staff.dashboard') }}#pending">محادثات الحجوزات</a>
+        </div>
+      </details>
+      <details open>
+        <summary><span>▤</span><b>الصندوق والعهدة</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.dashboard') }}#custody">وردية الصندوق والعهدة</a>
+          <a href="{{ url_for('staff.finance') }}">راتبي والخصومات والسلف</a>
         </div>
       </details>
       <details open>
         <summary><span>◉</span><b>الحديقة</b><i>⌄</i></summary>
         <div>
           <a href="{{ url_for('staff.park') }}">دخول وخروج الزوار</a>
-          <a href="{{ url_for('staff.park') }}#occupancy">الموجودون الآن</a>
+          <a href="{{ url_for('staff.park') }}#occupancy">الموجودون ومن خرج</a>
         </div>
       </details>
       <details open>
         <summary><span>▤</span><b>الموظف</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.finance') }}">راتبي وعهدتي</a>
+          <a href="{{ url_for('staff.finance') }}">حسابي المالي</a>
           <a href="{{ url_for('staff.attendance') }}">الحضور والانصراف</a>
         </div>
       </details>
@@ -83,7 +98,7 @@
 </div>
 <div class="staff-overlay" data-staff-overlay></div>
 <div class="staff-snackbar" data-staff-snackbar hidden></div>
-<script src="/static/js/staff.js?v={{ site_settings.asset_version }}&ui=20260924-staff-v2" defer></script>
+<script src="/static/js/staff.js?v={{ site_settings.asset_version }}&ui=20260924-staff-v3" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
