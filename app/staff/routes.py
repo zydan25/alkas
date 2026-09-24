@@ -52,7 +52,7 @@ def _can(permission):
     if current_user.username == "admin" or current_user.has_permission(permission):
         return True
     employee = _employee()
-    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view", "staff.cash.manage"})
+    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view"})
 
 
 def _now():
