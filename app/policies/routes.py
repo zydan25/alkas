@@ -15,6 +15,10 @@ def _approve_allowed():
     return current_user.username == "admin" or current_user.has_permission("payment.refund")
 
 
+def _settings_allowed():
+    return current_user.username == "admin" or current_user.has_permission("settings.manage")
+
+
 @bp.get("")
 @login_required
 def ui():
@@ -52,6 +56,38 @@ def reject(request_id):
         pass
     return redirect(url_for("policies.ui"))
 
+
+@bp.post("/booking-hold")
+@login_required
+def update_booking_hold():
+    if not _settings_allowed():
+        return {"error": "forbidden"}, 403
+    try:
+        minutes = int(request.form.get("hold_duration_minutes") or 60)
+    except (TypeError, ValueError):
+        return redirect(url_for("policies.ui") + "?error=مدة الاحتفاظ غير صحيحة")
+    if minutes < 5 or minutes > 1440:
+        return redirect(url_for("policies.ui") + "?error=مدة الحجز المعلق يجب أن تكون بين 5 و1440 دقيقة")
+
+    policy = BookingPolicy.query.filter_by(is_default=True, is_active=True).order_by(BookingPolicy.id.desc()).first()
+    if not policy:
+        policy = BookingPolicy(
+            name_ar="السياسة الافتراضية",
+            hold_duration_minutes=minutes,
+            cancellation_deadline_minutes=360,
+            refund_percent_before_deadline=100,
+            refund_percent_after_deadline=0,
+            deposit_percent=100,
+            is_default=True,
+            is_active=True,
+        )
+        from ..extensions import db
+        db.session.add(policy)
+    else:
+        policy.hold_duration_minutes = minutes
+    from ..extensions import db
+    db.session.commit()
+    return redirect(url_for("policies.ui"))
 
 @bp.get("/api")
 @login_required
