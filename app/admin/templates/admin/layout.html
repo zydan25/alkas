@@ -15,7 +15,7 @@
 {% block head %}{% endblock %}
 </head>
 <body class="admin-body">
-{% macro icon(name) %}<svg class="ui-icon" aria-hidden="true"><use href="/static/img/admin-icons.svg#{{ name }}"></use></svg>{% endmacro %}
+{% macro icon(name) %}<svg class="ui-icon" aria-hidden="true"><use href="/static/img/admin-icons.svg?v={{ site_settings.asset_version }}&ui=20260924-admin-tree#{{ name }}"></use></svg>{% endmacro %}
 <div class="admin-app">
   <aside class="sidebar" data-sidebar>
     <div class="sidebar-brand">
