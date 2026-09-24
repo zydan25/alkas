@@ -225,3 +225,15 @@
   }
   holdCountdown();
   setInterval(holdCountdown,30000);
+
+
+  const sportFilter=document.querySelector("[data-sport-filter]");
+  sportFilter?.querySelectorAll("[data-sport]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const sport=button.dataset.sport||"";
+      sportFilter.querySelectorAll("[data-sport]").forEach(x=>x.classList.toggle("active",x===button));
+      document.querySelectorAll("[data-resource-sport]").forEach(label=>{
+        label.hidden=Boolean(sport)&&label.dataset.resourceSport!==sport;
+      });
+    });
+  });
