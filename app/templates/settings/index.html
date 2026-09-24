@@ -27,6 +27,13 @@
     <label>الوصف الرئيسي
       <input name="hero_subtitle" value="{{ settings.hero_subtitle }}">
     </label>
+    <label>ثيم واجهة العميل
+      <select name="customer_home_theme">
+        <option value="classic" {% if settings.customer_home_theme == "classic" %}selected{% endif %}>الكلاسيكي الحالي</option>
+        <option value="flutter" {% if settings.customer_home_theme == "flutter" %}selected{% endif %}>Flutter App — الجديد</option>
+      </select>
+      <small class="form-hint">تبديل مستقل لواجهة العميل وصفحة الحجز. الثيم الكلاسيكي يبقى محفوظًا دون تعديل.</small>
+    </label>
     <button class="btn btn-primary" type="submit">حفظ إعدادات الموقع</button>
   </form>
 
