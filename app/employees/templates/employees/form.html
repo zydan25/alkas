@@ -1,1 +1,38 @@
-{% extends "admin/layout.html" %}{% block content %}<div class="page-header compact"><div><div class="eyebrow">الموارد البشرية</div><h1>موظف جديد</h1><p>الملف الوظيفي هو مصدر الحضور والمناوبات والرواتب.</p></div></div><section class="panel form-panel">{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}<form method="post" class="form-stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-grid"><label>الاسم<input name="name_ar" required></label><label>الكود<input name="employee_code" placeholder="EMP-00001"></label><label>الهاتف<input name="phone"></label><label>رقم الهوية<input name="national_id"></label><label>القسم<select name="department_id"><option value="">بدون قسم</option>{% for d in departments %}<option value="{{ d.id }}">{{ d.name_ar }}</option>{% endfor %}</select></label><label>المسمى<select name="position_id"><option value="">بدون مسمى</option>{% for p in positions %}<option value="{{ p.id }}">{{ p.name_ar }}</option>{% endfor %}</select></label><label>الراتب الأساسي<input type="number" min="0" step="0.01" name="base_salary"></label></div><div class="page-actions"><a class="btn btn-soft" href="{{ url_for('employees.ui') }}">إلغاء</a><button class="btn btn-primary">حفظ الموظف</button></div></form></section>{% endblock %}
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div><div class="eyebrow">الموارد البشرية</div><h1>موظف جديد</h1><p>الملف الوظيفي هو مصدر الحضور والمناوبات والرواتب. ويمكن إنشاء حساب لوحة الموظف مباشرة من هنا.</p></div>
+</div>
+<section class="panel form-panel">
+{% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
+<form method="post" class="form-stack">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-grid">
+  <label>الاسم<input name="name_ar" required></label>
+  <label>الكود<input name="employee_code" placeholder="EMP-00001"></label>
+  <label>الهاتف<input name="phone"></label>
+  <label>رقم الهوية<input name="national_id"></label>
+  <label>القسم<select name="department_id"><option value="">بدون قسم</option>{% for d in departments %}<option value="{{ d.id }}">{{ d.name_ar }}</option>{% endfor %}</select></label>
+  <label>المسمى<select name="position_id"><option value="">بدون مسمى</option>{% for p in positions %}<option value="{{ p.id }}">{{ p.name_ar }}</option>{% endfor %}</select></label>
+  <label>الراتب الأساسي<input type="number" min="0" step="0.01" name="base_salary"></label>
+</div>
+
+<div class="employee-login-panel">
+  <div class="employee-login-head">
+    <div><span class="eyebrow">دخول الموظف</span><h2>إنشاء حساب لوحة الموظف</h2><p>اختياري. عند إنشائه سيظهر للموظف تطبيقه المنفصل بعد تسجيل الدخول.</p></div>
+    <span class="mini-badge">اختياري</span>
+  </div>
+  <div class="form-grid">
+    <label>اسم المستخدم<input name="login_username" autocomplete="username" placeholder="مثلاً ahmed.staff"></label>
+    <label>كلمة مرور الموظف<input type="password" name="login_password" minlength="8" autocomplete="new-password" placeholder="8 أحرف على الأقل"></label>
+  </div>
+  <small class="employee-login-note">الصلاحيات الخاصة مثل تأكيد الحجوزات والمحادثات تُدار من شاشة الأدوار والصلاحيات بعد إنشاء الحساب.</small>
+</div>
+
+<div class="page-actions">
+  <a class="btn btn-soft" href="{{ url_for('employees.ui') }}">إلغاء</a>
+  <button class="btn btn-primary">حفظ الموظف</button>
+</div>
+</form>
+</section>
+{% endblock %}
