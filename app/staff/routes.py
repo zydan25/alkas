@@ -357,12 +357,16 @@ def customer_new():
     )
     db.session.add(customer)
     db.session.commit()
-    return jsonify({
-        "id": customer.id,
-        "name": customer.name,
-        "phone": customer.phone or "",
-        "code": customer.customer_code,
-    }), 201
+
+    if "application/json" in (request.headers.get("Accept") or "") or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "id": customer.id,
+            "name": customer.name,
+            "phone": customer.phone or "",
+            "code": customer.customer_code,
+        }), 201
+
+    return redirect(url_for("staff.customers", q=customer.name), code=303)
 
 
 @bp.post("/bookings/quick")
