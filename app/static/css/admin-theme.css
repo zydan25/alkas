@@ -423,3 +423,149 @@
   .upload-choice-grid{grid-template-columns:1fr}
   .upload-field{min-height:86px}
 }
+
+
+/* Final navigation contrast layer: keep the ERP tree readable over the dark sidebar. */
+.admin-nav-tree{
+  border:1px solid rgba(255,255,255,.18)!important;
+  background:rgba(0,27,63,.20)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.08)!important;
+}
+.admin-nav-tree>summary{
+  min-height:46px!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:rgba(255,255,255,.055)!important;
+  color:#f7fbff!important;
+  text-shadow:none!important;
+}
+.admin-nav-tree>summary:hover{
+  background:rgba(255,255,255,.11)!important;
+  color:#fff!important;
+}
+.admin-nav-tree[open]>summary{
+  background:linear-gradient(90deg,#ffffff 0%,#e9f6ff 100%)!important;
+  color:var(--admin-brand-dark)!important;
+  box-shadow:inset 0 -1px 0 rgba(23,105,224,.20)!important;
+}
+.admin-nav-tree>summary>.ui-icon:first-child{
+  color:#c9efff!important;
+}
+.admin-nav-tree[open]>summary>.ui-icon:first-child{
+  color:var(--admin-brand)!important;
+}
+.admin-nav-tree>summary>.admin-nav-badge{
+  display:inline-flex!important;
+  min-width:25px!important;
+  height:23px!important;
+  background:var(--admin-danger)!important;
+  color:#fff!important;
+  border:0!important;
+  opacity:1!important;
+}
+.admin-nav-tree>summary>.admin-nav-chevron{
+  display:grid!important;
+  place-items:center!important;
+  color:#c9efff!important;
+}
+.admin-nav-tree[open]>summary>.admin-nav-chevron{
+  color:var(--admin-brand-dark)!important;
+}
+.admin-nav-tree>summary>.admin-nav-chevron .ui-icon{
+  width:17px!important;
+  height:17px!important;
+  opacity:1!important;
+}
+.admin-nav-children{
+  padding:6px!important;
+  background:#edf5fb!important;
+  border-top:1px solid #cbddea!important;
+}
+.admin-nav-children>.side-link,
+.admin-nav-children>a{
+  min-height:39px!important;
+  background:#fff!important;
+  border:1px solid #d3e1ed!important;
+  color:var(--admin-text)!important;
+  box-shadow:0 2px 7px rgba(20,57,88,.035);
+}
+.admin-nav-children>.side-link .ui-icon,
+.admin-nav-children>a .ui-icon{
+  color:#4277a5!important;
+}
+.admin-nav-children>.side-link:hover,
+.admin-nav-children>a:hover{
+  background:#eef7ff!important;
+  border-color:#a9cbe8!important;
+  color:var(--admin-brand-dark)!important;
+}
+.admin-nav-children>.side-link.active,
+.admin-nav-children>a.active{
+  background:linear-gradient(90deg,#1769e0,#09a7d8)!important;
+  border-color:#1769e0!important;
+  color:#fff!important;
+  box-shadow:inset -3px 0 0 #f59e0b,0 5px 14px rgba(23,105,224,.18)!important;
+}
+.admin-nav-children>.side-link.active .ui-icon,
+.admin-nav-children>a.active .ui-icon{
+  color:#fff!important;
+}
+.admin-nav-nested{
+  margin:0 5px 4px 0!important;
+  padding:4px 5px!important;
+  border-right:2px solid #9ec7e8!important;
+  background:#e6f1f9!important;
+  border-radius:0 0 8px 8px;
+}
+.admin-nav-nested a{
+  min-height:32px!important;
+  color:#315a78!important;
+  border-radius:7px!important;
+}
+.admin-nav-nested a:hover{
+  background:#dceefc!important;
+  color:var(--admin-brand-dark)!important;
+}
+.admin-nav-nested .ui-icon{
+  color:#5f89ab!important;
+}
+.admin-nav-home{
+  background:rgba(255,255,255,.055)!important;
+  color:#f7fbff!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+}
+.admin-nav-home:hover{
+  background:rgba(255,255,255,.11)!important;
+  color:#fff!important;
+}
+.admin-nav-home.active{
+  background:linear-gradient(90deg,#ffffff 0%,#e9f6ff 100%)!important;
+  color:var(--admin-brand-dark)!important;
+  border-color:rgba(255,255,255,.30)!important;
+  box-shadow:inset -3px 0 0 var(--admin-accent),0 6px 16px rgba(0,0,0,.10)!important;
+}
+.admin-nav-home.active .ui-icon{
+  color:var(--admin-brand)!important;
+}
+.admin-nav-apps{
+  background:linear-gradient(135deg,#eef7ff,#eefbfb)!important;
+  color:var(--admin-brand-dark)!important;
+  border-color:#cfe2f4!important;
+}
+.admin-nav-apps .ui-icon{
+  color:var(--admin-brand)!important;
+}
+@media(max-width:620px){
+  .admin-nav-tree>summary{
+    min-height:48px!important;
+    font-size:.79rem!important;
+  }
+  .admin-nav-children{
+    padding:6px!important;
+  }
+  .admin-nav-children>.side-link,
+  .admin-nav-children>a{
+    min-height:42px!important;
+    font-size:.76rem!important;
+  }
+}

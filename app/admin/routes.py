@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta, timezone
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from ..accounting.models import Account, JournalEntry
 from ..employees.models import Employee
@@ -131,7 +131,10 @@ def bookings():
     end = start + timedelta(days=1)
     rows = (
         Booking.query
-        .options(joinedload(Booking.customer), joinedload(Booking.allocations).joinedload(BookingAllocation.resource))
+        .options(
+            selectinload(Booking.customer),
+            selectinload(Booking.allocations).selectinload(BookingAllocation.resource),
+        )
         .filter(Booking.start_at < end, Booking.end_at > start)
         .order_by(Booking.start_at, Booking.id)
         .all()
