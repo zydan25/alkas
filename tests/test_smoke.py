@@ -718,7 +718,7 @@ def test_customer_theme_selector_and_validation_are_present():
     assert 'name="customer_home_theme"' in settings_page
     assert 'value="classic"' in settings_page
     assert 'value="flutter"' in settings_page
-    assert 'CUSTOMER_HOME_THEMES = {"classic", "flutter"}' in settings_routes
+    assert 'CUSTOMER_HOME_THEMES = {"classic", "flutter", "aurora"}' in settings_routes
     assert '"customer_home_theme"' in settings_routes
 
 
