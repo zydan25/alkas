@@ -720,3 +720,35 @@ def test_customer_theme_selector_and_validation_are_present():
     assert 'value="flutter"' in settings_page
     assert 'CUSTOMER_HOME_THEMES = {"classic", "flutter"}' in settings_routes
     assert '"customer_home_theme"' in settings_routes
+
+
+def test_customer_aurora_theme_is_available_and_wired():
+    from app.settings.services import DEFAULTS
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    settings_page = (root / "app" / "templates" / "settings" / "index.html").read_text(encoding="utf-8")
+    routes = (root / "app" / "settings" / "routes.py").read_text(encoding="utf-8")
+    base = (root / "app" / "templates" / "base.html").read_text(encoding="utf-8")
+    theme = (root / "app" / "static" / "css" / "customer-aurora-theme.css").read_text(encoding="utf-8")
+
+    assert DEFAULTS["customer_home_theme"] == "classic"
+    assert DEFAULTS["customer_aurora_primary"] == "#7c3aed"
+    assert 'value="aurora"' in settings_page
+    assert '"customer_aurora_primary"' in routes
+    assert '"customer_aurora_text"' in routes
+    assert "customer-aurora-theme.css" in base
+    assert "customer-ui-theme-aurora" in base
+    assert ".customer-ui-theme-aurora" in theme
+
+
+def test_customer_aurora_palette_is_independent_from_global_theme():
+    from app.settings.services import get_site_settings
+
+    values = get_site_settings()
+    assert values["customer_aurora_primary"].startswith("#")
+    assert values["customer_aurora_secondary"].startswith("#")
+    assert values["customer_aurora_accent"].startswith("#")
+    assert values["customer_aurora_background"].startswith("#")
+    assert values["customer_aurora_surface"].startswith("#")
+    assert values["customer_aurora_text"].startswith("#")
