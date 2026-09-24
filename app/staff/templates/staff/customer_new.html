@@ -6,7 +6,7 @@
 
 <section class="staff-card">
   <div class="staff-card-head"><div><span>بيانات أساسية</span><h2>بيانات العميل</h2></div></div>
-  <form class="staff-form" data-ajax-form action="{{ url_for('staff.customer_new') }}" method="post">
+  <form class="staff-form" action="{{ url_for('staff.customer_new') }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="staff-form-grid">
       <label>اسم العميل<input name="name" required minlength="2" placeholder="اسم العميل"></label>
