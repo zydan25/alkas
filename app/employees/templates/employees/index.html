@@ -1,5 +1,19 @@
 {% extends "admin/layout.html" %}
 {% block content %}
-<div class="page-header compact"><div><div class="eyebrow">الموارد البشرية</div><h1>الموظفون</h1><p>ملف الموظف، القسم، الحالة والراتب الأساسي، مع فتح حضوره ورواتبه من ملفه.</p></div><button class="btn btn-primary">＋ موظف جديد</button></div>
-<section class="panel"><div class="toolbar"><div class="filter-search"><span>⌕</span><input data-table-search placeholder="ابحث باسم الموظف أو الكود..."></div><span class="mini-badge">{{ rows|length }} موظف</span></div><div class="table-wrap"><table class="data-table" data-data-table><thead><tr><th>الموظف</th><th>الكود</th><th>الهاتف</th><th>الحالة</th><th>الراتب</th><th></th></tr></thead><tbody>{% for e in rows %}<tr><td><div class="person"><span class="avatar">{{ e.name_ar[:1] }}</span><span><b>{{ e.name_ar }}</b><small>{{ e.position_id or 'بدون مسمى' }}</small></span></div></td><td>{{ e.employee_code }}</td><td>{{ e.phone or '—' }}</td><td><span class="badge badge-success">{{ e.employment_status }}</span></td><td>{{ "{:,.0f}".format(e.base_salary|float) }}</td><td><button class="icon-btn">⋯</button></td></tr>{% else %}<tr><td colspan="6"><div class="empty-state">لا يوجد موظفون.</div></td></tr>{% endfor %}</tbody></table></div></section>
+<div class="page-header compact"><div><div class="eyebrow">الموارد البشرية</div><h1>الموظفون</h1><p>ملف الموظف، الحساب المرتبط، القسم، الحالة والراتب، مع الوصول إلى لوحة الموظف.</p></div><a class="btn btn-primary" href="{{ url_for('employees.new') }}">＋ موظف جديد</a></div>
+<section class="panel">
+  <div class="toolbar"><div class="filter-search"><span>⌕</span><input data-table-search placeholder="ابحث باسم الموظف أو الكود أو الهاتف..."></div><span class="mini-badge">{{ rows|length }} موظف</span></div>
+  <div class="table-wrap"><table class="data-table" data-data-table><thead><tr><th>الموظف</th><th>الكود</th><th>الهاتف</th><th>حساب الدخول</th><th>الحالة</th><th>الراتب</th><th></th></tr></thead><tbody>
+  {% for e in rows %}
+  <tr>
+    <td><div class="person"><span class="avatar">{{ e.name_ar[:1] }}</span><span><b>{{ e.name_ar }}</b><small>{{ e.position_id or 'بدون مسمى' }}</small></span></div></td>
+    <td>{{ e.employee_code }}</td><td>{{ e.phone or '—' }}</td>
+    <td>{% if e.user_id %}<span class="badge badge-success">مرتبط</span>{% else %}<span class="badge badge-neutral">بدون دخول</span>{% endif %}</td>
+    <td><span class="badge badge-{{ 'success' if e.employment_status=='active' else 'danger' }}">{{ 'نشط' if e.employment_status=='active' else e.employment_status }}</span></td>
+    <td>{{ "{:,.0f}".format(e.base_salary|float) }}</td>
+    <td><a class="icon-btn" href="{{ url_for('staff.dashboard') if e.user_id and e.user_id == current_user.id else url_for('employees.ui') }}" title="لوحة الموظف">↗</a></td>
+  </tr>
+  {% else %}<tr><td colspan="7"><div class="empty-state">لا يوجد موظفون.</div></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
 {% endblock %}
