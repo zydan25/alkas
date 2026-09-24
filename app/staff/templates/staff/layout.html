@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="{{ site_settings.theme.primary }}">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
+<link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
+<link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
+<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v1">
+<title>{{ title or 'لوحة الموظف - ' ~ site_settings.site_name }}</title>
+{% block head %}{% endblock %}
+</head>
+<body class="staff-body">
+<div class="staff-shell">
+  <aside class="staff-drawer" data-staff-drawer>
+    <div class="staff-drawer-head">
+      <a class="staff-brand" href="{{ url_for('staff.dashboard') }}">
+        {% if site_settings.logo_url %}<img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">{% else %}<span>ك</span>{% endif %}
+        <div><b>{{ site_settings.site_name }}</b><small>لوحة الموظف</small></div>
+      </a>
+      <button class="staff-icon-button" type="button" data-staff-close aria-label="إغلاق القائمة">×</button>
+    </div>
+    <div class="staff-drawer-scroll">
+      <a class="staff-drawer-link active" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><b>الرئيسية</b></a>
+      <details open>
+        <summary><span>▣</span><b>التشغيل</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.dashboard') }}#booking">حجز ملعب</a>
+          <a href="{{ url_for('staff.dashboard') }}#pending">الحجوزات القادمة</a>
+          <a href="{{ url_for('staff.dashboard') }}#active">الحجوزات الجارية</a>
+        </div>
+      </details>
+      <details open>
+        <summary><span>◉</span><b>الحديقة</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.park') }}">دخول وخروج الزوار</a>
+          <a href="{{ url_for('staff.park') }}#occupancy">الموجودون الآن</a>
+        </div>
+      </details>
+      <details open>
+        <summary><span>▤</span><b>الموظف</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.finance') }}">راتبي وعهدتي</a>
+          <a href="{{ url_for('staff.attendance') }}">الحضور والانصراف</a>
+        </div>
+      </details>
+    </div>
+    <div class="staff-drawer-foot">
+      <a href="{{ url_for('public.home') }}">الموقع العام</a>
+      <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">تسجيل الخروج</button></form>
+    </div>
+  </aside>
+
+  <div class="staff-main">
+    <header class="staff-appbar">
+      <button class="staff-menu-button" type="button" data-staff-open aria-label="فتح القائمة"><span>☰</span></button>
+      <div class="staff-appbar-title">
+        <span>بوابة الموظف</span>
+        <b>{{ employee.name_ar if employee is defined and employee else 'الموظف' }}</b>
+      </div>
+      <a class="staff-profile-chip" href="{{ url_for('staff.finance') }}">
+        <span>{{ (employee.name_ar[:1] if employee is defined and employee else 'م') }}</span>
+      </a>
+    </header>
+
+    <main class="staff-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}<div class="staff-toast">{{ message }}</div>{% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <nav class="staff-bottom-nav">
+      <a class="{{ 'active' if request.endpoint == 'staff.dashboard' else '' }}" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><small>الرئيسية</small></a>
+      <a href="{{ url_for('staff.dashboard') }}#booking"><span>＋</span><small>حجز</small></a>
+      <a class="{{ 'active' if request.endpoint == 'staff.park' else '' }}" href="{{ url_for('staff.park') }}"><span>◉</span><small>الحديقة</small></a>
+      <a class="{{ 'active' if request.endpoint in ['staff.finance','staff.attendance'] else '' }}" href="{{ url_for('staff.finance') }}"><span>●</span><small>حسابي</small></a>
+    </nav>
+  </div>
+</div>
+<div class="staff-overlay" data-staff-overlay></div>
+<div class="staff-snackbar" data-staff-snackbar hidden></div>
+<script src="/static/js/staff.js?v={{ site_settings.asset_version }}&ui=20260924-staff-v1" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

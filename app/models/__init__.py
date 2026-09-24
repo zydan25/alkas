@@ -30,6 +30,7 @@ from ..suppliers.models import PurchaseInvoice, Supplier, SupplierPayment
 from ..teams.models import Player, Team, TeamPlayer
 from ..tournaments.models import Match, MatchEvent, Tournament, TournamentGroup, TournamentRegistration, TournamentRound
 from ..training.models import Coach, Lesson, TrainingProgram
+from ..staff.models import ParkVisit, ParkVisitExit, StaffDeduction
 
 
 def register_models():
