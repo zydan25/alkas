@@ -9,8 +9,8 @@
 <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
 <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v8">
-<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v6">
+<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v9">
+<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v7">
 <title>{{ title or 'لوحة الموظف - ' ~ site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
@@ -63,7 +63,7 @@
       <details open>
         <summary><span>▤</span><b>الموظف</b><i>⌄</i></summary>
         <div>
-          <a href="{{ url_for('staff.account') }}">حسابي</a>
+          <a href="{{ url_for('staff.account') }}" class="{{ 'active' if request.endpoint == 'staff.account' else '' }}">حسابي</a>
           <a href="{{ url_for('staff.reports', type='salary') }}">تقرير الراتب</a>
           <a href="{{ url_for('staff.reports', type='my_bookings') }}">تقرير حجوزاتي</a>
           <a href="{{ url_for('staff.reports', type='attendance') }}">تقرير الدوام</a>
@@ -100,13 +100,13 @@
       <a class="{{ 'active' if request.endpoint == 'staff.dashboard' else '' }}" href="{{ url_for('staff.dashboard') }}"><span>⌂</span><small>الرئيسية</small></a>
       <a href="{{ url_for('staff.dashboard') }}#booking"><span>＋</span><small>حجز</small></a>
       <a class="{{ 'active' if request.endpoint == 'staff.park' else '' }}" href="{{ url_for('staff.park') }}"><span>◉</span><small>الحديقة</small></a>
-      <a class="{{ 'active' if request.endpoint in ['staff.finance','staff.attendance'] else '' }}" href="{{ url_for('staff.finance') }}"><span>●</span><small>حسابي</small></a>
+      <a class="{{ 'active' if request.endpoint in ['staff.account','staff.finance','staff.attendance','staff.reports'] else '' }}" href="{{ url_for('staff.account') }}"><span>●</span><small>حسابي</small></a>
     </nav>
   </div>
 </div>
 <div class="staff-overlay" data-staff-overlay></div>
 <div class="staff-snackbar" data-staff-snackbar hidden></div>
-<script src="/static/js/cache-control.js?v={{ site_settings.asset_version }}&ui=20260924-cache-v4" defer></script>
+<script src="/static/js/cache-control.js?v={{ site_settings.asset_version }}&ui=20260924-cache-v5" defer></script>
 <script src="/static/js/staff.js?v={{ site_settings.asset_version }}&ui=20260924-staff-v6" defer></script>
 {% block scripts %}{% endblock %}
 </body>
