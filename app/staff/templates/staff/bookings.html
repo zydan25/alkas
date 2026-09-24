@@ -1,0 +1,63 @@
+{% extends "staff/layout.html" %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>التشغيل والحجوزات</span><h1>حجوزات الموظف</h1><p>كل الحجوزات في شاشة واحدة، مع تأكيد الحجوزات المعلقة واستلام الدفع من وردية الموظف.</p></div>
+  <a class="staff-main-button" href="{{ url_for('staff.dashboard') }}#booking">＋ حجز سريع</a>
+</section>
+
+<section class="staff-card">
+  <div class="staff-report-tabs">
+    {% for key,label in [('all','كل الحجوزات'),('pending','بانتظار الدفع'),('confirmed','مؤكدة'),('checked_in','دخل'),('in_progress','جارية'),('completed','مكتملة'),('cancelled','ملغاة'),('expired','منتهية')] %}
+      <a class="{{ 'active' if status == key else '' }}" href="{{ url_for('staff.bookings_list', status=key) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head">
+    <div><span>القائمة</span><h2>{{ 'بانتظار الدفع والتأكيد' if status == 'pending' else 'الحجوزات' }}</h2></div>
+    <span class="staff-count-badge">{{ rows|length }}</span>
+  </div>
+  <div class="staff-list">
+    {% for row in rows %}
+    <article class="staff-booking-item">
+      <div class="staff-item-main">
+        <div class="staff-item-icon {{ 'success-dot' if row.status in ['confirmed','checked_in','in_progress'] else '' }}">▣</div>
+        <div>
+          <b>{{ row.number }}</b>
+          <strong>{{ row.customer }}</strong>
+          <small>{{ row.start }} → {{ row.end }} · {{ row.resources }}</small>
+          <div><span class="staff-mini-chip">{{ row.status }}</span><span class="staff-mini-chip">{{ row.payment_status }}</span></div>
+        </div>
+      </div>
+      <div class="staff-item-money">
+        <b>{{ '{:,.0f}'.format(row.total|float) }}</b>
+        <small>المدفوع: {{ '{:,.0f}'.format(row.paid|float) }} · المتبقي: {{ '{:,.0f}'.format(row.balance|float) }}</small>
+      </div>
+      <div class="staff-item-actions">
+        {% if row.status in ['hold','pending'] and can_confirm %}
+        <form data-ajax-form action="{{ url_for('staff.booking_confirm', booking_id=row.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="number" name="paid_amount" min="1" step="1" value="{{ '{:.0f}'.format(row.balance|float) }}" required aria-label="المبلغ المقبوض">
+          <select name="method" aria-label="طريقة الدفع">
+            {% for key,label in payment_methods.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+          </select>
+          <button class="staff-main-button small" type="submit">تأكيد + تحصيل</button>
+        </form>
+        {% endif %}
+        {% if can_chat %}<a class="staff-outline-button small" href="{{ url_for('staff.booking_chat', booking_id=row.id) }}">المحادثة</a>{% endif %}
+        {% if row.status not in ['cancelled','completed','expired'] and can_cancel %}
+        <form data-ajax-form action="{{ url_for('staff.booking_cancel', booking_id=row.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="reason" value="إلغاء من قائمة حجوزات الموظف">
+          <button class="staff-danger-button small" type="submit">إلغاء</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="staff-empty">لا توجد حجوزات في هذا التصنيف.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
