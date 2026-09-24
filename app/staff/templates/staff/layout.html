@@ -47,9 +47,6 @@
         <summary><span>▤</span><b>الصندوق والعهدة</b><i>⌄</i></summary>
         <div>
           <a href="{{ url_for('staff.finance') }}">وردية الصندوق والعهدة</a>
-          <a href="{{ url_for('staff.reports', type='custody') }}">تقرير العهد</a>
-          <a href="{{ url_for('staff.reports', type='account') }}">كشف حسابي</a>
-          <a href="{{ url_for('staff.reports', type='operations') }}">تقرير العمليات</a>
         </div>
       </details>
       <details open>
@@ -57,16 +54,27 @@
         <div>
           <a href="{{ url_for('staff.park') }}">دخول وخروج الزوار</a>
           <a href="{{ url_for('staff.park') }}#occupancy">الموجودون ومن خرج</a>
-          <a href="{{ url_for('staff.reports', type='empty_resources') }}">الملاعب الفارغة</a>
         </div>
       </details>
+
+      <details open>
+        <summary><span>▤</span><b>التقارير</b><i>⌄</i></summary>
+        <div>
+          <a href="{{ url_for('staff.reports', type='account') }}">كشف حسابي: له وعليه</a>
+          <a href="{{ url_for('staff.reports', type='custody') }}">تقرير العهد</a>
+          <a href="{{ url_for('staff.reports', type='attendance') }}">تقرير الدوام</a>
+          <a href="{{ url_for('staff.reports', type='salary') }}">تقرير الراتب</a>
+          <a href="{{ url_for('staff.reports', type='operations') }}">تقرير العمليات</a>
+          <a href="{{ url_for('staff.reports', type='my_bookings') }}">تقرير حجوزاتي</a>
+          <a href="{{ url_for('staff.reports', type='empty_resources') }}">تقرير الملاعب الفارغة</a>
+          <a href="{{ url_for('staff.reports', type='all_bookings') }}">تقرير كل الحجوزات</a>
+        </div>
+      </details>
+
       <details open>
         <summary><span>▤</span><b>الموظف</b><i>⌄</i></summary>
         <div>
           <a href="{{ url_for('staff.account') }}" class="{{ 'active' if request.endpoint == 'staff.account' else '' }}">حسابي</a>
-          <a href="{{ url_for('staff.reports', type='salary') }}">تقرير الراتب</a>
-          <a href="{{ url_for('staff.reports', type='my_bookings') }}">تقرير حجوزاتي</a>
-          <a href="{{ url_for('staff.reports', type='attendance') }}">تقرير الدوام</a>
           <a href="{{ url_for('staff.attendance') }}">تسجيل الحضور والانصراف</a>
         </div>
       </details>
