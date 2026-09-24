@@ -1,0 +1,87 @@
+{% extends "staff/layout.html" %}
+{% block head %}
+<style>
+@media print {
+  body.staff-body { background:#fff !important; }
+  .staff-drawer,.staff-overlay,.staff-appbar,.staff-bottom-nav,.staff-report-no-print,.staff-snackbar { display:none !important; }
+  .staff-main { margin:0 !important; width:100% !important; max-width:none !important; }
+  .staff-content { padding:0 !important; width:100% !important; max-width:none !important; }
+  .staff-card,.staff-hero { box-shadow:none !important; border-color:#ddd !important; break-inside:avoid; }
+}
+</style>
+{% endblock %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>التقارير</span><h1>{{ title_ar }}</h1><p>{{ employee.name_ar }} · من {{ start }} إلى {{ end }}</p></div>
+  <button class="staff-outline-button staff-report-no-print" type="button" onclick="window.print()">🖨 طباعة التقرير</button>
+</section>
+
+<section class="staff-card staff-report-no-print">
+  <div class="staff-report-filter">
+    <label>من<input type="date" name="start" value="{{ start }}" form="staff-report-filter"></label>
+    <label>إلى<input type="date" name="end" value="{{ end }}" form="staff-report-filter"></label>
+    <button class="staff-main-button" form="staff-report-filter" type="submit">عرض</button>
+    <button class="staff-outline-button" type="button" onclick="window.print()">طباعة</button>
+  </div>
+  <form id="staff-report-filter" method="get">
+    <input type="hidden" name="type" value="{{ kind }}">
+  </form>
+</section>
+
+<section class="staff-card staff-report-no-print">
+  <div class="staff-report-grid">
+    {% for key,label in [
+      ('account','كشف حسابي'),('custody','العهد'),('attendance','الدوام'),('salary','الراتب'),
+      ('operations','العمليات'),('my_bookings','حجوزاتي'),('empty_resources','الملاعب الفارغة'),('all_bookings','كل الحجوزات')
+    ] %}
+    <a href="{{ url_for('staff.reports', type=key, start=start, end=end) }}" class="{{ 'active' if kind == key else '' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if summary %}
+<section class="staff-stat-grid">
+  {% for label,value in summary %}
+  <article><small>{{ label }}</small><strong>{{ '{:,.0f}'.format(value|float) }}</strong><span>ر.ي</span></article>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="staff-card">
+  {% if kind == 'account' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>التاريخ</th><th>البيان</th><th>عليه</th><th>له</th><th>الرصيد</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.date }}</td><td>{{ row.description }}</td><td>{{ '{:,.0f}'.format(row.debit|float) }}</td><td>{{ '{:,.0f}'.format(row.credit|float) }}</td><td>{{ '{:,.0f}'.format(row.balance|float) }}</td></tr>{% else %}<tr><td colspan="5">لا توجد حركة مالية في الفترة.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind == 'custody' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>الفتح</th><th>الصندوق</th><th>الحالة</th><th>افتتاحي</th><th>التحصيل</th><th>المصروف</th><th>المتوقع</th><th>الفعلي</th><th>الفرق</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.date }}</td><td>{{ row.register }}</td><td>{{ row.status }}</td><td>{{ '{:,.0f}'.format(row.opening|float) }}</td><td>{{ '{:,.0f}'.format(row.receipts|float) }}</td><td>{{ '{:,.0f}'.format(row.out|float) }}</td><td>{{ '{:,.0f}'.format(row.expected|float) }}</td><td>{{ '{:,.0f}'.format(row.actual|float) if row.actual is not none else '—' }}</td><td>{{ '{:,.0f}'.format(row.difference|float) if row.difference is not none else '—' }}</td></tr>{% else %}<tr><td colspan="9">لا توجد عهد ضمن الفترة.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind == 'attendance' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>اليوم</th><th>الحالة</th><th>الدخول</th><th>الخروج</th><th>ملاحظة</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.date }}</td><td>{{ row.status }}</td><td>{{ row.check_in }}</td><td>{{ row.check_out }}</td><td>{{ row.note }}</td></tr>{% else %}<tr><td colspan="5">لا يوجد دوام مسجل.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind == 'salary' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>الفترة</th><th>الحالة</th><th>أساسي</th><th>إضافي</th><th>بدل/حافز</th><th>عمولة</th><th>خصومات</th><th>سلف</th><th>الصافي</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.period }}<br><small>{{ row.range }}</small></td><td>{{ row.status }}</td><td>{{ '{:,.0f}'.format(row.base|float) }}</td><td>{{ '{:,.0f}'.format(row.overtime|float) }}</td><td>{{ '{:,.0f}'.format(row.bonus|float) }}</td><td>{{ '{:,.0f}'.format(row.commission|float) }}</td><td>{{ '{:,.0f}'.format(row.deductions|float) }}</td><td>{{ '{:,.0f}'.format(row.advances|float) }}</td><td>{{ '{:,.0f}'.format(row.net|float) }}</td></tr>{% else %}<tr><td colspan="9">لا توجد رواتب للفترة.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind == 'operations' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>التاريخ</th><th>العملية</th><th>البيان</th><th>القيمة</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.date }}</td><td>{{ row.type }}</td><td>{{ row.description }}</td><td>{{ '{:,.0f}'.format(row.amount|float) }}</td></tr>{% else %}<tr><td colspan="4">لا توجد عمليات.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind in ['my_bookings','all_bookings'] %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>رقم</th><th>العميل</th><th>الملعب</th><th>البداية</th><th>الحالة</th><th>الدفع</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.number }}</td><td>{{ row.customer }}</td><td>{{ row.resources }}</td><td>{{ row.start }}</td><td>{{ row.status }}</td><td>{{ row.payment_status }}</td><td>{{ '{:,.0f}'.format(row.total|float) }}</td><td>{{ '{:,.0f}'.format(row.paid|float) }}</td><td>{{ '{:,.0f}'.format(row.balance|float) }}</td></tr>{% else %}<tr><td colspan="9">لا توجد حجوزات.</td></tr>{% endfor %}
+  </tbody></table></div>
+
+  {% elif kind == 'empty_resources' %}
+  <div class="staff-report-table-wrap"><table class="staff-report-table"><thead><tr><th>الملعب</th><th>الرياضة</th><th>الحالة خلال الفترة</th><th>السعر الأساسي</th></tr></thead><tbody>
+  {% for row in rows %}<tr><td>{{ row.resource }}</td><td>{{ row.sport }}</td><td>{{ row.status }}</td><td>{{ '{:,.0f}'.format(row.price|float) }}</td></tr>{% else %}<tr><td colspan="4">لا توجد ملاعب.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% endif %}
+</section>
+{% endblock %}
