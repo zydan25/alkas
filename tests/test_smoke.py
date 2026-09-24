@@ -165,3 +165,99 @@ def test_employee_login_redirects_to_staff_app():
         db.session.delete(employee)
         db.session.delete(user)
         db.session.commit()
+
+
+def test_manager_can_create_employee_login_and_open_staff_app():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Employee, Permission, Role, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    suffix = uuid.uuid4().hex[:8]
+    manager_username = "manager_" + suffix
+    staff_username = "new_staff_" + suffix
+
+    with app.app_context():
+        keys = {
+            "admin.access": "دخول الإدارة",
+            "employee.view": "عرض الموظفين",
+            "employee.manage": "إدارة الموظفين",
+            "staff.access": "دخول لوحة الموظف",
+            "staff.booking.confirm": "تأكيد الحجوزات",
+            "staff.booking.chat": "محادثات الحجوزات",
+        }
+        permissions = []
+        for key, name_ar in keys.items():
+            permission = Permission.query.filter_by(key=key).first()
+            if not permission:
+                permission = Permission(key=key, name_ar=name_ar, is_active=True)
+                db.session.add(permission)
+                db.session.flush()
+            permissions.append(permission)
+
+        manager_role = Role(
+            name="manager_smoke_" + suffix,
+            name_ar="مدير اختبار",
+            permissions=[p for p in permissions if p.key in {"admin.access", "employee.view", "employee.manage"}],
+        )
+        staff_role = Role(
+            name="staff_smoke_role_" + suffix,
+            name_ar="موظف اختبار",
+            permissions=[p for p in permissions if p.key in {"staff.access", "staff.booking.confirm", "staff.booking.chat"}],
+        )
+        manager = User(
+            username=manager_username,
+            phone="77" + str(uuid.uuid4().int % 10**8).zfill(8),
+            display_name="مدير اختبار",
+            is_active=True,
+            roles=[manager_role],
+        )
+        manager.set_password("ManagerPass123")
+        db.session.add_all([manager_role, staff_role, manager])
+        db.session.commit()
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(manager.id)
+            session["_fresh"] = True
+
+        response = client.post(
+            "/admin/employees/new",
+            data={
+                "name_ar": "موظف تم إنشاؤه",
+                "phone": "78" + str(uuid.uuid4().int % 10**8).zfill(8),
+                "base_salary": "250000",
+                "login_username": staff_username,
+                "login_password": "StaffPass123",
+                "login_role_id": str(staff_role.id),
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+
+        employee = Employee.query.filter_by(name_ar="موظف تم إنشاؤه").order_by(Employee.id.desc()).first()
+        assert employee is not None
+        assert employee.user_id is not None
+        staff_user = db.session.get(User, employee.user_id)
+        assert staff_user is not None
+        assert staff_user.username == staff_username
+        assert any(role.id == staff_role.id for role in staff_user.roles)
+
+        staff_client = app.test_client()
+        response = staff_client.post(
+            "/auth/login",
+            data={"identifier": staff_username, "password": "StaffPass123"},
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        assert response.headers["Location"].endswith("/staff")
+
+        db.session.delete(employee)
+        db.session.delete(staff_user)
+        db.session.delete(manager)
+        db.session.delete(staff_role)
+        db.session.delete(manager_role)
+        db.session.commit()
