@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 import json
-from flask import Blueprint, Response, jsonify, render_template, request, url_for
+from flask import Blueprint, Response, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
@@ -11,6 +11,7 @@ from ..extensions import db
 from ..announcements.models import AnnouncementCard
 from ..live.models import LiveEvent, Stream
 from ..models import Booking, BookingAllocation, Customer, Resource, Sport
+from ..employees.models import Employee
 from ..memberships.models import MembershipPlan, MembershipRequest
 from ..news.models import Post
 from ..offers.models import Offer
@@ -160,6 +161,26 @@ def _upcoming_matches(now):
 
 @bp.get("/")
 def home():
+    # The domain root is the account gateway: managers/admins, employees,
+    # and customers should land in their own dashboard immediately.
+    if current_user.is_authenticated:
+        if current_user.username == "admin" or current_user.has_permission("admin.access"):
+            return redirect(url_for("admin.dashboard"), code=303)
+
+        employee = Employee.query.filter_by(
+            user_id=current_user.id,
+            employment_status="active",
+        ).first()
+        if employee:
+            return redirect(url_for("staff.dashboard"), code=303)
+
+        customer = Customer.query.filter_by(
+            user_id=current_user.id,
+            is_active=True,
+        ).first()
+        if customer:
+            return redirect(url_for("customer.dashboard"), code=303)
+
     now = datetime.now(timezone.utc)
     local_now = now.astimezone()
     banners = _active_banner_rows(now)
