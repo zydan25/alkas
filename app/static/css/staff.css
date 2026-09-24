@@ -44,3 +44,6 @@ html,body{min-height:100%;margin:0}
 .player-exit-form input{min-height:38px!important;width:100%!important;border:1px solid var(--staff-border);border-radius:10px;padding:0 7px;background:#fff}
 .player-exit-form button{white-space:nowrap}
 .staff-attendance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.staff-attendance-actions form{flex:1}.staff-attendance-actions button{width:100%}
+
+.park-exit-form{display:grid!important;grid-template-columns:minmax(58px,74px) auto!important;gap:5px!important;align-items:center!important}.park-exit-form input{min-height:38px!important;width:100%!important;border:1px solid var(--staff-border);border-radius:10px;padding:0 7px;background:#fff}.park-exit-form button{white-space:nowrap}
+@media(max-width:460px){.park-exit-form{grid-template-columns:1fr!important}.park-exit-form button{width:100%}}
