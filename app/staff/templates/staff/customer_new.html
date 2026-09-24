@@ -1,0 +1,21 @@
+{% extends "staff/layout.html" %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>العملاء</span><h1>إضافة عميل جديد</h1><p>أنشئ ملف العميل مرة واحدة ثم استخدمه مباشرة في الحجوزات.</p></div>
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head"><div><span>بيانات أساسية</span><h2>بيانات العميل</h2></div></div>
+  <form class="staff-form" data-ajax-form action="{{ url_for('staff.customer_new') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="staff-form-grid">
+      <label>اسم العميل<input name="name" required minlength="2" placeholder="اسم العميل"></label>
+      <label>رقم الهاتف<input name="phone" inputmode="tel" placeholder="77xxxxxxxx"></label>
+    </div>
+    <div class="staff-form-actions">
+      <button class="staff-main-button" type="submit">حفظ العميل</button>
+      <a class="staff-outline-button" href="{{ url_for('staff.customers') }}">إلغاء</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
