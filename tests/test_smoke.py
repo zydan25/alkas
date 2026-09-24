@@ -53,8 +53,16 @@ def test_admin_bookings_page_renders_for_admin_user():
             is_active=True,
         )
         user.set_password("TestPass123")
-        permission = Permission(key="admin.access", name_ar="دخول الإدارة")
-        booking_permission = Permission(key="booking.view", name_ar="عرض الحجوزات")
+        permission = Permission.query.filter_by(key="admin.access").first()
+        if not permission:
+            permission = Permission(key="admin.access", name_ar="دخول الإدارة", is_active=True)
+            db.session.add(permission)
+            db.session.flush()
+        booking_permission = Permission.query.filter_by(key="booking.view").first()
+        if not booking_permission:
+            booking_permission = Permission(key="booking.view", name_ar="عرض الحجوزات", is_active=True)
+            db.session.add(booking_permission)
+            db.session.flush()
         role = Role(name="booking_smoke_" + uuid.uuid4().hex[:8], name_ar="اختبار الحجوزات", is_system=False, permissions=[permission, booking_permission])
         user.roles.append(role)
         db.session.add(user)
