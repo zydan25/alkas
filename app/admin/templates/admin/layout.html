@@ -8,14 +8,14 @@
 <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
 <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">
+<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}&ui=20260924-admin-tree-v1">
 <link rel="stylesheet" href="/static/css/admin-modern.css?v={{ site_settings.asset_version }}&ui=20260922b">
 <link rel="stylesheet" href="/static/css/admin-theme.css?v={{ site_settings.asset_version }}&ui=20260922d">
 <title>{{ title or site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
 <body class="admin-body">
-{% macro icon(name) %}<svg class="ui-icon" aria-hidden="true"><use href="/static/img/admin-icons.svg#{{ name }}"></use></svg>{% endmacro %}
+{% macro icon(name) %}<svg class="ui-icon" aria-hidden="true"><use href="/static/img/admin-icons.svg?v={{ site_settings.asset_version }}&ui=20260924-admin-tree#{{ name }}"></use></svg>{% endmacro %}
 <div class="admin-app">
   <aside class="sidebar" data-sidebar>
     <div class="sidebar-brand">
@@ -27,51 +27,104 @@
     </div>
 
     <div class="sidebar-scroll">
-      <div class="side-section-title">الرئيسية</div>
-      {% if can('dashboard.view') %}<a class="side-link {{ 'active' if request.path == '/admin' else '' }}" href="{{ url_for('admin.dashboard') }}">{{ icon('home') }}<span class="side-label">الرئيسية</span></a>{% endif %}
-      {% if can('dashboard.view') %}<a class="side-link" href="/admin/workspace">{{ icon('grid') }}<span class="side-label">كل التطبيقات</span></a>{% endif %}
+      {% if can('dashboard.view') %}
+      <a class="side-link admin-nav-home {{ 'active' if request.path == '/admin' else '' }}" href="{{ url_for('admin.dashboard') }}">{{ icon('home') }}<span class="side-label">الرئيسية</span></a>
+      <a class="side-link admin-nav-apps" href="/admin/workspace">{{ icon('grid') }}<span class="side-label">كل التطبيقات</span><b class="admin-nav-badge">كل</b></a>
+      {% endif %}
 
-      <div class="side-section-title">التشغيل</div>
-      {% if can('booking.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/bookings') else '' }}" href="{{ url_for('admin.bookings') }}">{{ icon('calendar') }}<span class="side-label">الحجوزات</span></a>{% endif %}
-      {% if can('customer.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/customers') else '' }}" href="{{ url_for('admin.customers') }}">{{ icon('users') }}<span class="side-label">العملاء</span></a>{% endif %}
-      {% if can('resource.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/resources') else '' }}" href="{{ url_for('admin.resources') }}">{{ icon('stadium') }}<span class="side-label">الملاعب والموارد</span></a>{% endif %}
-      {% if can('maintenance.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/maintenance') else '' }}" href="/admin/maintenance">{{ icon('wrench') }}<span class="side-label">الصيانة</span></a>{% endif %}
+      {% if can('booking.view') or can('customer.view') or can('resource.manage') or can('maintenance.view') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/bookings') or request.path.startswith('/admin/customers') or request.path.startswith('/admin/resources') or request.path.startswith('/admin/maintenance') %}open{% endif %}>
+        <summary>{{ icon('calendar') }}<span>التشغيل</span><b class="admin-nav-badge">4</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('booking.view') %}<a class="{{ 'active' if request.path.startswith('/admin/bookings') else '' }}" href="{{ url_for('admin.bookings') }}">{{ icon('calendar') }}<span>الحجوزات</span></a>{% endif %}
+          {% if can('customer.view') %}<a class="{{ 'active' if request.path.startswith('/admin/customers') else '' }}" href="{{ url_for('admin.customers') }}">{{ icon('users') }}<span>العملاء</span></a>{% endif %}
+          {% if can('resource.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/resources') else '' }}" href="{{ url_for('admin.resources') }}">{{ icon('stadium') }}<span>الملاعب والموارد</span></a>{% endif %}
+          {% if can('maintenance.view') %}<a class="{{ 'active' if request.path.startswith('/admin/maintenance') else '' }}" href="/admin/maintenance">{{ icon('wrench') }}<span>الصيانة</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
 
-      <div class="side-section-title">المال والمحاسبة</div>
-      {% if can('invoice.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/invoices') else '' }}" href="/admin/invoices">{{ icon('file') }}<span class="side-label">الفواتير</span></a>{% endif %}
-      {% if can('payment.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/payments') else '' }}" href="/admin/payments">{{ icon('money') }}<span class="side-label">المدفوعات</span></a>{% endif %}
-      {% if can('cashier.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/cashier') else '' }}" href="/admin/cashier">{{ icon('cash') }}<span class="side-label">الصناديق</span></a>{% endif %}
-      {% if can('accounting.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/accounting') and request.path == '/admin/accounting' else '' }}" href="/admin/accounting">{{ icon('ledger') }}<span class="side-label">المحاسبة</span></a>{% endif %}
-      {% if can('accounting.view') %}<a class="side-link sub-link" href="/admin/accounting/vouchers">{{ icon('file') }}<span class="side-label">السندات</span></a><a class="side-link sub-link" href="/admin/accounting/branches">{{ icon('grid') }}<span class="side-label">الفروع المحاسبية</span></a><a class="side-link sub-link" href="/admin/accounting/cost-centers">{{ icon('tag') }}<span class="side-label">مراكز التكلفة</span></a>{% endif %}
-      {% if can('closing.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/closing') else '' }}" href="/admin/closing">{{ icon('check') }}<span class="side-label">الإقفال المالي</span></a>{% endif %}
+      {% if can('invoice.view') or can('payment.view') or can('cashier.manage') or can('accounting.view') or can('closing.manage') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/invoices') or request.path.startswith('/admin/payments') or request.path.startswith('/admin/cashier') or request.path.startswith('/admin/accounting') or request.path.startswith('/admin/closing') %}open{% endif %}>
+        <summary>{{ icon('money') }}<span>المال والمحاسبة</span><b class="admin-nav-badge">5</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('invoice.view') %}<a class="{{ 'active' if request.path.startswith('/admin/invoices') else '' }}" href="/admin/invoices">{{ icon('file') }}<span>الفواتير</span></a>{% endif %}
+          {% if can('payment.view') %}<a class="{{ 'active' if request.path.startswith('/admin/payments') else '' }}" href="/admin/payments">{{ icon('money') }}<span>المدفوعات</span></a>{% endif %}
+          {% if can('cashier.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/cashier') else '' }}" href="/admin/cashier">{{ icon('cash') }}<span>الصناديق</span></a>{% endif %}
+          {% if can('accounting.view') %}
+            <a class="{{ 'active' if request.path == '/admin/accounting' else '' }}" href="/admin/accounting">{{ icon('ledger') }}<span>المحاسبة</span></a>
+            <div class="admin-nav-nested">
+              <a href="/admin/accounting/vouchers">{{ icon('file') }}<span>السندات</span></a>
+              <a href="/admin/accounting/branches">{{ icon('grid') }}<span>الفروع المحاسبية</span></a>
+              <a href="/admin/accounting/cost-centers">{{ icon('tag') }}<span>مراكز التكلفة</span></a>
+            </div>
+          {% endif %}
+          {% if can('closing.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/closing') else '' }}" href="/admin/closing">{{ icon('check') }}<span>الإقفال المالي</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
 
-      <div class="side-section-title">الفريق والموظفون</div>
-      {% if can('employee.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/employees') else '' }}" href="/admin/employees">{{ icon('employee') }}<span class="side-label">الموظفون</span></a>{% endif %}
-      {% if can('payroll.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/payroll') else '' }}" href="/admin/payroll">{{ icon('payroll') }}<span class="side-label">الرواتب</span></a>{% endif %}
-      {% if can('shift.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/shifts') else '' }}" href="/admin/shifts">{{ icon('clock') }}<span class="side-label">الورديات</span></a>{% endif %}
+      {% if can('employee.view') or can('payroll.manage') or can('shift.manage') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/employees') or request.path.startswith('/admin/payroll') or request.path.startswith('/admin/shifts') %}open{% endif %}>
+        <summary>{{ icon('employee') }}<span>الفريق والموظفون</span><b class="admin-nav-badge">3</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('employee.view') %}<a class="{{ 'active' if request.path.startswith('/admin/employees') else '' }}" href="/admin/employees">{{ icon('employee') }}<span>الموظفون</span></a>{% endif %}
+          {% if can('payroll.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/payroll') else '' }}" href="/admin/payroll">{{ icon('payroll') }}<span>الرواتب</span></a>{% endif %}
+          {% if can('shift.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/shifts') else '' }}" href="/admin/shifts">{{ icon('clock') }}<span>الورديات</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
 
-      <div class="side-section-title">الرياضة</div>
-      {% if can('tournament.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/tournaments') else '' }}" href="/admin/tournaments">{{ icon('trophy') }}<span class="side-label">البطولات</span></a>{% endif %}
-      {% if can('team.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/teams') else '' }}" href="/admin/teams">{{ icon('team') }}<span class="side-label">الفرق واللاعبون</span></a>{% endif %}
-      {% if can('training.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/training') else '' }}" href="/admin/training">{{ icon('training') }}<span class="side-label">التدريب</span></a>{% endif %}
-      {% if can('membership.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/memberships') else '' }}" href="/admin/memberships">{{ icon('star') }}<span class="side-label">العضويات</span></a>{% endif %}
-      {% if can('package.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/packages') else '' }}" href="/admin/packages">{{ icon('package') }}<span class="side-label">الباقات</span></a>{% endif %}
-      {% if can('pricing.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/pricing') else '' }}" href="/admin/pricing">{{ icon('tag') }}<span class="side-label">التسعير</span></a>{% endif %}
+      {% if can('tournament.manage') or can('team.manage') or can('training.manage') or can('membership.manage') or can('package.manage') or can('pricing.view') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/tournaments') or request.path.startswith('/admin/teams') or request.path.startswith('/admin/training') or request.path.startswith('/admin/memberships') or request.path.startswith('/admin/packages') or request.path.startswith('/admin/pricing') %}open{% endif %}>
+        <summary>{{ icon('trophy') }}<span>الرياضة والمنشآت</span><b class="admin-nav-badge">6</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('tournament.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/tournaments') else '' }}" href="/admin/tournaments">{{ icon('trophy') }}<span>البطولات</span></a>{% endif %}
+          {% if can('team.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/teams') else '' }}" href="/admin/teams">{{ icon('team') }}<span>الفرق واللاعبون</span></a>{% endif %}
+          {% if can('training.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/training') else '' }}" href="/admin/training">{{ icon('training') }}<span>التدريب</span></a>{% endif %}
+          {% if can('membership.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/memberships') else '' }}" href="/admin/memberships">{{ icon('star') }}<span>العضويات</span></a>{% endif %}
+          {% if can('package.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/packages') else '' }}" href="/admin/packages">{{ icon('package') }}<span>الباقات</span></a>{% endif %}
+          {% if can('pricing.view') %}<a class="{{ 'active' if request.path.startswith('/admin/pricing') else '' }}" href="/admin/pricing">{{ icon('tag') }}<span>التسعير</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
 
-      <div class="side-section-title">المحتوى والتسويق</div>
-      {% if can('content.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/announcements') else '' }}" href="/admin/announcements">{{ icon('megaphone') }}<span class="side-label">بطاقات الرئيسية</span></a>{% endif %}
-      {% if can('content.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/news') else '' }}" href="/admin/news">{{ icon('news') }}<span class="side-label">الأخبار</span></a>{% endif %}
-      {% if can('offer.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/offers') else '' }}" href="/admin/offers">{{ icon('percent') }}<span class="side-label">العروض</span></a>{% endif %}
-      {% if can('ads.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/ads') else '' }}" href="/admin/ads">{{ icon('megaphone') }}<span class="side-label">الإعلانات</span></a>{% endif %}
-      {% if can('live.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/live') else '' }}" href="/admin/live">{{ icon('broadcast') }}<span class="side-label">البث المباشر</span></a>{% endif %}
+      {% if can('content.manage') or can('offer.manage') or can('ads.manage') or can('live.manage') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/announcements') or request.path.startswith('/admin/news') or request.path.startswith('/admin/offers') or request.path.startswith('/admin/ads') or request.path.startswith('/admin/live') %}open{% endif %}>
+        <summary>{{ icon('megaphone') }}<span>المحتوى والتسويق</span><b class="admin-nav-badge">5</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('content.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/announcements') else '' }}" href="/admin/announcements">{{ icon('megaphone') }}<span>بطاقات الرئيسية</span></a>{% endif %}
+          {% if can('content.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/news') else '' }}" href="/admin/news">{{ icon('news') }}<span>الأخبار</span></a>{% endif %}
+          {% if can('offer.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/offers') else '' }}" href="/admin/offers">{{ icon('percent') }}<span>العروض</span></a>{% endif %}
+          {% if can('ads.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/ads') else '' }}" href="/admin/ads">{{ icon('megaphone') }}<span>الإعلانات</span></a>{% endif %}
+          {% if can('live.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/live') else '' }}" href="/admin/live">{{ icon('broadcast') }}<span>البث المباشر</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
 
-      <div class="side-section-title">المخزون والتقارير</div>
-      {% if can('supplier.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/suppliers') else '' }}" href="/admin/suppliers">{{ icon('truck') }}<span class="side-label">الموردون</span></a>{% endif %}
-      {% if can('inventory.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/inventory') else '' }}" href="/admin/inventory">{{ icon('box') }}<span class="side-label">المخزون</span></a>{% endif %}
-      {% if can('reports.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/reports') else '' }}" href="/admin/reports">{{ icon('chart') }}<span class="side-label">التقارير</span></a><a class="side-link sub-link" href="/admin/reports/ledger">{{ icon('ledger') }}<span class="side-label">دفتر الأستاذ</span></a><a class="side-link sub-link" href="/admin/reports/income-statement">{{ icon('chart') }}<span class="side-label">قائمة الدخل</span></a><a class="side-link sub-link" href="/admin/reports/balance-sheet">{{ icon('file') }}<span class="side-label">الميزانية</span></a>{% endif %}
-      {% if can('audit.view') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/audit') else '' }}" href="/admin/audit">{{ icon('shield') }}<span class="side-label">سجل التدقيق</span></a>{% endif %}
-      {% if can('users.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/admin/users') else '' }}" href="/admin/users">{{ icon('user') }}<span class="side-label">المستخدمون والصلاحيات</span></a>{% endif %}
-      {% if can('settings.manage') %}<a class="side-link {{ 'active' if request.path.startswith('/settings') else '' }}" href="{{ url_for('settings.index') }}">{{ icon('settings') }}<span class="side-label">الإعدادات</span></a>{% endif %}
+      {% if can('supplier.manage') or can('inventory.manage') or can('reports.view') or can('audit.view') or can('users.manage') %}
+      <details class="admin-nav-tree" {% if request.path.startswith('/admin/suppliers') or request.path.startswith('/admin/inventory') or request.path.startswith('/admin/reports') or request.path.startswith('/admin/audit') or request.path.startswith('/admin/users') %}open{% endif %}>
+        <summary>{{ icon('chart') }}<span>المخزون والتقارير والرقابة</span><b class="admin-nav-badge">8</b><i class="admin-nav-chevron">{{ icon('chevron') }}</i></summary>
+        <div class="admin-nav-children">
+          {% if can('supplier.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/suppliers') else '' }}" href="/admin/suppliers">{{ icon('truck') }}<span>الموردون</span></a>{% endif %}
+          {% if can('inventory.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/inventory') else '' }}" href="/admin/inventory">{{ icon('box') }}<span>المخزون</span></a>{% endif %}
+          {% if can('reports.view') %}
+            <a class="{{ 'active' if request.path == '/admin/reports' or request.path == '/admin/reports/' else '' }}" href="/admin/reports">{{ icon('chart') }}<span>التقارير</span></a>
+            <div class="admin-nav-nested">
+              <a href="/admin/reports/ledger">{{ icon('ledger') }}<span>دفتر الأستاذ</span></a>
+              <a href="/admin/reports/income-statement">{{ icon('chart') }}<span>قائمة الدخل</span></a>
+              <a href="/admin/reports/balance-sheet">{{ icon('file') }}<span>الميزانية</span></a>
+            </div>
+          {% endif %}
+          {% if can('audit.view') %}<a class="{{ 'active' if request.path.startswith('/admin/audit') else '' }}" href="/admin/audit">{{ icon('shield') }}<span>سجل التدقيق</span></a>{% endif %}
+          {% if can('users.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/users') else '' }}" href="/admin/users">{{ icon('user') }}<span>المستخدمون والصلاحيات</span></a>{% endif %}
+        </div>
+      </details>
+      {% endif %}
+
+      {% if can('settings.manage') %}
+      <a class="side-link admin-nav-home" href="{{ url_for('settings.index') }}">{{ icon('settings') }}<span class="side-label">الإعدادات</span></a>
+      {% endif %}
     </div>
 
     <div class="sidebar-footer">
@@ -108,7 +161,7 @@
 </div>
 <div class="sidebar-overlay" data-sidebar-overlay></div><div class="toast-stack" data-toast-stack></div>
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-<script src="/static/js/app.js?v={{ site_settings.asset_version }}&ui=20260922g"></script><script src="/static/js/admin.js?v={{ site_settings.asset_version }}&ui=20260922g"></script>
+<script src="/static/js/app.js?v={{ site_settings.asset_version }}&ui=20260922g"></script><script src="/static/js/admin.js?v={{ site_settings.asset_version }}&ui=20260924-admin-tree-v1"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

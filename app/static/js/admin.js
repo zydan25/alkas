@@ -22,6 +22,25 @@
     });
   });
 
+  // Keep admin sections compact: one top-level section open at a time.
+  const treeSections = [...(sidebar?.querySelectorAll(".admin-nav-tree") || [])];
+  treeSections.forEach((section, index) => {
+    const storageKey = "alkas-admin-nav-" + index;
+    try {
+      if (localStorage.getItem(storageKey) === "open" && !section.matches("[open]")) section.open = true;
+      if (!section.querySelector("a.active") && localStorage.getItem(storageKey) === "closed") section.open = false;
+    } catch (_) {}
+    section.addEventListener("toggle", () => {
+      if (section.open) {
+        treeSections.forEach(other => {
+          if (other !== section) other.open = false;
+        });
+      }
+      try { localStorage.setItem(storageKey, section.open ? "open" : "closed"); } catch (_) {}
+    });
+  });
+
+
   const search = document.querySelector("[data-table-search]");
   const table = document.querySelector("[data-data-table]");
   search?.addEventListener("input", () => {
