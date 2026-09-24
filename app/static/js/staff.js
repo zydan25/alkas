@@ -211,3 +211,17 @@
   document.querySelector("[name=duration]")?.addEventListener("input",refreshAvailability);
   refreshAvailability();
   setInterval(refreshAvailability,30000);
+
+
+  function holdCountdown(){
+    document.querySelectorAll("[data-hold-item]").forEach(item=>{
+      const raw=item.dataset.holdExpires;
+      const out=item.querySelector("[data-hold-countdown]");
+      if(!raw||!out)return;
+      const diff=Math.ceil((new Date(raw)-new Date())/60000);
+      if(diff<=0){out.textContent="انتهت المهلة";out.style.color="#c9362d";out.style.fontWeight="900";}
+      else{out.textContent="متبقي للدفع: "+diff+" دقيقة";out.style.color=diff<=15?"#a16400":"#6c7f92";out.style.fontWeight=diff<=15?"900":"600";}
+    });
+  }
+  holdCountdown();
+  setInterval(holdCountdown,30000);
