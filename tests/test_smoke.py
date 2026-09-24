@@ -328,6 +328,7 @@ def test_employee_detail_and_edit_and_delete_routes():
     with app.app_context():
         permissions = []
         for key, name_ar in {
+            "admin.access": "دخول الإدارة",
             "employee.manage": "إدارة الموظفين",
             "employee.view": "عرض الموظفين",
         }.items():
