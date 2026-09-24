@@ -95,15 +95,15 @@
 
       <div class="booking-selected-empty" data-selected-empty>
         <div class="booking-empty-icon">＋</div>
-        <strong>لم تختر ملعبًا بعد</strong>
-        <small>بعد تحديد الموعد، اضغط «اختيار ملعب» لرؤية الملاعب المتاحة فورًا.</small>
+        <strong>{% if site_settings.customer_home_theme == "flutter" %}لم تختر ملعبًا بعد{% else %}لم تضف ملعبًا بعد{% endif %}</strong>
+        <small>{% if site_settings.customer_home_theme == "flutter" %}بعد تحديد الموعد، اضغط «اختيار ملعب» لرؤية الملاعب المتاحة فورًا.{% else %}حدد الوقت أولًا، ثم اختر الملعب المناسب لك.{% endif %}</small>
       </div>
 
       <div class="booking-selected-list" data-selected-bookings></div>
 
       <button type="button" class="booking-add-resource" data-open-resource-picker>
         <span class="booking-add-resource-icon">{{ icon("plus",19) }}</span>
-        <span><b>اختيار ملعب</b><small>اعرض الملاعب المتاحة في الموعد المحدد</small></span>
+        <span><b>{% if site_settings.customer_home_theme == "flutter" %}اختيار ملعب{% else %}إضافة ملعب{% endif %}</b><small>{% if site_settings.customer_home_theme == "flutter" %}اعرض الملاعب المتاحة في الموعد المحدد{% else %}بحث أو اختر من الملاعب المتاحة{% endif %}</small></span>
         <span class="booking-add-resource-arrow">←</span>
       </button>
     </section>
