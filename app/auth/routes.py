@@ -9,6 +9,7 @@ from sqlalchemy import func, or_
 
 from ..customers.models import Customer
 from ..extensions import db
+from ..employees.models import Employee
 from ..models import User
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -67,6 +68,11 @@ def login_post():
     login_user(user, remember=True)
     user.last_login_at = datetime.now(timezone.utc)
     db.session.commit()
+
+    employee = Employee.query.filter_by(user_id=user.id, employment_status="active").first()
+    if employee and user.username != "admin" and not user.has_permission("admin.access"):
+        return redirect(_safe_next(request.form.get("next")) or url_for("staff.dashboard"))
+
     return redirect(_safe_next(request.form.get("next")) or url_for("public.home"))
 
 
