@@ -28,13 +28,16 @@ def test_staff_mobile_layout_has_rtl_drawer_and_full_width_guards():
     root = Path(__file__).resolve().parents[1]
     css = (root / "app" / "static" / "css" / "staff-mobile.css").read_text(encoding="utf-8")
     layout = (root / "app" / "staff" / "templates" / "staff" / "layout.html").read_text(encoding="utf-8")
+    staff_css = (root / "app" / "static" / "css" / "staff.css").read_text(encoding="utf-8")
 
     assert "right: 0 !important" in css
     assert "transform: translate3d(110%, 0, 0) !important" in css
     assert "width: 100% !important" in css
     assert "margin-inline-end: 270px !important" in css
     assert "staff-mobile.css" in layout
-    assert "20260924-mobile-v1" in layout
+    assert "20260924-mobile-v4" in layout
+    assert "@media(min-width:900px)" not in staff_css
+    assert "@media(min-width:1101px)" in staff_css
 
 
 def test_admin_tree_has_visible_chevron_and_contrast_overrides():

@@ -355,74 +355,209 @@ body.staff-menu-open {
   }
 }
 
-/* Phones/tablets: never reserve desktop drawer space.
-   The screenshot showed the whole app shifted right because the 900px desktop
-   breakpoint was being triggered by the browser's CSS viewport. */
+
+/* Final mobile contract: the employee app is a full-width mobile shell.
+   Keep all desktop drawer/layout rules disabled below 1101px. */
 @media (max-width: 1100px) {
+  html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  body.staff-body,
+  .staff-shell,
   .staff-main {
     width: 100% !important;
-    max-width: 100vw !important;
-    margin-inline: 0 !important;
-    padding-inline: 0 !important;
-  }
-
-  .staff-content {
-    width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow-x: clip !important;
   }
 
-  .staff-bottom-nav {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
+  .staff-appbar {
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100dvw !important;
+    min-width: 0 !important;
+  }
+
+  .staff-menu-button {
+    display: grid !important;
+    flex: 0 0 auto !important;
   }
 
   .staff-drawer {
     position: fixed !important;
     top: 0 !important;
-    bottom: 0 !important;
     right: 0 !important;
+    bottom: 0 !important;
     left: auto !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: auto !important;
     width: min(88vw, 340px) !important;
     max-width: calc(100vw - 8px) !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
     transform: translate3d(110%, 0, 0) !important;
     visibility: hidden !important;
     pointer-events: none !important;
+    z-index: 120 !important;
   }
 
   .staff-drawer.open {
     right: 0 !important;
     left: auto !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: auto !important;
     transform: translate3d(0, 0, 0) !important;
     visibility: visible !important;
     pointer-events: auto !important;
   }
-}
 
-/* True desktop: reserve space for the fixed right-side drawer. */
-@media (min-width: 1101px) {
-  .staff-drawer {
-    right: 0 !important;
-    left: auto !important;
-    inset-inline-start: auto !important;
-    inset-inline-end: auto !important;
-    width: 270px !important;
-    transform: none !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
+  .staff-drawer-scroll {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
 
-  .staff-main {
-    width: calc(100% - 270px) !important;
-    max-width: calc(100% - 270px) !important;
-    margin-inline-start: 0 !important;
-    margin-inline-end: 270px !important;
+  .staff-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100dvw !important;
+    height: 100dvh !important;
   }
 
   .staff-bottom-nav {
-    display: none !important;
+    left: 0 !important;
+    right: 0 !important;
+    inset-inline-start: 0 !important;
+    inset-inline-end: 0 !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+  }
+
+  .staff-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 10px 8px calc(84px + env(safe-area-inset-bottom)) !important;
+    overflow-x: clip !important;
+  }
+
+  .staff-content > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .staff-hero {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+
+  .staff-hero-state {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .staff-stat-grid,
+  .staff-quick-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    min-width: 0 !important;
+  }
+
+  .staff-stat-grid > *,
+  .staff-quick-grid > *,
+  .staff-form-grid > *,
+  .staff-form-actions > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .staff-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .staff-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .staff-card-head {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .staff-segment {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .staff-segment button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+
+  .staff-item-actions,
+  .staff-customer-actions,
+  .staff-form-actions {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .staff-content {
+    padding-inline: 7px !important;
+  }
+
+  .staff-form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .staff-stat-grid,
+  .staff-quick-grid {
+    gap: 7px !important;
+  }
+
+  .staff-card-head {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .staff-segment {
+    width: 100% !important;
+  }
+
+  .staff-resource-grid {
+    gap: 6px !important;
+  }
+
+  .staff-action,
+  .staff-stat-grid article {
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .staff-stat-grid,
+  .staff-quick-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .staff-drawer {
+    width: calc(100vw - 4px) !important;
+    max-width: calc(100vw - 4px) !important;
   }
 }
