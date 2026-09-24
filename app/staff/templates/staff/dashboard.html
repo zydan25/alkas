@@ -1,6 +1,18 @@
 {% extends "staff/layout.html" %}
 {% block content %}
 <section class="staff-hero"><div><span>اليوم · {{ today }}</span><h1>مرحبًا {{ employee.name_ar }}</h1><p>الكاشير والتشغيل والحجوزات والحديقة والعهدة في شاشة واحدة.</p></div><div class="staff-hero-state {{ 'open' if shift else 'closed' }}"><b>{{ 'الوردية مفتوحة' if shift else 'الوردية مغلقة' }}</b><small>{{ '{:,.2f}'.format(shift_expected|float) }} ر.ي عهدة متوقعة</small></div></section>
+{% if can_cash %}
+<section class="staff-card staff-shift-card">
+  <div class="staff-card-head"><div><span>الصندوق</span><h2>وردية الكاشير والعهدة</h2></div><span class="staff-status-pill {{ 'good' if shift else 'muted' }}">{{ 'مفتوحة' if shift else 'مغلقة' }}</span></div>
+  {% if shift %}
+  <div class="staff-shift-summary"><div><small>الصندوق</small><b>#{{ shift.register_id }}</b></div><div><small>افتتاحي</small><b>{{ '{:,.0f}'.format(shift.opening_amount|float) }}</b></div><div><small>المتوقع</small><b>{{ '{:,.0f}'.format(shift_expected|float) }}</b></div></div>
+  <form class="staff-cash-close" data-ajax-form action="{{ url_for('staff.cash_close') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>المبلغ الفعلي<input type="number" name="actual_amount" min="0" step="1" value="{{ '{:.0f}'.format(shift_expected|float) }}" required></label><button class="staff-danger-button" type="submit">إخلاء العهدة وإغلاق</button></form>
+  {% else %}
+  <form class="staff-cash-open" data-ajax-form action="{{ url_for('staff.cash_open') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>الصندوق<select name="register_id" required>{% for reg in registers %}<option value="{{ reg.id }}">{{ reg.name_ar }}</option>{% endfor %}</select></label><label>الرصيد الافتتاحي<input type="number" name="opening_amount" min="0" step="1" value="0"></label><button class="staff-main-button" type="submit">فتح الوردية</button></form>
+  {% endif %}
+</section>
+{% endif %}
+
 <section class="staff-stat-grid"><article><small>حجوزات مؤكدة/جارية</small><strong>{{ active|length }}</strong><span>اليوم والآن</span></article><article><small>بانتظار الدفع/التأكيد</small><strong>{{ pending|length }}</strong><span>طلبات العملاء</span></article><article><small>الموجودون في الحديقة</small><strong>{{ park_occupancy }}</strong><span>شخص</span></article><article class="{{ 'danger' if not shift else '' }}"><small>العهدة الحالية</small><strong>{{ '{:,.0f}'.format(shift_expected|float) }}</strong><span>ريال يمني</span></article></section>
 <section class="staff-quick-grid"><a href="#booking" class="staff-action primary"><span>＋</span><b>حجز سريع</b><small>ملعب · لعبة · فريق</small></a><a href="#park" class="staff-action success"><span>◉</span><b>دخول الحديقة</b><small>الأشخاص × السعر</small></a><a href="#pending" class="staff-action warning"><span>✓</span><b>تأكيد حجوزات</b><small>الدفع أو العربون</small></a><a href="{{ url_for('staff.finance') }}" class="staff-action"><span>▤</span><b>راتبي وعهدتي</b><small>الراتب · الخصومات · السلف</small></a></section>
 <section class="staff-card" id="booking"><div class="staff-card-head"><div><span>الكاشير</span><h2>حجز ملعب أو لعبة</h2></div><div class="staff-segment" data-booking-mode><button class="active" type="button" data-mode="direct">حجز مباشر</button><button type="button" data-mode="multi">متعدد اللاعبين</button></div></div>
