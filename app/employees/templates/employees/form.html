@@ -1,41 +1,97 @@
 {% extends "admin/layout.html" %}
 {% block content %}
 <div class="page-header compact">
-  <div><div class="eyebrow">الموارد البشرية</div><h1>موظف جديد</h1><p>الملف الوظيفي هو مصدر الحضور والمناوبات والرواتب. ويمكن إنشاء حساب لوحة الموظف مباشرة من هنا.</p></div>
+  <div>
+    <div class="eyebrow">الموارد البشرية</div>
+    <h1>{{ "تعديل الموظف" if is_edit else "موظف جديد" }}</h1>
+    <p>{{ "تعديل الملف الوظيفي وحساب الدخول من شاشة واحدة." if is_edit else "إنشاء الموظف وحساب الدخول المرتبط به في عملية واحدة." }}</p>
+  </div>
+  {% if is_edit %}<a class="btn btn-soft" href="{{ url_for('employees.detail', employee_id=employee.id) }}">← التفاصيل</a>{% endif %}
 </div>
+
 <section class="panel form-panel">
 {% if error %}<div class="flash danger">{{ error }}</div>{% endif %}
 <form method="post" class="form-stack">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<div class="form-grid">
-  <label>الاسم<input name="name_ar" required></label>
-  <label>الكود<input name="employee_code" placeholder="EMP-00001"></label>
-  <label>الهاتف<input name="phone"></label>
-  <label>رقم الهوية<input name="national_id"></label>
-  <label>القسم<select name="department_id"><option value="">بدون قسم</option>{% for d in departments %}<option value="{{ d.id }}">{{ d.name_ar }}</option>{% endfor %}</select></label>
-  <label>المسمى<select name="position_id"><option value="">بدون مسمى</option>{% for p in positions %}<option value="{{ p.id }}">{{ p.name_ar }}</option>{% endfor %}</select></label>
-  <label>الراتب الأساسي<input type="number" min="0" step="0.01" name="base_salary"></label>
-</div>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-<div class="employee-login-panel">
-  <div class="employee-login-head">
-    <div><span class="eyebrow">دخول الموظف</span><h2>إنشاء حساب لوحة الموظف</h2><p>اختياري. عند إنشائه سيظهر للموظف تطبيقه المنفصل بعد تسجيل الدخول.</p></div>
-    <span class="mini-badge">اختياري</span>
-  </div>
   <div class="form-grid">
-    <label>اسم المستخدم<input name="login_username" autocomplete="username" placeholder="مثلاً ahmed.staff"></label>
-    <label>كلمة مرور الموظف<input type="password" name="login_password" minlength="8" autocomplete="new-password" placeholder="8 أحرف على الأقل"></label>
-    <label>دور الموظف <small>اختياري؛ يحدد مثلًا تأكيد الحجوزات والمحادثات</small>
-      <select name="login_role_id"><option value="">بدون دور</option>{% for r in roles %}<option value="{{ r.id }}">{{ r.name_ar }}</option>{% endfor %}</select>
+    <label>اسم الموظف
+      <input name="name_ar" required value="{{ employee.name_ar if employee else '' }}" autocomplete="name">
     </label>
+    <label>الكود
+      <input name="employee_code" value="{{ employee.employee_code if employee else '' }}" placeholder="EMP-00001" {{ "readonly" if is_edit }}>
+    </label>
+    <label>الهاتف
+      <input name="phone" value="{{ employee.phone if employee else '' }}" inputmode="tel">
+    </label>
+    <label>رقم الهوية
+      <input name="national_id" value="{{ employee.national_id if employee else '' }}">
+    </label>
+    <label>القسم
+      <select name="department_id">
+        <option value="">بدون قسم</option>
+        {% for d in departments %}<option value="{{ d.id }}" {{ "selected" if employee and employee.department_id == d.id else "" }}>{{ d.name_ar }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>المسمى الوظيفي
+      <select name="position_id">
+        <option value="">بدون مسمى</option>
+        {% for p in positions %}<option value="{{ p.id }}" {{ "selected" if employee and employee.position_id == p.id else "" }}>{{ p.name_ar }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>الراتب الأساسي
+      <input type="number" min="0" step="0.01" name="base_salary" value="{{ employee.base_salary if employee else '' }}">
+    </label>
+    {% if is_edit %}
+    <label>الحالة
+      <select name="employment_status">
+        <option value="active" {{ "selected" if employee.employment_status == "active" else "" }}>نشط</option>
+        <option value="inactive" {{ "selected" if employee.employment_status == "inactive" else "" }}>موقوف</option>
+      </select>
+    </label>
+    {% endif %}
   </div>
-  <small class="employee-login-note">الدور يحدد الصلاحيات الخاصة مثل تأكيد الحجوزات والمحادثات، ويمكن تغييره لاحقًا من إدارة المستخدمين والصلاحيات.</small>
-</div>
 
-<div class="page-actions">
-  <a class="btn btn-soft" href="{{ url_for('employees.ui') }}">إلغاء</a>
-  <button class="btn btn-primary">حفظ الموظف</button>
-</div>
+  <div class="employee-login-panel">
+    <div class="employee-login-head">
+      <div>
+        <span class="eyebrow">الحساب المرتبط</span>
+        <h2>{{ "حساب الموظف" if user else "إنشاء حساب الموظف تلقائيًا" }}</h2>
+        <p>
+          {{ "هذا الحساب هو نفسه الذي يستخدمه الموظف للدخول إلى لوحة الموظف." if user
+             else "لن يُحفظ الموظف بدون حساب دخول مرتبط به." }}
+        </p>
+      </div>
+      <span class="mini-badge">{{ "مرتبط" if user else "إلزامي" }}</span>
+    </div>
+
+    <div class="form-grid">
+      <label>اسم المستخدم
+        <input name="login_username" required value="{{ user.username if user else '' }}" autocomplete="username" placeholder="مثلاً ahmed.staff">
+        <small>يجب أن يكون فريدًا ولا يمكن تكراره مع مستخدم آخر.</small>
+      </label>
+
+      <label>كلمة المرور
+        <input type="password" name="login_password" minlength="8" autocomplete="new-password" placeholder="{{ 'اتركها فارغة دون تغيير' if user else '8 أحرف على الأقل' }}" {{ "" if user else "required" }}>
+        <small>{{ "اكتبها فقط عند الرغبة بتغيير كلمة المرور." if user else "مطلوبة عند إنشاء الموظف." }}</small>
+      </label>
+
+      <label>دور الموظف
+        <select name="login_role_id">
+          <option value="">موظف تشغيل افتراضي</option>
+          {% for r in roles %}
+            <option value="{{ r.id }}" {{ "selected" if current_role_id == r.id else "" }}>{{ r.name_ar }}</option>
+          {% endfor %}
+        </select>
+        <small>الدور الافتراضي يتيح لوحة الموظف والصندوق والحديقة والحساب المالي، بينما الصلاحيات الحساسة مثل تأكيد الحجوزات والمحادثات تمنحها الإدارة.</small>
+      </label>
+    </div>
+  </div>
+
+  <div class="page-actions">
+    <a class="btn btn-soft" href="{{ url_for('employees.ui') }}">إلغاء</a>
+    <button class="btn btn-primary" type="submit">{{ "حفظ التعديلات" if is_edit else "إنشاء الموظف والحساب" }}</button>
+  </div>
 </form>
 </section>
 {% endblock %}

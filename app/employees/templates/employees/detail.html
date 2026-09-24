@@ -1,0 +1,80 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="page-header compact">
+  <div>
+    <div class="eyebrow">الموارد البشرية</div>
+    <h1>{{ employee.name_ar }}</h1>
+    <p>{{ employee.employee_code }} · {{ "موظف نشط" if employee.employment_status == "active" else employee.employment_status }}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-soft" href="{{ url_for('employees.ui') }}">← الموظفون</a>
+    <a class="btn btn-primary" href="{{ url_for('employees.edit', employee_id=employee.id) }}">تعديل الموظف</a>
+  </div>
+</div>
+
+<section class="form-grid">
+  <article class="panel">
+    <div class="section-head"><div><span class="eyebrow">الملف الوظيفي</span><h2>بيانات الموظف</h2></div></div>
+    <div class="detail-grid">
+      <div><small>الاسم</small><b>{{ employee.name_ar }}</b></div>
+      <div><small>الكود</small><b>{{ employee.employee_code }}</b></div>
+      <div><small>الهاتف</small><b>{{ employee.phone or "—" }}</b></div>
+      <div><small>رقم الهوية</small><b>{{ employee.national_id or "—" }}</b></div>
+      <div><small>القسم</small><b>{{ department_name or "بدون قسم" }}</b></div>
+      <div><small>المسمى</small><b>{{ position_name or "بدون مسمى" }}</b></div>
+      <div><small>الراتب الأساسي</small><b>{{ "{:,.0f}".format(employee.base_salary|float) }} ر.ي</b></div>
+      <div><small>الحالة</small><b>{{ "نشط" if employee.employment_status == "active" else employee.employment_status }}</b></div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="section-head"><div><span class="eyebrow">حساب الدخول</span><h2>المستخدم المرتبط</h2></div></div>
+    {% if user %}
+      <div class="detail-grid">
+        <div><small>اسم المستخدم</small><b>{{ user.username }}</b></div>
+        <div><small>الهاتف</small><b>{{ user.phone or "—" }}</b></div>
+        <div><small>حالة الحساب</small><b>{{ "مفعّل" if user.is_active else "متوقف" }}</b></div>
+        <div><small>آخر دخول</small><b>{{ user.last_login_at.strftime("%Y-%m-%d %H:%M") if user.last_login_at else "لم يدخل بعد" }}</b></div>
+      </div>
+      <div class="tag-list" style="margin-top:14px">
+        {% for role in user.roles %}
+          <span class="badge badge-success">{{ role.name_ar }}</span>
+          {% for permission in role.permissions %}
+            <span class="badge badge-neutral">{{ permission.name_ar }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="badge badge-neutral">بدون دور</span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">لا يوجد حساب دخول مرتبط حاليًا. من صفحة التعديل يمكنك إنشاء حساب وربطه بالموظف.</div>
+    {% endif %}
+  </article>
+</section>
+
+<section class="panel">
+  <div class="section-head"><div><span class="eyebrow">الحضور</span><h2>آخر سجلات الحضور والانصراف</h2></div></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>التاريخ</th><th>الحضور</th><th>الانصراف</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for row in attendance %}
+        <tr><td>{{ row.work_date }}</td><td>{{ row.check_in.strftime("%H:%M") if row.check_in else "—" }}</td><td>{{ row.check_out.strftime("%H:%M") if row.check_out else "—" }}</td><td>{{ row.status }}</td></tr>
+      {% else %}
+        <tr><td colspan="4"><div class="empty-state">لا توجد سجلات حضور.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel danger-zone">
+  <div class="section-head"><div><span class="eyebrow">إدارة الحساب</span><h2>تعطيل الموظف</h2><p>يحافظ النظام على السجلات المالية والحضور، ويوقف حساب الدخول بدل حذف التاريخ المحاسبي.</p></div></div>
+  {% if employee.employment_status != "deleted" %}
+  <form method="post" action="{{ url_for('employees.delete', employee_id=employee.id) }}" onsubmit="return confirm('سيتم تعطيل الموظف وإيقاف حساب دخوله. متابعة؟')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-danger" type="submit">حذف/تعطيل الموظف</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

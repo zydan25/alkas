@@ -88,8 +88,12 @@ def _render_register(error=None):
 @bp.get("/login")
 def login():
     if current_user.is_authenticated:
-        return redirect(_role_next(current_user, request.args.get("next")))
-    return render_template("auth/login.html", next_url=_safe_next(request.args.get("next")) or "")
+        response = redirect(_role_next(current_user, request.args.get("next")), code=303)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        return response
+    response = render_template("auth/login.html", next_url=_safe_next(request.args.get("next")) or "")
+    return response
 
 
 @bp.post("/login")
@@ -117,7 +121,10 @@ def login_post():
     user.last_login_at = datetime.now(timezone.utc)
     db.session.commit()
 
-    return redirect(_role_next(user, request.form.get("next")))
+    response = redirect(_role_next(user, request.form.get("next")), code=303)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @bp.get("/register")

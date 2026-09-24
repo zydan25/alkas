@@ -232,6 +232,188 @@ def test_employee_login_redirects_to_staff_app():
         db.session.commit()
 
 
+def test_new_employee_always_gets_linked_staff_account_without_explicit_role():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Employee, Permission, Role, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    suffix = uuid.uuid4().hex[:8]
+
+    with app.app_context():
+        admin_access = Permission.query.filter_by(key="admin.access").first()
+        if not admin_access:
+            admin_access = Permission(key="admin.access", name_ar="دخول الإدارة", is_active=True)
+            db.session.add(admin_access)
+            db.session.flush()
+        manage = Permission.query.filter_by(key="employee.manage").first()
+        if not manage:
+            manage = Permission(key="employee.manage", name_ar="إدارة الموظفين", is_active=True)
+            db.session.add(manage)
+            db.session.flush()
+        view = Permission.query.filter_by(key="employee.view").first()
+        if not view:
+            view = Permission(key="employee.view", name_ar="عرض الموظفين", is_active=True)
+            db.session.add(view)
+            db.session.flush()
+
+        manager_role = Role(
+            name="employee_create_" + suffix,
+            name_ar="مدير موظفين اختبار",
+            permissions=[admin_access, manage, view],
+        )
+        manager = User(
+            username="employee_manager_" + suffix,
+            phone="77" + str(uuid.uuid4().int % 10**8).zfill(8),
+            display_name="مدير موظفين",
+            is_active=True,
+            roles=[manager_role],
+        )
+        manager.set_password("ManagerPass123")
+        db.session.add_all([manager_role, manager])
+        db.session.commit()
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(manager.id)
+            session["_fresh"] = True
+
+        staff_username = "auto_staff_" + suffix
+        response = client.post(
+            "/admin/employees/new",
+            data={
+                "name_ar": "موظف تلقائي",
+                "phone": "78" + str(uuid.uuid4().int % 10**8).zfill(8),
+                "base_salary": "200000",
+                "login_username": staff_username,
+                "login_password": "StaffPass123",
+                "login_role_id": "",
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+
+        employee = Employee.query.filter_by(name_ar="موظف تلقائي").one()
+        user = db.session.get(User, employee.user_id)
+        assert user is not None
+        assert user.username == staff_username
+        assert any(role.name == "staff_default" for role in user.roles)
+        assert user.has_permission("staff.access")
+
+        staff_client = app.test_client()
+        response = staff_client.post(
+            "/auth/login",
+            data={"identifier": staff_username, "password": "StaffPass123"},
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        assert response.headers["Location"].endswith("/staff")
+
+        db.session.delete(employee)
+        db.session.delete(user)
+        db.session.delete(manager)
+        db.session.delete(manager_role)
+        db.session.commit()
+
+
+def test_employee_detail_and_edit_and_delete_routes():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Employee, Permission, Role, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    suffix = uuid.uuid4().hex[:8]
+
+    with app.app_context():
+        permissions = []
+        for key, name_ar in {
+            "admin.access": "دخول الإدارة",
+            "employee.manage": "إدارة الموظفين",
+            "employee.view": "عرض الموظفين",
+        }.items():
+            permission = Permission.query.filter_by(key=key).first()
+            if not permission:
+                permission = Permission(key=key, name_ar=name_ar, is_active=True)
+                db.session.add(permission)
+                db.session.flush()
+            permissions.append(permission)
+
+        role = Role(
+            name="employee_lifecycle_" + suffix,
+            name_ar="دورة موظف اختبار",
+            permissions=permissions,
+        )
+        user = User(
+            username="employee_lifecycle_mgr_" + suffix,
+            phone="79" + str(uuid.uuid4().int % 10**8).zfill(8),
+            display_name="مدير دورة الموظف",
+            is_active=True,
+            roles=[role],
+        )
+        user.set_password("ManagerPass123")
+        db.session.add_all([role, user])
+        db.session.commit()
+
+        employee = Employee(
+            employee_code="EMP-LIFE-" + suffix.upper(),
+            name_ar="موظف دورة",
+            phone="70" + str(uuid.uuid4().int % 10**8).zfill(8),
+            employment_status="active",
+            user_id=None,
+        )
+        db.session.add(employee)
+        db.session.commit()
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user.id)
+            session["_fresh"] = True
+
+        assert client.get(f"/admin/employees/{employee.id}").status_code == 200
+        response = client.post(
+            f"/admin/employees/{employee.id}/edit",
+            data={
+                "name_ar": "موظف مرتبط",
+                "phone": employee.phone,
+                "base_salary": "300000",
+                "login_username": "linked_staff_" + suffix,
+                "login_password": "StaffPass123",
+                "login_role_id": "",
+                "employment_status": "active",
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        db.session.refresh(employee)
+        assert employee.user_id is not None
+        linked = db.session.get(User, employee.user_id)
+        assert linked is not None
+        assert linked.username == "linked_staff_" + suffix
+        assert linked.has_permission("staff.access")
+
+        response = client.post(
+            f"/admin/employees/{employee.id}/delete",
+            data={"csrf_token": ""},
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        db.session.refresh(employee)
+        assert employee.employment_status == "deleted"
+        assert linked.is_active is False
+
+        db.session.delete(employee)
+        db.session.delete(linked)
+        db.session.delete(user)
+        db.session.delete(role)
+        db.session.commit()
+
+
 def test_manager_can_create_employee_login_and_open_staff_app():
     import uuid
 
