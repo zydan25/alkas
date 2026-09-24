@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="{{ site_settings.theme.primary }}">
+    <meta name="theme-color" content="{{ site_settings.customer_aurora_primary if site_settings.customer_home_theme == "aurora" else site_settings.theme.primary }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
@@ -14,18 +14,20 @@
       'bookings.booking_page','bookings.resource_detail','bookings.sport_detail',
       'customer.dashboard','customer.bookings','customer.booking_detail','customer.notifications','customer.profile','customer.memberships','customer.membership_detail'
     ] %}
-    <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }}}</style>
+    <style>:root{--primary:{{ site_settings.theme.primary }};--secondary:{{ site_settings.theme.secondary }};--accent:{{ site_settings.theme.accent }};--success:{{ site_settings.theme.success }};--danger:{{ site_settings.theme.danger }};--surface:{{ site_settings.theme.surface }};--background:{{ site_settings.theme.background }};--text:{{ site_settings.theme.text }};--radius:{{ site_settings.theme.radius }};--aurora-primary:{{ site_settings.customer_aurora_primary }};--aurora-secondary:{{ site_settings.customer_aurora_secondary }};--aurora-accent:{{ site_settings.customer_aurora_accent }};--aurora-background:{{ site_settings.customer_aurora_background }};--aurora-surface:{{ site_settings.customer_aurora_surface }};--aurora-text:{{ site_settings.customer_aurora_text }}}</style>
     <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
     {% if request.path.startswith('/admin') %}<link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}">{% endif %}
     {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer.css?v={{ site_settings.asset_version }}">{% endif %}
     {% if not is_booking_page %}<link rel="stylesheet" href="/static/css/public-modern.css?v={{ site_settings.asset_version }}&ui=20260923c">{% endif %}
     {% if customer_shell %}<link rel="stylesheet" href="/static/css/customer-mobile-shell.css?v={{ site_settings.asset_version }}&ui=20260923-shell-v2-v3">{% endif %}
     {% if customer_shell and not is_booking_page %}<link rel="stylesheet" href="/static/css/customer-mobile-first.css?v={{ site_settings.asset_version }}&ui=mobile-first-20260923-v13">{% endif %}
+    {% if customer_shell and site_settings.customer_home_theme == "aurora" %}<link rel="stylesheet" href="/static/css/customer-aurora-theme.css?v={{ site_settings.asset_version }}&ui=20260924-aurora-v1">{% endif %}
     <title>{{ title or site_settings.site_name }}</title>
     {% block head %}{% endblock %}
 </head>
 {% set customer_flutter_theme = customer_shell and site_settings.customer_home_theme == "flutter" %}
-<body class="{{ 'home-public-page' if request.endpoint == 'public.home' else '' }}{% if customer_shell %} customer-app-page{% endif %}{% if customer_flutter_theme %} customer-ui-theme-flutter{% endif %}">
+{% set customer_aurora_theme = customer_shell and site_settings.customer_home_theme == "aurora" %}
+<body class="{{ 'home-public-page' if request.endpoint == 'public.home' else '' }}{% if customer_shell %} customer-app-page{% endif %}{% if customer_flutter_theme %} customer-ui-theme-flutter{% endif %}{% if customer_aurora_theme %} customer-ui-theme-aurora{% endif %}">
 <header class="topbar">
     <a class="brand" href="{{ url_for('public.home') }}">
         {% if site_settings.logo_url %}<img src="{{ site_settings.logo_url }}" alt="{{ site_settings.site_name }}">{% else %}<span class="brand-mark">ك</span>{% endif %}
