@@ -39,11 +39,11 @@ def test_admin_bookings_page_renders_for_admin_user():
 
     from app import create_app
     from app.extensions import db
-    from app.models import User
+    from app.models import Permission, Role, User
 
     app = create_app()
     app.config["WTF_CSRF_ENABLED"] = False
-    username = "admin_bookings_" + uuid.uuid4().hex[:10]
+    username = "booking_smoke_" + uuid.uuid4().hex[:10]
 
     with app.app_context():
         user = User(
@@ -53,6 +53,10 @@ def test_admin_bookings_page_renders_for_admin_user():
             is_active=True,
         )
         user.set_password("TestPass123")
+        permission = Permission(key="admin.access", name_ar="دخول الإدارة")
+        booking_permission = Permission(key="booking.view", name_ar="عرض الحجوزات")
+        role = Role(name="booking_smoke_" + uuid.uuid4().hex[:8], name_ar="اختبار الحجوزات", is_system=False, permissions=[permission, booking_permission])
+        user.roles.append(role)
         db.session.add(user)
         db.session.commit()
         user_id = user.id
