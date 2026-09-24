@@ -36,7 +36,7 @@ def test_staff_mobile_layout_has_rtl_drawer_and_full_width_guards():
     assert "max-width: 100dvw !important" in css
     assert "margin-inline-end: 270px !important" not in css
     assert "staff-mobile.css" in layout
-    assert "20260924-mobile-v4" in layout
+    assert "20260924-staff-v6" in layout
     assert "@media(min-width:900px)" not in staff_css
     assert "@media(min-width:1101px)" in staff_css
 
