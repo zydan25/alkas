@@ -724,3 +724,8 @@
 .employee-login-head h2{margin:4px 0;font-size:1rem;color:var(--admin-brand-dark)}
 .employee-login-head p{margin:0;color:var(--admin-muted);font-size:.68rem;line-height:1.7}
 .employee-login-note{display:block;margin-top:10px;color:var(--admin-muted);font-size:.62rem;line-height:1.7}
+
+.policy-hold-form{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px;margin-bottom:10px;padding:12px;border:1px solid var(--admin-border);border-radius:14px;background:#f7fbff}
+.policy-hold-form label{display:grid;gap:6px;font-size:.67rem;font-weight:850}
+.policy-hold-form input{min-height:44px!important}
+@media(max-width:620px){.policy-hold-form{grid-template-columns:1fr}.policy-hold-form .btn{width:100%}}
