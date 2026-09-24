@@ -10,6 +10,7 @@ from ..settings.services import get_site_settings
 bp = Blueprint("settings", __name__, url_prefix="/settings")
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 RADIUS_RE = re.compile(r"^[0-9]+(px|rem|%)$")
+CUSTOMER_HOME_THEMES = {"classic", "flutter", "aurora"}
 
 
 def _can_manage():
@@ -109,8 +110,24 @@ def save_site():
         "hero_title", "hero_subtitle", "booking_hold_minutes",
         "payment_intro", "payment_bank_name", "payment_account_name",
         "payment_account_number", "payment_wallet_name", "payment_wallet_number",
-        "payment_cash_note", "booking_policy_note",
+        "payment_cash_note", "booking_policy_note", "customer_home_theme",
+        "customer_aurora_primary", "customer_aurora_secondary", "customer_aurora_accent",
+        "customer_aurora_background", "customer_aurora_surface", "customer_aurora_text",
     }
+
+    aurora_color_keys = {
+        "customer_aurora_primary", "customer_aurora_secondary", "customer_aurora_accent",
+        "customer_aurora_background", "customer_aurora_surface", "customer_aurora_text",
+    }
+    for key in aurora_color_keys:
+        if key in data and not HEX_RE.fullmatch(str(data[key]).strip()):
+            return jsonify({"error": f"قيمة لون Aurora غير صحيحة: {key}"}), 400
+
+    if "customer_home_theme" in data:
+        selected_theme = str(data["customer_home_theme"]).strip().lower()
+        if selected_theme not in CUSTOMER_HOME_THEMES:
+            return jsonify({"error": "ثيم واجهة العميل غير معروف"}), 400
+        data["customer_home_theme"] = selected_theme
 
     for key in allowed:
         if key not in data:

@@ -33,9 +33,10 @@ def test_staff_mobile_layout_has_rtl_drawer_and_full_width_guards():
     assert "right: 0 !important" in css
     assert "transform: translate3d(110%, 0, 0) !important" in css
     assert "width: 100% !important" in css
-    assert "margin-inline-end: 270px !important" in css
+    assert "max-width: 100dvw !important" in css
+    assert "margin-inline-end: 270px !important" not in css
     assert "staff-mobile.css" in layout
-    assert "20260924-mobile-v4" in layout
+    assert "20260924-staff-v6" in layout
     assert "@media(min-width:900px)" not in staff_css
     assert "@media(min-width:1101px)" in staff_css
 
@@ -669,8 +670,11 @@ def test_staff_booking_helpers_order_before_limit():
     assert ".order_by(" not in helper
     bookings_block = staff_routes[staff_routes.index("def bookings_list"):staff_routes.index("def customers", staff_routes.index("def bookings_list"))]
     assert "order_by(Booking.start_at.desc(), Booking.id.desc()).limit(200)" in bookings_block
-    reports_block = staff_routes[staff_routes.index("elif kind == 'all_bookings':"):staff_routes.index("elif kind == 'empty_resources':")]
+    reports_start = staff_routes.index('elif kind == "all_bookings":')
+    reports_end = staff_routes.index('elif kind == "empty_resources":', reports_start)
+    reports_block = staff_routes[reports_start:reports_end]
     assert ".order_by(Booking.start_at.desc(), Booking.id.desc())" in reports_block
+    assert "rows = _booking_rows(query.limit(300))" in reports_block
 
 
 def test_staff_pending_queue_accepts_pending_and_legacy_holds():
@@ -685,3 +689,66 @@ def test_staff_pending_queue_accepts_pending_and_legacy_holds():
     assert 'Booking.status == "pending"' in block
     assert 'Booking.status == "hold"' in block
     assert 'Booking.hold_expires_at.is_(None)' in block
+
+
+def test_customer_flutter_theme_is_opt_in_and_classic_is_default():
+    from app.settings.services import DEFAULTS
+
+    assert DEFAULTS["customer_home_theme"] == "classic"
+
+    root = __import__("pathlib").Path(__file__).resolve().parents[1]
+    home = (root / "app" / "templates" / "public" / "home.html").read_text(encoding="utf-8")
+    booking = (root / "app" / "templates" / "bookings" / "index.html").read_text(encoding="utf-8")
+    theme = (root / "app" / "static" / "css" / "customer-flutter-theme.css").read_text(encoding="utf-8")
+
+    assert 'site_settings.customer_home_theme == "flutter"' in home
+    assert "customer-flutter-theme.css" in home
+    assert "customer-flutter-theme.css" in booking
+    assert ".customer-ui-theme-flutter" in theme
+    assert ".customer-book-fab" in theme
+
+
+def test_customer_theme_selector_and_validation_are_present():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    settings_page = (root / "app" / "templates" / "settings" / "index.html").read_text(encoding="utf-8")
+    settings_routes = (root / "app" / "settings" / "routes.py").read_text(encoding="utf-8")
+
+    assert 'name="customer_home_theme"' in settings_page
+    assert 'value="classic"' in settings_page
+    assert 'value="flutter"' in settings_page
+    assert 'CUSTOMER_HOME_THEMES = {"classic", "flutter", "aurora"}' in settings_routes
+    assert '"customer_home_theme"' in settings_routes
+
+
+def test_customer_aurora_theme_is_available_and_wired():
+    from app.settings.services import DEFAULTS
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    settings_page = (root / "app" / "templates" / "settings" / "index.html").read_text(encoding="utf-8")
+    routes = (root / "app" / "settings" / "routes.py").read_text(encoding="utf-8")
+    base = (root / "app" / "templates" / "base.html").read_text(encoding="utf-8")
+    theme = (root / "app" / "static" / "css" / "customer-aurora-theme.css").read_text(encoding="utf-8")
+
+    assert DEFAULTS["customer_home_theme"] == "classic"
+    assert DEFAULTS["customer_aurora_primary"] == "#7c3aed"
+    assert 'value="aurora"' in settings_page
+    assert '"customer_aurora_primary"' in routes
+    assert '"customer_aurora_text"' in routes
+    assert "customer-aurora-theme.css" in base
+    assert "customer-ui-theme-aurora" in base
+    assert ".customer-ui-theme-aurora" in theme
+
+
+def test_customer_aurora_palette_is_independent_from_global_theme():
+    from app.settings.services import get_site_settings
+
+    values = get_site_settings()
+    assert values["customer_aurora_primary"].startswith("#")
+    assert values["customer_aurora_secondary"].startswith("#")
+    assert values["customer_aurora_accent"].startswith("#")
+    assert values["customer_aurora_background"].startswith("#")
+    assert values["customer_aurora_surface"].startswith("#")
+    assert values["customer_aurora_text"].startswith("#")
