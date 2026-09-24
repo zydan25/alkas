@@ -617,10 +617,10 @@
       card.classList.toggle("is-busy",!data.available);
       if(data.available){
         if(status){status.className="booking-picker-resource-status available";status.textContent="متاح للحجز الآن";}
-        if(action){action.disabled=false;action.textContent=pickerIndex===null?"إضافة هذا الملعب":"استبدال الملعب";action.className="booking-picker-resource-action";}
+        if(action){action.disabled=false;action.textContent=pickerIndex===null?"اختيار هذا الملعب":"استبدال هذا الملعب";action.className="booking-picker-resource-action";}
       }else{
         if(status){status.className="booking-picker-resource-status busy";status.textContent=data.reason||"غير متاح في هذا الوقت";}
-        if(action){action.disabled=false;action.textContent="تحديث الأوقات";action.className="booking-picker-resource-action busy-action";}
+        if(action){action.disabled=false;action.textContent="إظهار أوقات بديلة";action.className="booking-picker-resource-action busy-action";}
         renderNearby(card,data,ctx);
       }
     });
@@ -669,7 +669,7 @@
     if(action){action.disabled=true;action.textContent="جاري البحث...";}
     const data=await findNearby(Number(card.dataset.resourceId),ctx);
     renderNearby(card,data,ctx);
-    if(action){action.disabled=false;action.textContent="غير متاح الآن";action.className="booking-picker-resource-action busy-action";}
+    if(action){action.disabled=false;action.textContent="إظهار أوقات بديلة";action.className="booking-picker-resource-action busy-action";}
   }
 
   async function selectPickerResource(card,fromNearby){
@@ -957,7 +957,7 @@
       setDuration(button.dataset.durationOption);
       const start=contextStart(globalContext());
       if(start){
-        slotStatus.textContent="تم تحديث المدة إلى "+durationValue+" دقيقة. اضغط «إضافة ملعب» لاختيار الملاعب.";
+        slotStatus.textContent="تم تحديث المدة إلى "+durationValue+" دقيقة. اضغط «اختيار ملعب» لاختيار الملاعب.";
         slotStatus.className="booking-slot-status";
         if(picker&&!picker.hidden)refreshPickerAvailability(globalContext());
       }
@@ -1005,7 +1005,7 @@
     setTime(value);
     clearTimeout(availabilityDebounce);
     availabilityDebounce=setTimeout(()=>{
-      slotStatus.textContent="تم تحديد "+value+" — اضغط «إضافة ملعب» لفحص الملاعب لهذا الموعد.";
+      slotStatus.textContent="تم تحديد "+value+" — اضغط «اختيار ملعب» لفحص الملاعب لهذا الموعد.";
       slotStatus.className="booking-slot-status";
       if(picker&&!picker.hidden)refreshPickerAvailability(globalContext());
     },140);
