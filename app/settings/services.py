@@ -20,6 +20,7 @@ DEFAULTS = {
     "payment_cash_note": "الدفع النقدي متاح لدى الاستقبال حسب سياسة المنشأة.",
     "booking_policy_note": "لا يعتبر الحجز نهائيًا إلا بعد تأكيده. المواعيد المتعارضة تُرفض تلقائيًا.",
     "asset_version": "1",
+    "customer_home_theme": "classic",
 }
 
 
