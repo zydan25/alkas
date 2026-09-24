@@ -2,6 +2,7 @@
 {% block head %}
 <link rel="stylesheet" href="/static/css/booking-mobile.css?v={{ site_settings.asset_version }}&ui=20260923-booking-v25">
 {% if site_settings.customer_home_theme == "flutter" %}<link rel="stylesheet" href="/static/css/customer-flutter-theme.css?v={{ site_settings.asset_version }}&ui=20260924-flutter-v1">{% endif %}
+{% if site_settings.customer_home_theme == "aurora" %}<link rel="stylesheet" href="/static/css/customer-aurora-theme.css?v={{ site_settings.asset_version }}&ui=20260924-aurora-v1">{% endif %}
 {% endblock %}
 
 {% macro icon(name, size=20) -%}
