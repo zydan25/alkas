@@ -704,3 +704,101 @@ body.customer-ui-theme-aurora{
     animation-iteration-count:1!important;
   }
 }
+
+
+/* Readability: keep legacy light customer cards readable under Midnight Aurora.
+   The Aurora shell intentionally stays dark, but these existing cards remain white.
+   Only text contrast is adjusted; card surfaces and layout are unchanged. */
+.customer-ui-theme-aurora{
+  --aur-light-text:#172821;
+  --aur-light-strong:#14241d;
+  --aur-light-muted:#63736d;
+  --aur-light-soft:#7f8e88;
+}
+
+.customer-ui-theme-aurora .customer-booking-card{
+  color:var(--aur-light-text)!important;
+}
+.customer-ui-theme-aurora .customer-booking-card-top>strong,
+.customer-ui-theme-aurora .customer-booking-card-date>b,
+.customer-ui-theme-aurora .customer-booking-card-bottom>strong{
+  color:var(--aur-light-strong)!important;
+}
+.customer-ui-theme-aurora .customer-booking-card-date>span,
+.customer-ui-theme-aurora .customer-booking-card-bottom>span{
+  color:var(--aur-light-muted)!important;
+}
+.customer-ui-theme-aurora .customer-booking-card-resources>span{
+  color:#4e665d!important;
+}
+.customer-ui-theme-aurora .customer-booking-card-bottom>b{
+  color:#008f6d!important;
+}
+.customer-ui-theme-aurora .booking-empty-state,
+.customer-ui-theme-aurora .empty-state{
+  color:var(--aur-light-muted)!important;
+}
+
+.customer-ui-theme-aurora .customer-account-page :is(
+  .account-profile-hero,
+  .account-summary-grid a,
+  .account-editor-card,
+  .account-row,
+  .account-empty-action,
+  .service-tile,
+  .notification-preferences-card
+){
+  color:var(--aur-light-text)!important;
+}
+.customer-ui-theme-aurora .customer-account-page :is(
+  .account-profile-hero h2,
+  .account-profile-hero .account-profile-copy h2,
+  .account-summary-grid a strong,
+  .account-editor-card summary span,
+  .account-row-main strong,
+  .account-empty-action strong,
+  .service-tile b,
+  .notification-preferences-card b
+){
+  color:var(--aur-light-strong)!important;
+}
+.customer-ui-theme-aurora .customer-account-page :is(
+  .account-profile-hero small,
+  .account-profile-copy span,
+  .account-profile-copy small,
+  .account-summary-grid a small,
+  .account-editor-card summary small,
+  .account-row-main small,
+  .account-empty-action small,
+  .service-tile small,
+  .notification-preferences-card small
+){
+  color:var(--aur-light-muted)!important;
+}
+.customer-ui-theme-aurora .customer-account-page .hub-form label{
+  color:#566961!important;
+}
+.customer-ui-theme-aurora .customer-account-page .hub-form input,
+.customer-ui-theme-aurora .customer-account-page .hub-form select,
+.customer-ui-theme-aurora .customer-account-page .hub-form textarea{
+  color:var(--aur-light-text)!important;
+  caret-color:var(--aur-primary);
+}
+
+.customer-ui-theme-aurora .customer-kpis>div,
+.customer-ui-theme-aurora .customer-grid>.panel,
+.customer-ui-theme-aurora .notification-row{
+  color:var(--aur-light-text);
+}
+.customer-ui-theme-aurora .customer-kpis>div :is(span,strong),
+.customer-ui-theme-aurora .customer-grid>.panel :is(.panel-head h2,.customer-booking b,.customer-booking>strong),
+.customer-ui-theme-aurora .notification-row b{
+  color:var(--aur-light-strong)!important;
+}
+.customer-ui-theme-aurora .customer-kpis>div>span,
+.customer-ui-theme-aurora .customer-booking small,
+.customer-ui-theme-aurora .notification-row p,
+.customer-ui-theme-aurora .notification-row small{
+  color:var(--aur-light-muted)!important;
+  opacity:1!important;
+}
