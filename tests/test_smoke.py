@@ -32,3 +32,39 @@ def test_admin_tree_has_visible_chevron_and_contrast_overrides():
     assert 'id="chevron"' in icon_sprite
     assert ".admin-nav-tree[open]>summary" in theme
     assert ".admin-nav-children>a.active" in theme
+
+
+def test_admin_bookings_page_renders_for_admin_user():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    username = "admin_bookings_" + uuid.uuid4().hex[:10]
+
+    with app.app_context():
+        user = User(
+            username=username,
+            phone="77" + str(uuid.uuid4().int % 10**8).zfill(8),
+            display_name="اختبار الحجوزات",
+            is_active=True,
+        )
+        user.set_password("TestPass123")
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+        client = app.test_client()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user_id)
+            session["_fresh"] = True
+
+        response = client.get("/admin/bookings")
+        assert response.status_code == 200
+        assert "الحجوزات" in response.get_data(as_text=True)
+
+        db.session.delete(user)
+        db.session.commit()
