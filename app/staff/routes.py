@@ -48,7 +48,10 @@ def _require_employee():
 
 
 def _can(permission):
-    return current_user.username == "admin" or current_user.has_permission(permission)
+    if current_user.username == "admin" or current_user.has_permission(permission):
+        return True
+    employee = _employee()
+    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view"})
 
 
 def _now():
@@ -280,6 +283,10 @@ def dashboard():
         resources=Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all(),
         sports=Sport.query.filter_by(is_active=True).order_by(Sport.sort_order, Sport.id).all(),
         payment_methods=PAYMENT_METHODS,
+        can_confirm=_can("staff.booking.confirm"),
+        can_chat=_can("staff.booking.chat"),
+        can_cancel=_can("staff.booking.cancel"),
+        can_park=_can("staff.park.manage"),
         today=today,
         now=_now(),
     )
