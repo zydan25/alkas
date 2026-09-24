@@ -170,3 +170,44 @@
   document.querySelectorAll(".staff-drawer a").forEach(a=>a.addEventListener("click",()=>drawerToggle(false)));
   window.staffFlash=flash;
 })();
+
+  async function refreshAvailability(){
+    const start=document.querySelector("[data-start-now]");
+    const duration=document.querySelector("[name=duration]");
+    const grid=document.querySelector(".staff-resource-grid");
+    if(!start||!duration||!grid||!start.value)return;
+    try{
+      const params=new URLSearchParams({start_at:start.value,duration:duration.value||"60"});
+      const r=await fetch("/staff/availability?"+params.toString(),{headers:{Accept:"application/json"}});
+      const data=await r.json();
+      if(!r.ok)return;
+      const busy=new Map((data.items||[]).map(x=>[String(x.id),x]));
+      grid.querySelectorAll(".staff-resource-chip").forEach(label=>{
+        const input=label.querySelector("input[data-resource-price]");
+        if(!input)return;
+        const item=busy.get(String(input.value));
+        const small=label.querySelector("small");
+        const originallyDisabled=input.dataset.originalDisabled==="1";
+        if(input.dataset.originalDisabled===undefined)input.dataset.originalDisabled=input.disabled?"1":"0";
+        if(item?.busy){
+          if(input.checked)input.checked=false;
+          input.disabled=true;
+          label.classList.add("booked-now");
+          if(small)small.textContent=(item.status&&item.status!=="available")?"غير متاح":"محجوز في هذا الوقت";
+        }else{
+          input.disabled=originallyDisabled;
+          label.classList.toggle("booked-now",false);
+          if(small&&!originallyDisabled){
+            const price=input.dataset.resourcePrice;
+            small.textContent=small.dataset.originalText||("متاح · "+Number(price||0).toLocaleString("en-US"));
+          }
+        }
+        if(small&&!small.dataset.originalText&&item?.busy===false)small.dataset.originalText=small.textContent;
+      });
+    }catch(_){}
+  }
+
+  document.querySelector("[data-start-now]")?.addEventListener("change",refreshAvailability);
+  document.querySelector("[name=duration]")?.addEventListener("input",refreshAvailability);
+  refreshAvailability();
+  setInterval(refreshAvailability,30000);
