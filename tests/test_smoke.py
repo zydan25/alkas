@@ -20,3 +20,15 @@ def test_admin_uses_single_tree_dashboard_layout():
     assert not legacy.exists()
     assert "admin-nav-tree" in admin_layout.read_text(encoding="utf-8")
     assert "admin-app" not in admin_dashboard.read_text(encoding="utf-8") or 'extends "admin/layout.html"' in admin_dashboard.read_text(encoding="utf-8")
+
+
+def test_admin_tree_has_visible_chevron_and_contrast_overrides():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    icon_sprite = (root / "app" / "static" / "img" / "admin-icons.svg").read_text(encoding="utf-8")
+    theme = (root / "app" / "static" / "css" / "admin-theme.css").read_text(encoding="utf-8")
+
+    assert 'id="chevron"' in icon_sprite
+    assert ".admin-nav-tree[open]>summary" in theme
+    assert ".admin-nav-children>a.active" in theme
