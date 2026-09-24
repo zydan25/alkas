@@ -9,12 +9,12 @@
 <link rel="manifest" href="/manifest.webmanifest?v={{ site_settings.asset_version }}">
 <link rel="icon" href="{{ site_settings.favicon_url or '/static/img/favicon.svg' }}">
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
-<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v6">
-<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v4">
+<link rel="stylesheet" href="/static/css/staff.css?v={{ site_settings.asset_version }}&ui=20260924-staff-v7">
+<link rel="stylesheet" href="/static/css/staff-mobile.css?v={{ site_settings.asset_version }}&ui=20260924-mobile-v5">
 <title>{{ title or 'لوحة الموظف - ' ~ site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
-<body class="staff-body">
+<body class="staff-body{% if request.endpoint == 'staff.dashboard' %} staff-dashboard-page{% endif %}">
 <div class="staff-shell">
   <aside class="staff-drawer" data-staff-drawer>
     <div class="staff-drawer-head">
