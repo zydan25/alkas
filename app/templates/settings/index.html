@@ -31,6 +31,7 @@
       <select name="customer_home_theme">
         <option value="classic" {% if settings.customer_home_theme == "classic" %}selected{% endif %}>الكلاسيكي الحالي</option>
         <option value="flutter" {% if settings.customer_home_theme == "flutter" %}selected{% endif %}>Flutter App — الجديد</option>
+        <option value="aurora" {% if settings.customer_home_theme == "aurora" %}selected{% endif %}>Midnight Aurora — زجاجي داكن</option>
       </select>
       <small class="form-hint">تبديل مستقل لواجهة العميل وصفحة الحجز. الثيم الكلاسيكي يبقى محفوظًا دون تعديل.</small>
     </label>
@@ -58,6 +59,21 @@
       <input name="radius" value="{{ settings.theme.radius }}" pattern="^[0-9]+(px|rem|%)$">
     </label>
     <button class="btn btn-primary" type="submit">تطبيق المظهر</button>
+  </form>
+
+  <form class="panel form-stack" method="post" action="{{ url_for('settings.save_site') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>ألوان Midnight Aurora</h2>
+    <p class="form-hint">ألوان مستقلة للثيم الثالث فقط. لا تغيّر الثيم الكلاسيكي أو Flutter، وتصبح فعالة عند اختيار Midnight Aurora.</p>
+    <div class="form-grid">
+      <label>اللون المضيء<input type="color" name="customer_aurora_primary" value="{{ settings.customer_aurora_primary }}"></label>
+      <label>اللون السماوي<input type="color" name="customer_aurora_secondary" value="{{ settings.customer_aurora_secondary }}"></label>
+      <label>لون الوهج<input type="color" name="customer_aurora_accent" value="{{ settings.customer_aurora_accent }}"></label>
+      <label>الخلفية الداكنة<input type="color" name="customer_aurora_background" value="{{ settings.customer_aurora_background }}"></label>
+      <label>أسطح البطاقات<input type="color" name="customer_aurora_surface" value="{{ settings.customer_aurora_surface }}"></label>
+      <label>لون النص<input type="color" name="customer_aurora_text" value="{{ settings.customer_aurora_text }}"></label>
+    </div>
+    <button class="btn btn-primary" type="submit">حفظ ألوان Aurora</button>
   </form>
 
   <form class="panel form-stack settings-payment-panel" method="post" action="{{ url_for('settings.save_site') }}">
