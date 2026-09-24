@@ -244,6 +244,11 @@ def test_new_employee_always_gets_linked_staff_account_without_explicit_role():
     suffix = uuid.uuid4().hex[:8]
 
     with app.app_context():
+        admin_access = Permission.query.filter_by(key="admin.access").first()
+        if not admin_access:
+            admin_access = Permission(key="admin.access", name_ar="دخول الإدارة", is_active=True)
+            db.session.add(admin_access)
+            db.session.flush()
         manage = Permission.query.filter_by(key="employee.manage").first()
         if not manage:
             manage = Permission(key="employee.manage", name_ar="إدارة الموظفين", is_active=True)
@@ -258,7 +263,7 @@ def test_new_employee_always_gets_linked_staff_account_without_explicit_role():
         manager_role = Role(
             name="employee_create_" + suffix,
             name_ar="مدير موظفين اختبار",
-            permissions=[manage, view],
+            permissions=[admin_access, manage, view],
         )
         manager = User(
             username="employee_manager_" + suffix,
