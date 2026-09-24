@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="/static/css/app.css?v={{ site_settings.asset_version }}">
 <link rel="stylesheet" href="/static/css/admin.css?v={{ site_settings.asset_version }}&ui=20260924-admin-tree-v3">
 <link rel="stylesheet" href="/static/css/admin-modern.css?v={{ site_settings.asset_version }}&ui=20260922b">
-<link rel="stylesheet" href="/static/css/admin-theme.css?v={{ site_settings.asset_version }}&ui=20260924-admin-tree-v3-theme">
+<link rel="stylesheet" href="/static/css/admin-theme.css?v={{ site_settings.asset_version }}&ui=20260924-admin-tree-v4-policy">
 <title>{{ title or site_settings.site_name }}</title>
 {% block head %}{% endblock %}
 </head>
@@ -60,6 +60,7 @@
             </div>
           {% endif %}
           {% if can('closing.manage') %}<a class="{{ 'active' if request.path.startswith('/admin/closing') else '' }}" href="/admin/closing">{{ icon('check') }}<span>الإقفال المالي</span></a>{% endif %}
+          {% if can('settings.manage') or can('payment.refund') %}<a class="{{ 'active' if request.path.startswith('/admin/policies') else '' }}" href="/admin/policies">{{ icon('shield') }}<span>سياسات الحجز والاسترجاع</span></a>{% endif %}
         </div>
       </details>
       {% endif %}

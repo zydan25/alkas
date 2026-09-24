@@ -1,12 +1,62 @@
 {% extends "staff/layout.html" %}
 {% block content %}
-<section class="staff-hero"><div><span>المرافق</span><h1>الحديقة</h1><p>تسجيل الدخول والخروج ومعرفة الموجودين في اللحظة نفسها.</p></div><div class="staff-hero-state open"><b>الموجودون الآن</b><strong id="occupancy" data-park-occupancy>{{ occupancy }}</strong><small>شخص</small></div></section>
-<section class="staff-card"><div class="staff-card-head"><div><span>دخول سريع</span><h2>تسجيل مجموعة جديدة</h2></div></div>
-<form class="staff-form" data-ajax-form action="{{ url_for('staff.park_entry') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<div class="staff-form-grid"><label>اسم الزائر/الفريق<input name="visitor_name" required placeholder="الاسم"></label><label>عدد الأشخاص<input type="number" name="people_count" min="1" value="1" required data-park-people></label><label>سعر الشخص<input type="number" name="price_per_person" min="0" required data-park-price placeholder="السعر"></label><label>الخروج المتوقع <small>اتركه مفتوحًا</small><input type="datetime-local" name="expected_end_at"></label><label>طريقة الدفع<select name="method"><option value="cash">نقدي</option><option value="bank_transfer">تحويل</option><option value="card">بطاقة</option><option value="wallet">محفظة</option></select></label></div>
-<div class="staff-total-line"><span>الإجمالي</span><strong data-park-total>0</strong><small>ر.ي</small></div><button class="staff-main-button success" type="submit">تسجيل الدخول</button>
-</form></section>
-<section class="staff-card" id="occupancy"><div class="staff-card-head"><div><span>الآن</span><h2>من يوجد ومن خرج</h2></div></div>
-<div class="staff-list">{% for visit in visits %}<article class="staff-park-item" data-park-visit data-remaining="{{ visit.people_remaining }}"><div><div class="staff-park-avatar">◉</div><div><b>{{ visit.visitor_name }}</b><small>دخل: {{ visit.started_at.strftime('%H:%M') }} · {{ visit.expected_end_at.strftime('%H:%M') if visit.expected_end_at else 'مفتوح' }}</small></div></div><strong data-park-remaining>{{ visit.people_remaining }}</strong><span>من {{ visit.people_count }}</span>
-<form data-ajax-form action="{{ url_for('staff.park_exit', visit_id=visit.id) }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="number" name="people_count" min="1" max="{{ visit.people_remaining }}" value="{{ visit.people_remaining }}" required><button class="staff-main-button small">تسجيل خروج</button></form></article>{% else %}<div class="staff-empty">لا يوجد زوار داخل الحديقة الآن.</div>{% endfor %}</div></section>
+<section class="staff-hero">
+  <div><span>المرافق</span><h1>الحديقة</h1><p>تسجيل الدخول والخروج ومعرفة الموجودين في اللحظة نفسها.</p></div>
+  <div class="staff-hero-state open"><b>الموجودون الآن</b><strong id="occupancy" data-park-occupancy>{{ occupancy }}</strong><small>شخص</small></div>
+</section>
+
+<section class="staff-stat-grid">
+  <article><small>دخلوا اليوم</small><strong>{{ today_entries }}</strong><span>شخص</span></article>
+  <article><small>خرجوا اليوم</small><strong>{{ today_exits }}</strong><span>حالة خروج مسجلة</span></article>
+  <article><small>الموجودون</small><strong>{{ occupancy }}</strong><span>داخل الحديقة</span></article>
+  <article><small>مجموع المجموعات</small><strong>{{ visits|length }}</strong><span>مفتوحة الآن</span></article>
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head"><div><span>دخول سريع</span><h2>تسجيل مجموعة جديدة</h2></div></div>
+  <form class="staff-form" data-ajax-form action="{{ url_for('staff.park_entry') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="staff-form-grid">
+      <label>اسم الزائر / الفريق<input name="visitor_name" required placeholder="مثلاً عائلة محمد أو فريق الناشئين"></label>
+      <label>عدد الأشخاص<input type="number" name="people_count" min="1" value="1" required data-park-people></label>
+      <label>سعر الشخص<input type="number" name="price_per_person" min="0" required data-park-price placeholder="السعر"></label>
+      <label>الخروج المتوقع <small>اتركه مفتوحًا</small><input type="datetime-local" name="expected_end_at"></label>
+      <label>طريقة الدفع<select name="method"><option value="cash">نقدي</option><option value="bank_transfer">تحويل</option><option value="card">بطاقة</option><option value="wallet">محفظة</option></select></label>
+    </div>
+    <div class="staff-total-line"><span>الإجمالي</span><strong data-park-total>0</strong><small>ر.ي</small></div>
+    <button class="staff-main-button success" type="submit">تسجيل الدخول + تحصيل</button>
+  </form>
+</section>
+
+<section class="staff-card" id="occupancy">
+  <div class="staff-card-head"><div><span>الموجودون</span><h2>من يوجد الآن</h2></div></div>
+  <div class="staff-list">
+    {% for visit in visits %}
+    <article class="staff-park-item" data-park-visit data-remaining="{{ visit.people_remaining }}">
+      <div><div class="staff-park-avatar">◉</div><div><b>{{ visit.visitor_name }}</b><small>دخل: {{ visit.started_at.strftime('%H:%M') }} · {{ visit.expected_end_at.strftime('%H:%M') if visit.expected_end_at else 'وقت مفتوح' }}</small></div></div>
+      <strong data-park-remaining>{{ visit.people_remaining }}</strong>
+      <span>من {{ visit.people_count }}</span>
+      <form class="park-exit-form" data-ajax-form action="{{ url_for('staff.park_exit', visit_id=visit.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="number" name="people_count" min="1" max="{{ visit.people_remaining }}" value="{{ visit.people_remaining }}" required>
+        <button class="staff-main-button small">تسجيل خروج</button>
+      </form>
+    </article>
+    {% else %}<div class="staff-empty">لا يوجد زوار داخل الحديقة الآن.</div>{% endfor %}
+  </div>
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head"><div><span>السجل</span><h2>من خرج اليوم</h2></div><span class="staff-count-badge">{{ today_exits }}</span></div>
+  <div class="staff-list">
+    {% for exit in recent_exits %}
+    <article class="staff-attendance-row">
+      <span><b>{{ exit.visit.visitor_name if exit.visit else 'زائر' }}</b><small>{{ exit.exited_at.strftime('%Y-%m-%d %H:%M') }}</small></span>
+      <strong>{{ exit.people_count }} شخص</strong>
+      <small>{{ exit.note_ar or 'خروج مسجل' }}</small>
+      <small>{{ exit.visit.people_count if exit.visit else '—' }} إجمالي المجموعة</small>
+    </article>
+    {% else %}<div class="staff-empty">لا توجد عمليات خروج مسجلة بعد.</div>{% endfor %}
+  </div>
+</section>
 {% endblock %}

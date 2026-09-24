@@ -1,2 +1,43 @@
 {% extends "staff/layout.html" %}
-{% block content %}<section class="staff-hero"><div><span>الموظف</span><h1>الحضور والانصراف</h1><p>{{ employee.name_ar }} · {{ employee.employee_code }}</p></div></section><section class="staff-card"><div class="staff-list">{% for row in rows %}<article class="staff-attendance-row"><span><b>{{ row.work_date }}</b><small>{{ row.status }}</small></span><strong>{{ row.check_in.strftime('%H:%M') if row.check_in else '—' }}</strong><strong>{{ row.check_out.strftime('%H:%M') if row.check_out else '—' }}</strong><small>{{ row.note_ar or '—' }}</small></article>{% else %}<div class="staff-empty">لا يوجد سجل.</div>{% endfor %}</div></section>{% endblock %}
+{% block content %}
+<section class="staff-hero">
+  <div><span>الموظف</span><h1>الحضور والانصراف</h1><p>{{ employee.name_ar }} · {{ employee.employee_code }}</p></div>
+  <div class="staff-hero-state {{ 'open' if rows and rows[0].work_date == today and rows[0].check_in and not rows[0].check_out else 'closed' }}"><b>اليوم {{ today }}</b><small>{{ 'حاضر ولم ينصرف' if rows and rows[0].work_date == today and rows[0].check_in and not rows[0].check_out else ('تم تسجيل الانصراف' if rows and rows[0].work_date == today and rows[0].check_out else 'لم يسجل اليوم') }}</small></div>
+</section>
+
+{% set today_row = rows|selectattr('work_date', 'equalto', today)|list|first %}
+<section class="staff-card">
+  <div class="staff-card-head"><div><span>اليوم</span><h2>تسجيل الحضور والانصراف</h2></div></div>
+  <div class="staff-attendance-actions">
+    <form data-ajax-form action="{{ url_for('staff.attendance_check_in') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="staff-main-button" type="submit" {{ 'disabled' if today_row and today_row.check_in else '' }}>تسجيل الحضور</button>
+    </form>
+    <form data-ajax-form action="{{ url_for('staff.attendance_check_out') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="staff-danger-button" type="submit" {{ 'disabled' if not today_row or not today_row.check_in or today_row.check_out else '' }}>تسجيل الانصراف</button>
+    </form>
+  </div>
+  {% if today_row %}
+  <div class="staff-shift-summary">
+    <div><small>الدخول</small><b>{{ today_row.check_in.strftime('%H:%M') if today_row.check_in else '—' }}</b></div>
+    <div><small>الخروج</small><b>{{ today_row.check_out.strftime('%H:%M') if today_row.check_out else '—' }}</b></div>
+    <div><small>الحالة</small><b>{{ today_row.status }}</b></div>
+  </div>
+  {% endif %}
+</section>
+
+<section class="staff-card">
+  <div class="staff-card-head"><div><span>السجل</span><h2>آخر أيام الحضور</h2></div><span class="staff-count-badge">{{ rows|length }}</span></div>
+  <div class="staff-list">
+  {% for row in rows %}
+    <article class="staff-attendance-row">
+      <span><b>{{ row.work_date }}</b><small>{{ row.status }}</small></span>
+      <strong>{{ row.check_in.strftime('%H:%M') if row.check_in else '—' }}</strong>
+      <strong>{{ row.check_out.strftime('%H:%M') if row.check_out else '—' }}</strong>
+      <small>{{ row.note_ar or '—' }}</small>
+    </article>
+  {% else %}<div class="staff-empty">لا يوجد سجل.</div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

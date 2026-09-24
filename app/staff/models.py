@@ -31,6 +31,7 @@ class ParkVisit(db.Model):
     status = db.Column(db.String(20), nullable=False, default="open", index=True)
     invoice_id = db.Column(db.Integer, db.ForeignKey("invoices.id", ondelete="SET NULL"))
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
+    exits = db.relationship("ParkVisitExit", back_populates="visit", cascade="all, delete-orphan")
     __table_args__ = (
         CheckConstraint("people_count > 0", name="ck_park_visit_people_positive"),
         CheckConstraint("people_remaining >= 0 AND people_remaining <= people_count", name="ck_park_visit_remaining_valid"),
@@ -47,6 +48,7 @@ class ParkVisitExit(db.Model):
     exited_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     note_ar = db.Column(db.String(400))
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
+    visit = db.relationship("ParkVisit", back_populates="exits", lazy="joined")
     __table_args__ = (
         CheckConstraint("people_count > 0", name="ck_park_exit_people_positive"),
     )

@@ -18,6 +18,7 @@ from ..notifications.services import notify_user
 from ..payments.models import Payment
 from ..payments.services import record_payment_with_accounting
 from ..policies.models import BookingPolicy, PaymentPolicy, RefundRequest
+from ..policies.services import cancellation_refund_percent
 from ..payroll.models import EmployeeAdvance, PayrollLine, PayrollRun
 from ..models import Booking, BookingAllocation, BookingMessage, Customer, Resource, ResourceBlock, Sport
 from .models import ParkVisit, ParkVisitExit, StaffDeduction
@@ -51,7 +52,7 @@ def _can(permission):
     if current_user.username == "admin" or current_user.has_permission(permission):
         return True
     employee = _employee()
-    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view", "staff.cash.manage"})
+    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view"})
 
 
 def _now():
@@ -417,6 +418,13 @@ def booking_quick():
         booking.discount = discount
         booking.tax = Decimal("0")
         booking.total = max(Decimal("0"), base_price - discount)
+        if mode == "multi":
+            booking.participant_count = people
+            booking.participants_remaining = people
+            booking.participant_unit_price = (
+                booking.total / Decimal(people)
+                if people else Decimal("0")
+            ).quantize(Decimal("0.01"))
         db.session.commit()
 
         paid = _to_decimal(request.form.get("paid_amount") or booking.total, "المبلغ المدفوع")
@@ -497,6 +505,58 @@ def booking_cancel(booking_id):
         return jsonify({"error": str(exc)}), 400
 
 
+@bp.post("/bookings/<int:booking_id>/players-exit")
+@login_required
+def booking_players_exit(booking_id):
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    if not _can("staff.booking.cancel"):
+        return jsonify({"error": "لا تملك صلاحية تسجيل خروج اللاعبين"}), 403
+
+    booking = db.session.get(Booking, booking_id)
+    if not booking:
+        return jsonify({"error": "الحجز غير موجود"}), 404
+    if not booking.participant_count:
+        return jsonify({"error": "هذا الحجز ليس حجزًا متعدد اللاعبين"}), 400
+    if booking.status in {"cancelled", "completed", "no_show", "expired"}:
+        return jsonify({"error": "الحجز غير نشط"}), 400
+
+    try:
+        count = int(request.form.get("people_count") or 0)
+    except (TypeError, ValueError):
+        return jsonify({"error": "عدد اللاعبين غير صحيح"}), 400
+    if count <= 0 or count > int(booking.participants_remaining or 0):
+        return jsonify({"error": "عدد اللاعبين الخارجين غير صحيح"}), 400
+
+    policy = BookingPolicy.query.filter_by(is_default=True, is_active=True).first()
+    refund_percent = cancellation_refund_percent(policy, booking.start_at) if policy else Decimal("0")
+    unit = Decimal(booking.participant_unit_price or 0)
+    requested = (unit * Decimal(count) * refund_percent / Decimal("100")).quantize(Decimal("0.01"))
+
+    if requested > 0:
+        db.session.add(RefundRequest(
+            booking_id=booking.id,
+            requested_amount=requested,
+            reason_ar=f"خروج {count} لاعب من الحجز متعدد اللاعبين",
+            requested_by_id=current_user.id,
+        ))
+
+    booking.participants_remaining = int(booking.participants_remaining or 0) - count
+    if booking.participants_remaining == 0:
+        booking.status = "cancelled"
+        for allocation in booking.allocations:
+            allocation.is_active = False
+
+    db.session.commit()
+    return jsonify({
+        "ok": True,
+        "remaining_players": booking.participants_remaining,
+        "requested_refund": str(requested),
+        "status": booking.status,
+    })
+
+
 @bp.get("/bookings/<int:booking_id>/chat")
 @login_required
 def booking_chat(booking_id):
@@ -560,7 +620,35 @@ def park():
     if not _can("staff.park.manage"):
         return jsonify({"error": "لا تملك صلاحية إدارة دخول الحديقة"}), 403
     visits = ParkVisit.query.filter_by(status="open").order_by(ParkVisit.started_at.desc()).limit(100).all()
-    return render_template("staff/park.html", employee=employee, visits=visits, occupancy=sum(v.people_remaining for v in visits))
+    today_start = datetime.combine(_now().date(), datetime.min.time(), tzinfo=TZ)
+    today_end = today_start + timedelta(days=1)
+    today_entries = (
+        db.session.query(func.coalesce(func.sum(ParkVisit.people_count), 0))
+        .filter(ParkVisit.started_at >= today_start, ParkVisit.started_at < today_end)
+        .scalar()
+        or 0
+    )
+    today_exits = (
+        db.session.query(func.coalesce(func.sum(ParkVisitExit.people_count), 0))
+        .filter(ParkVisitExit.exited_at >= today_start, ParkVisitExit.exited_at < today_end)
+        .scalar()
+        or 0
+    )
+    recent_exits = (
+        ParkVisitExit.query
+        .order_by(ParkVisitExit.exited_at.desc())
+        .limit(60)
+        .all()
+    )
+    return render_template(
+        "staff/park.html",
+        employee=employee,
+        visits=visits,
+        occupancy=sum(v.people_remaining for v in visits),
+        today_entries=int(today_entries),
+        today_exits=int(today_exits),
+        recent_exits=recent_exits,
+    )
 
 
 @bp.post("/park/entry")
@@ -734,6 +822,42 @@ def finance():
         shift_expected=_shift_expected(shift) if shift else Decimal("0"),
         transactions=transactions,
     )
+
+
+@bp.post("/attendance/check-in")
+@login_required
+def attendance_check_in():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    today = _now().date()
+    row = Attendance.query.filter_by(employee_id=employee.id, work_date=today).first()
+    if row and row.check_in:
+        return jsonify({"error": "تم تسجيل الحضور اليوم بالفعل"}), 400
+    if not row:
+        row = Attendance(employee_id=employee.id, work_date=today, status="present")
+        db.session.add(row)
+    row.check_in = _now()
+    row.status = "present"
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم تسجيل الحضور", "check_in": row.check_in.isoformat()})
+
+
+@bp.post("/attendance/check-out")
+@login_required
+def attendance_check_out():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    today = _now().date()
+    row = Attendance.query.filter_by(employee_id=employee.id, work_date=today).first()
+    if not row or not row.check_in:
+        return jsonify({"error": "سجل الحضور أولًا"}), 400
+    if row.check_out:
+        return jsonify({"error": "تم تسجيل الانصراف اليوم بالفعل"}), 400
+    row.check_out = _now()
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم تسجيل الانصراف", "check_out": row.check_out.isoformat()})
 
 
 @bp.get("/attendance")

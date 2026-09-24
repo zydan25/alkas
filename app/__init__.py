@@ -150,6 +150,10 @@ def create_app(config_class=Config):
         if not current_user.has_permission("admin.access"):
             return {"error": "forbidden", "message": "لا تملك صلاحية دخول لوحة الإدارة"}, 403
 
+        if request.path == "/admin/policies" or request.path.startswith("/admin/policies/"):
+            if current_user.has_permission("settings.manage") or current_user.has_permission("payment.refund"):
+                return None
+
         required = "admin.access"
         for prefix, permission in sorted(ADMIN_PERMISSIONS, key=lambda item: len(item[0]), reverse=True):
             if request.path == prefix or request.path.startswith(prefix + "/"):
