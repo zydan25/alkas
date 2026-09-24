@@ -261,3 +261,15 @@ def test_manager_can_create_employee_login_and_open_staff_app():
         db.session.delete(staff_role)
         db.session.delete(manager_role)
         db.session.commit()
+
+
+def test_booking_policy_and_multi_player_fields_are_present():
+    from app.bookings.models import Booking
+    from app.policies.models import BookingPolicy
+
+    policy = BookingPolicy()
+    booking = Booking()
+    assert policy.hold_duration_minutes.default.arg == 60
+    assert hasattr(booking, "participant_count")
+    assert hasattr(booking, "participants_remaining")
+    assert hasattr(booking, "participant_unit_price")
