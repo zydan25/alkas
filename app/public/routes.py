@@ -170,7 +170,7 @@ def _upcoming_matches(now):
 def home():
     # The domain root is the account gateway: managers/admins, employees,
     # and customers should land in their own dashboard immediately.
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and request.args.get("public") != "1":
         if current_user.username == "admin" or current_user.has_permission("admin.access"):
             return _role_redirect("admin.dashboard")
 
