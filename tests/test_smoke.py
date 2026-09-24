@@ -130,6 +130,63 @@ def test_staff_dashboard_renders_for_linked_employee():
         db.session.commit()
 
 
+def test_admin_login_redirects_to_admin_dashboard():
+    import uuid
+
+    from app import create_app
+    from app.extensions import db
+    from app.models import Permission, Role, User
+
+    app = create_app()
+    app.config["WTF_CSRF_ENABLED"] = False
+    suffix = uuid.uuid4().hex[:8]
+
+    with app.app_context():
+        permission = Permission.query.filter_by(key="admin.access").first()
+        if not permission:
+            permission = Permission(key="admin.access", name_ar="دخول الإدارة", is_active=True)
+            db.session.add(permission)
+            db.session.flush()
+
+        role = Role(
+            name="admin_login_" + suffix,
+            name_ar="مدير تسجيل دخول",
+            permissions=[permission],
+        )
+        user = User(
+            username="admin_login_" + suffix,
+            phone="77" + str(uuid.uuid4().int % 10**8).zfill(8),
+            display_name="مدير تسجيل دخول",
+            is_active=True,
+            roles=[role],
+        )
+        user.set_password("AdminPass123")
+        db.session.add_all([role, user])
+        db.session.commit()
+
+        client = app.test_client()
+        response = client.post(
+            "/auth/login",
+            data={"identifier": user.username, "password": "AdminPass123"},
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        assert response.headers["Location"].endswith("/admin")
+
+        # حتى لو وصل المدير إلى صفحة دخول بسبب next خاص بالعميل،
+        # لا نتركه يسقط في واجهة العميل بعد المصادقة.
+        response = client.get(
+            "/auth/login?next=/customer",
+            follow_redirects=False,
+        )
+        assert response.status_code in {302, 303}
+        assert response.headers["Location"].endswith("/admin")
+
+        db.session.delete(user)
+        db.session.delete(role)
+        db.session.commit()
+
+
 def test_employee_login_redirects_to_staff_app():
     import uuid
 
