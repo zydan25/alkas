@@ -6,6 +6,7 @@ class BookingPolicy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name_ar = db.Column(db.String(180), nullable=False, unique=True)
     cancellation_deadline_minutes = db.Column(db.Integer, nullable=False, default=360)
+    hold_duration_minutes = db.Column(db.Integer, nullable=False, default=60)
     refund_percent_before_deadline = db.Column(db.Numeric(6,2), nullable=False, default=100)
     refund_percent_after_deadline = db.Column(db.Numeric(6,2), nullable=False, default=0)
     deposit_percent = db.Column(db.Numeric(6,2), nullable=False, default=100)
