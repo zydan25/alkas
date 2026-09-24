@@ -51,7 +51,7 @@ def _can(permission):
     if current_user.username == "admin" or current_user.has_permission(permission):
         return True
     employee = _employee()
-    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view"})
+    return bool(employee and permission in {"staff.access", "staff.park.manage", "staff.finance.view", "staff.cash.manage"})
 
 
 def _now():
@@ -740,6 +740,96 @@ def attendance():
         return render_template("staff/no_profile.html"), 403
     rows = Attendance.query.filter_by(employee_id=employee.id).order_by(Attendance.work_date.desc()).limit(80).all()
     return render_template("staff/attendance.html", employee=employee, rows=rows)
+
+
+@bp.get("/availability")
+@login_required
+def availability():
+    employee, error = _require_employee()
+    if error:
+        return error
+    try:
+        start_at = _normalize_datetime(request.args.get("start_at"))
+        duration = int(request.args.get("duration") or 60)
+        if duration <= 0:
+            raise ValueError("المدة غير صحيحة")
+        end_at = start_at + timedelta(minutes=duration)
+    except (ValueError, TypeError):
+        return jsonify({"error": "وقت أو مدة غير صحيحة"}), 400
+
+    resources = Resource.query.filter_by(is_active=True).order_by(Resource.sport_id, Resource.id).all()
+    busy_ids = {
+        row.resource_id
+        for row in BookingAllocation.query.filter(
+            BookingAllocation.is_active.is_(True),
+            BookingAllocation.start_at < end_at,
+            BookingAllocation.end_at > start_at,
+        ).all()
+    }
+    blocked_ids = {
+        row.resource_id
+        for row in ResourceBlock.query.filter(
+            ResourceBlock.status == "active",
+            ResourceBlock.starts_at < end_at,
+            ResourceBlock.ends_at > start_at,
+        ).all()
+    }
+    busy_ids |= blocked_ids
+    return jsonify({
+        "items": [{
+            "id": r.id,
+            "name": r.name_ar,
+            "busy": r.id in busy_ids,
+            "status": r.status,
+        } for r in resources]
+    })
+
+
+@bp.post("/cash/open")
+@login_required
+def cash_open():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    if _open_shift(employee):
+        return jsonify({"error": "لديك وردية مفتوحة بالفعل"}), 400
+    try:
+        opening = _to_decimal(request.form.get("opening_amount"), "الرصيد الافتتاحي")
+        register_id = int(request.form.get("register_id") or 0)
+    except (ValueError, TypeError, InvalidOperation):
+        return jsonify({"error": "بيانات فتح الوردية غير صحيحة"}), 400
+    register = db.session.get(CashRegister, register_id) if register_id else CashRegister.query.filter_by(is_active=True).order_by(CashRegister.id).first()
+    if not register or not register.is_active:
+        return jsonify({"error": "لا يوجد صندوق نشط"}), 400
+    if CashShift.query.filter_by(register_id=register.id, status="open").first():
+        return jsonify({"error": "الصندوق مرتبط بورديّة مفتوحة"}), 400
+    shift = CashShift(register_id=register.id, employee_id=employee.id, opening_amount=opening, status="open")
+    db.session.add(shift)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم فتح الوردية", "shift_id": shift.id})
+
+
+@bp.post("/cash/close")
+@login_required
+def cash_close():
+    employee, error = _require_employee()
+    if error:
+        return error, 403
+    shift = _open_shift(employee)
+    if not shift:
+        return jsonify({"error": "لا توجد وردية مفتوحة"}), 400
+    try:
+        actual = _to_decimal(request.form.get("actual_amount"), "المبلغ الفعلي")
+    except (ValueError, TypeError, InvalidOperation):
+        return jsonify({"error": "المبلغ الفعلي غير صحيح"}), 400
+    expected = _shift_expected(shift)
+    shift.expected_amount = expected
+    shift.actual_amount = actual
+    shift.difference = actual - expected
+    shift.status = "closed"
+    shift.closed_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return jsonify({"ok": True, "message": "تم إخلاء العهدة وإغلاق الوردية", "expected": str(expected), "difference": str(shift.difference)})
 
 
 @bp.get("/api/summary")
