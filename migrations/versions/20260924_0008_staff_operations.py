@@ -68,6 +68,7 @@ def upgrade():
         ("staff.booking.cancel", "إلغاء الحجوزات", "إلغاء الحجز وبدء طلب الاسترجاع وفق السياسة."),
         ("staff.park.manage", "إدارة دخول الحديقة", "تسجيل الدخول والخروج للزوار ومتابعة المتبقين."),
         ("staff.finance.view", "البيانات المالية للموظف", "عرض الراتب والخصومات والسلف وحركات العهدة الخاصة بالموظف."),
+        ("staff.cash.manage", "إدارة وردية الموظف", "فتح وإغلاق وردية الصندوق وإخلاء العهدة الخاصة بالموظف."),
     ]
     for key, name_ar, description_ar in permissions:
         op.execute(
@@ -96,5 +97,6 @@ def downgrade():
         "staff.booking.cancel",
         "staff.park.manage",
         "staff.finance.view",
+        "staff.cash.manage",
     ):
         op.execute(sa.text("DELETE FROM permissions WHERE key = :key").bindparams(key=key))
