@@ -1,0 +1,82 @@
+name: Build Store Architecture Report PDF
+
+on:
+  push:
+    branches:
+      - docs/store-report-pdf-2026-09-25
+    paths:
+      - .github/report_html_parts/**
+      - .github/workflows/build-store-report-pdf.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install Arabic fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-core fonts-noto-cjk
+
+      - name: Rebuild HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .report-build
+          cat .github/report_html_parts/part-00.txt \
+              .github/report_html_parts/part-01.txt \
+              .github/report_html_parts/part-02.txt \
+              .github/report_html_parts/part-03.txt \
+              .github/report_html_parts/part-04.txt \
+              .github/report_html_parts/part-05.txt > .report-build/report.html
+          test -s .report-build/report.html
+          python3 - <<'PY'
+          from pathlib import Path
+          data = Path('.report-build/report.html').read_text(encoding='utf-8')
+          assert data.startswith('<!doctype html>')
+          assert data.endswith('</html>')
+          assert 'تقرير تحليل وبنية نظام متجر إلكتروني متكامل' in data
+          print(f'HTML bytes: {Path(".report-build/report.html").stat().st_size}')
+          PY
+
+      - name: Build PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs
+          google-chrome \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --allow-file-access-from-files \
+            --run-all-compositor-stages-before-draw \
+            --virtual-time-budget=10000 \
+            --no-pdf-header-footer \
+            --print-to-pdf="$PWD/docs/store_system_architecture_report_ar.pdf" \
+            "file://$PWD/.report-build/report.html"
+          test -s docs/store_system_architecture_report_ar.pdf
+          pdfinfo docs/store_system_architecture_report_ar.pdf | sed -n '1,20p'
+
+      - name: Commit PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/store_system_architecture_report_ar.pdf
+          if git diff --cached --quiet; then
+            echo "PDF unchanged"
+            exit 0
+          fi
+          git commit -m "docs: add store architecture report PDF"
+          git push
